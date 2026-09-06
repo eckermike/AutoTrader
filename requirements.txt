@@ -1,0 +1,8 @@
+alpaca-py>=0.38.0
+pandas-ta>=0.3.14b0
+requests>=2.31.0
+numpy>=1.26.0
+pandas>=2.2.0
+pydantic>=2.7.0
+pydantic-settings>=2.2.0
+pytest>=8.0.0
