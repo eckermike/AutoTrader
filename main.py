@@ -232,11 +232,14 @@ class TradingDaemon:
         # Signal Determination
         if trailing_stop_triggered:
             signal_type = "SELL"
-        elif composite_score >= self.config.BUY_TRIGGER_SCORE:
-            signal_type = "BUY"
         elif composite_score <= self.config.SELL_TRIGGER_SCORE:
             signal_type = "SELL"
             exit_reason = f"Composite Score ({composite_score:+.3f}) <= Sell Threshold ({self.config.SELL_TRIGGER_SCORE:+.3f})"
+        elif pos_qty > 0:
+            # Active position already open; ride momentum and manage risk via trailing stop
+            signal_type = "HOLD"
+        elif composite_score >= self.config.BUY_TRIGGER_SCORE:
+            signal_type = "BUY"
         else:
             signal_type = "HOLD"
 
@@ -294,8 +297,17 @@ class TradingDaemon:
 
             # Execution Logic
             if signal_type == "BUY":
-                # Check maximum exposure limits
+                # Strictly prevent duplicate buy orders if position is already active
                 current_pos_val = position.market_value if position else 0.0
+                if position and position.qty > 0:
+                    logger.info(
+                        "Position already open for %s (%.4f units, $%s). Holding position and skipping additional BUY.",
+                        symbol,
+                        position.qty,
+                        f"{current_pos_val:,.2f}",
+                    )
+                    continue
+
                 if current_pos_val >= self.config.MAX_POSITION_USD:
                     logger.info(
                         "Maximum position limit ($%s) reached for %s. Skipping BUY order.",
@@ -310,6 +322,7 @@ class TradingDaemon:
                     self.config.MAX_POSITION_USD - current_pos_val,
                 )
                 target_order_size = min(target_order_size, remaining_cash)
+                target_order_size = round(target_order_size, 2)
 
                 if target_order_size < 10.0:
                     logger.info(

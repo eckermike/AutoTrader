@@ -58,9 +58,9 @@ class BotConfig(BaseSettings):
         description="Target dollar amount allocated per paper buy order",
     )
     MAX_POSITION_USD: float = Field(
-        default=5000.0,
+        default=500.0,
         gt=0.0,
-        description="Maximum cumulative position notional value in USD",
+        description="Maximum cumulative position notional value in USD per crypto asset",
     )
 
     # --- Tri-Factor Weights ---

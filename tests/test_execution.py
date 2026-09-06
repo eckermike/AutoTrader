@@ -167,3 +167,27 @@ def test_daemon_multi_crypto_position_isolation(tmp_path):
     _, _, _, _, btc_signal, btc_reason = daemon.evaluate_signals(65000.0, symbol="BTC/USD")
     assert btc_reason != link_reason
 
+
+def test_daemon_no_duplicate_buy_when_in_position(tmp_path):
+    test_tax_file = tmp_path / "dup_buy_tax.json"
+    config = BotConfig(
+        ALPACA_PAPER=True,
+        TAX_RESERVE_FILE=test_tax_file,
+        BUY_TRIGGER_SCORE=0.50,
+        TARGET_SYMBOLS=["LINK/USD"],
+        WHEEL_ENABLED=False,
+    )
+    daemon = TradingDaemon(config=config, dry_run=True)
+    # Give daemon an open position in LINK
+    daemon.crypto_positions["LINK/USD"] = {
+        "qty": 37.0,
+        "entry_price": 13.0,
+        "peak_price": 13.5,
+    }
+
+    # Even with a strong bullish market, evaluate_signals must return HOLD because pos_qty > 0
+    tech, vol, sent, comp, signal_type, reason = daemon.evaluate_signals(13.4, symbol="LINK/USD")
+    assert signal_type == "HOLD"
+    assert reason is None
+
+
