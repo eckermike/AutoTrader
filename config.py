@@ -40,7 +40,11 @@ class BotConfig(BaseSettings):
     # --- Target Symbol & Daemon Parameters ---
     TARGET_SYMBOL: str = Field(
         default="BTC/USD",
-        description="Target cryptocurrency pair for paper trading",
+        description="Default cryptocurrency pair for single-asset trading",
+    )
+    TARGET_SYMBOLS: Union[List[str], str] = Field(
+        default=["BTC/USD", "ETH/USD", "SOL/USD", "LINK/USD", "AVAX/USD", "DOGE/USD"],
+        description="List of target cryptocurrency pairs for multi-crypto portfolio scanner",
     )
     CYCLE_INTERVAL_SECONDS: int = Field(
         default=60,
@@ -190,6 +194,16 @@ class BotConfig(BaseSettings):
         le=10,
         description="Number of option contracts traded per cycle (1 contract = 100 shares)",
     )
+
+    @field_validator("TARGET_SYMBOLS", mode="after")
+    @classmethod
+    def parse_target_symbols(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            symbols = [s.strip().upper() for s in v.split(",") if s.strip()]
+            return symbols if symbols else ["BTC/USD", "ETH/USD", "SOL/USD", "LINK/USD", "AVAX/USD", "DOGE/USD"]
+        elif isinstance(v, (list, tuple)):
+            return [str(s).strip().upper() for s in v if str(s).strip()]
+        return ["BTC/USD", "ETH/USD", "SOL/USD", "LINK/USD", "AVAX/USD", "DOGE/USD"]
 
     @field_validator("WHEEL_SYMBOLS", mode="after")
     @classmethod

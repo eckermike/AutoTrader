@@ -16,7 +16,7 @@ import signal
 import sys
 import time
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from config import BotConfig, get_config
 from execution.alpaca_client import AlpacaPaperClient, PositionInfo
@@ -49,10 +49,8 @@ class TradingDaemon:
         self.running = True
         self.cycle_count = 0
 
-        # Position and risk tracking state
-        self.position_entry_price: Optional[float] = None
-        self.position_peak_price: Optional[float] = None
-        self.position_qty: float = 0.0
+        # Multi-asset crypto position and risk tracking state
+        self.crypto_positions: Dict[str, Dict[str, Any]] = {}
 
         # 1. Initialize Virtual Tax Escrow Engine
         self.tax_engine = TaxEngine(
@@ -106,6 +104,37 @@ class TradingDaemon:
         signal.signal(signal.SIGINT, self._handle_signal)
         signal.signal(signal.SIGTERM, self._handle_signal)
 
+    # --- Backward compatibility properties for single-symbol access & tests ---
+    @property
+    def position_qty(self) -> float:
+        return self.crypto_positions.get(self.config.TARGET_SYMBOL, {}).get("qty", 0.0)
+
+    @position_qty.setter
+    def position_qty(self, val: float):
+        if self.config.TARGET_SYMBOL not in self.crypto_positions:
+            self.crypto_positions[self.config.TARGET_SYMBOL] = {"qty": 0.0, "entry_price": None, "peak_price": None}
+        self.crypto_positions[self.config.TARGET_SYMBOL]["qty"] = val
+
+    @property
+    def position_entry_price(self) -> Optional[float]:
+        return self.crypto_positions.get(self.config.TARGET_SYMBOL, {}).get("entry_price")
+
+    @position_entry_price.setter
+    def position_entry_price(self, val: Optional[float]):
+        if self.config.TARGET_SYMBOL not in self.crypto_positions:
+            self.crypto_positions[self.config.TARGET_SYMBOL] = {"qty": 0.0, "entry_price": None, "peak_price": None}
+        self.crypto_positions[self.config.TARGET_SYMBOL]["entry_price"] = val
+
+    @property
+    def position_peak_price(self) -> Optional[float]:
+        return self.crypto_positions.get(self.config.TARGET_SYMBOL, {}).get("peak_price")
+
+    @position_peak_price.setter
+    def position_peak_price(self, val: Optional[float]):
+        if self.config.TARGET_SYMBOL not in self.crypto_positions:
+            self.crypto_positions[self.config.TARGET_SYMBOL] = {"qty": 0.0, "entry_price": None, "peak_price": None}
+        self.crypto_positions[self.config.TARGET_SYMBOL]["peak_price"] = val
+
     def _handle_signal(self, signum, frame):
         """Intercepts termination signals and flags the daemon for clean shutdown."""
         sig_name = signal.Signals(signum).name
@@ -115,28 +144,37 @@ class TradingDaemon:
         )
         self.running = False
 
-    def sync_position_state(self) -> Optional[PositionInfo]:
-        """Synchronizes local position tracking with Alpaca broker state."""
-        position = self.client.get_crypto_position(self.config.TARGET_SYMBOL)
+    def sync_position_state(self, symbol: Optional[str] = None) -> Optional[PositionInfo]:
+        """Synchronizes local position tracking with Alpaca broker state for a given symbol."""
+        sym = symbol or self.config.TARGET_SYMBOL
+        if sym not in self.crypto_positions:
+            self.crypto_positions[sym] = {"qty": 0.0, "entry_price": None, "peak_price": None}
+
+        position = self.client.get_crypto_position(sym)
         if position and position.qty > 0:
-            self.position_qty = position.qty
-            if self.position_entry_price is None:
-                self.position_entry_price = position.avg_entry_price
-                self.position_peak_price = max(
+            self.crypto_positions[sym]["qty"] = position.qty
+            if self.crypto_positions[sym]["entry_price"] is None:
+                self.crypto_positions[sym]["entry_price"] = position.avg_entry_price
+                self.crypto_positions[sym]["peak_price"] = max(
                     position.avg_entry_price, position.current_price
                 )
             else:
-                self.position_peak_price = max(
-                    self.position_peak_price or position.current_price,
+                self.crypto_positions[sym]["peak_price"] = max(
+                    self.crypto_positions[sym]["peak_price"] or position.current_price,
                     position.current_price,
                 )
         else:
-            self.position_qty = 0.0
-            self.position_entry_price = None
-            self.position_peak_price = None
+            self.crypto_positions[sym]["qty"] = 0.0
+            self.crypto_positions[sym]["entry_price"] = None
+            self.crypto_positions[sym]["peak_price"] = None
         return position
 
-    def evaluate_signals(self, current_price: float) -> tuple[float, float, float, float, str, Optional[str]]:
+    def evaluate_signals(
+        self,
+        current_price: float,
+        symbol: Optional[str] = None,
+        bars_df: Optional[Any] = None,
+    ) -> tuple[float, float, float, float, str, Optional[str]]:
         """
         Executes the Tri-Factor Decision Engine:
         - Technical Factor (40%)
@@ -144,11 +182,14 @@ class TradingDaemon:
         - Sentiment Factor (30%)
         Returns (tech_score, vol_score, sent_score, composite_score, signal_type, exit_reason).
         """
-        # Fetch OHLCV historical bars
-        bars_df = self.client.get_crypto_bars(
-            symbol=self.config.TARGET_SYMBOL,
-            limit=250,
-        )
+        sym = symbol or self.config.TARGET_SYMBOL
+
+        # Fetch OHLCV historical bars if not passed
+        if bars_df is None:
+            bars_df = self.client.get_crypto_bars(
+                symbol=sym,
+                limit=250,
+            )
 
         # 1. Technical Factor
         tech_res = self.technical_factor.evaluate(bars_df)
@@ -159,8 +200,9 @@ class TradingDaemon:
         vol_score = vol_res.score
 
         # 3. Sentiment Factor
+        coin_name = sym.split("/")[0]
         market_headline_sample = (
-            f"Bitcoin trading around ${current_price:,.2f}. Market participants evaluate "
+            f"{coin_name} trading around ${current_price:,.2f}. Market participants evaluate "
             f"on-chain liquidity, macroeconomic indicators, and institutional ETF inflows."
         )
         sent_res = self.sentiment_analyzer.analyze(market_headline_sample)
@@ -174,14 +216,18 @@ class TradingDaemon:
         )
         composite_score = round(composite_score, 4)
 
-        # Trailing Stop-Loss Check
+        # Trailing Stop-Loss Check for this symbol
         trailing_stop_triggered = False
         exit_reason = None
-        if self.position_qty > 0 and self.position_peak_price:
-            drawdown = (self.position_peak_price - current_price) / self.position_peak_price
+        pos_info = self.crypto_positions.get(sym, {})
+        pos_qty = pos_info.get("qty", 0.0)
+        pos_peak = pos_info.get("peak_price")
+
+        if pos_qty > 0 and pos_peak:
+            drawdown = (pos_peak - current_price) / pos_peak
             if drawdown >= self.config.TRAILING_STOP_LOSS_PCT:
                 trailing_stop_triggered = True
-                exit_reason = f"Trailing Stop-Loss Triggered (-{drawdown:.1%} from peak ${self.position_peak_price:,.2f})"
+                exit_reason = f"Trailing Stop-Loss Triggered (-{drawdown:.1%} from peak ${pos_peak:,.2f})"
 
         # Signal Determination
         if trailing_stop_triggered:
@@ -197,143 +243,207 @@ class TradingDaemon:
         return tech_score, vol_score, sent_score, composite_score, signal_type, exit_reason
 
     def run_cycle(self) -> None:
-        """Executes a single evaluation and order placement cycle."""
+        """Executes a single evaluation and order placement cycle across the multi-crypto portfolio."""
         self.cycle_count += 1
         account = self.client.get_account()
         tradable_cash = self.tax_engine.calculate_tradable_cash(account.cash)
-        position = self.sync_position_state()
+        remaining_cash = tradable_cash
 
-        # Approximate current price from bars or position
-        bars_df = self.client.get_crypto_bars(self.config.TARGET_SYMBOL, limit=5)
-        current_price = float(bars_df["close"].iloc[-1])
+        # Determine target crypto symbols list
+        raw_symbols = getattr(self.config, "TARGET_SYMBOLS", [self.config.TARGET_SYMBOL])
+        if isinstance(raw_symbols, str):
+            symbols = [s.strip().upper() for s in raw_symbols.split(",") if s.strip()]
+        else:
+            symbols = list(raw_symbols)
+        if not symbols:
+            symbols = [self.config.TARGET_SYMBOL]
 
-        # Evaluate Tri-Factor Engine
-        tech_score, vol_score, sent_score, composite_score, signal_type, exit_reason = (
-            self.evaluate_signals(current_price)
-        )
+        for symbol in symbols:
+            position = self.sync_position_state(symbol)
 
-        # Exact Breakdown Logging (as specified in requirements)
-        logger.info(
-            "[CYCLE #%d] Symbol: %s | Price: $%s | Technical: %+0.3f | Volume: %+0.3f | "
-            "Sentiment: %+0.3f | Composite: %+0.3f => Signal: %s",
-            self.cycle_count,
-            self.config.TARGET_SYMBOL,
-            f"{current_price:,.2f}",
-            tech_score,
-            vol_score,
-            sent_score,
-            composite_score,
-            signal_type,
-        )
+            # Approximate current price from bars
+            try:
+                bars_df = self.client.get_crypto_bars(symbol, limit=250)
+                if bars_df.empty:
+                    logger.warning("Empty bars returned for %s, skipping.", symbol)
+                    continue
+                current_price = float(bars_df["close"].iloc[-1])
+            except Exception as e:
+                logger.error("Failed to fetch bars for %s: %s", symbol, e)
+                continue
 
-        logger.info(
-            "Portfolio: Cash=$%s | Tax Reserve=$%s | Tradable Cash=$%s | Position=%s",
-            f"{account.cash:,.2f}",
-            f"{self.tax_engine.current_reserve:,.2f}",
-            f"{tradable_cash:,.2f}",
-            f"{position.qty:.6f} units (${position.market_value:,.2f})" if position else "None (Flat)",
-        )
-
-        # Execution Logic
-        if signal_type == "BUY":
-            # Check maximum exposure limits
-            current_pos_val = position.market_value if position else 0.0
-            if current_pos_val >= self.config.MAX_POSITION_USD:
-                logger.info("Maximum position limit ($%s) reached. Skipping BUY order.", f"{self.config.MAX_POSITION_USD:,.2f}")
-                return
-
-            # Determine order size bounded by Tradable Cash
-            target_order_size = min(
-                self.config.ORDER_SIZE_USD,
-                self.config.MAX_POSITION_USD - current_pos_val,
+            # Evaluate Tri-Factor Engine
+            tech_score, vol_score, sent_score, composite_score, signal_type, exit_reason = (
+                self.evaluate_signals(current_price, symbol=symbol, bars_df=bars_df)
             )
 
-            try:
-                # Hard capital gate enforcement
-                self.tax_engine.validate_order_budget(account.cash, target_order_size)
-                
-                logger.info("Submitting BUY Market Order: $%s for %s", f"{target_order_size:,.2f}", self.config.TARGET_SYMBOL)
-                order_receipt = self.client.submit_market_order(
-                    symbol=self.config.TARGET_SYMBOL,
-                    side="BUY",
-                    notional=target_order_size,
-                    estimated_price=current_price,
+            # Exact Breakdown Logging (as specified in requirements)
+            price_display = f"{current_price:,.2f}" if current_price >= 1.0 else f"{current_price:,.4f}"
+            logger.info(
+                "[CYCLE #%d] Symbol: %s | Price: $%s | Technical: %+0.3f | Volume: %+0.3f | "
+                "Sentiment: %+0.3f | Composite: %+0.3f => Signal: %s",
+                self.cycle_count,
+                symbol,
+                price_display,
+                tech_score,
+                vol_score,
+                sent_score,
+                composite_score,
+                signal_type,
+            )
+
+            # Execution Logic
+            if signal_type == "BUY":
+                # Check maximum exposure limits
+                current_pos_val = position.market_value if position else 0.0
+                if current_pos_val >= self.config.MAX_POSITION_USD:
+                    logger.info(
+                        "Maximum position limit ($%s) reached for %s. Skipping BUY order.",
+                        f"{self.config.MAX_POSITION_USD:,.2f}",
+                        symbol,
+                    )
+                    continue
+
+                # Determine order size bounded by Tradable Cash & remaining cycle cash
+                target_order_size = min(
+                    self.config.ORDER_SIZE_USD,
+                    self.config.MAX_POSITION_USD - current_pos_val,
                 )
-                logger.info("Order Executed: %s (Status: %s)", order_receipt.client_order_id, order_receipt.status)
-                
-                # Update local position tracking
-                self.position_entry_price = current_price
-                self.position_peak_price = current_price
+                target_order_size = min(target_order_size, remaining_cash)
 
-                # Dispatch Real-Time Trade Alert to all iCloud devices
-                self.notifier.notify_buy(
-                    symbol=self.config.TARGET_SYMBOL,
-                    price=current_price,
-                    notional=target_order_size,
-                    qty=order_receipt.qty or (target_order_size / current_price),
-                    composite_score=composite_score,
-                    tech_score=tech_score,
-                    vol_score=vol_score,
-                    sent_score=sent_score,
-                    tradable_cash=tradable_cash,
-                    tax_reserve=self.tax_engine.current_reserve,
-                )
+                if target_order_size < 10.0:
+                    logger.info(
+                        "Insufficient remaining tradable cash ($%s) for %s BUY. Skipping.",
+                        f"{remaining_cash:,.2f}",
+                        symbol,
+                    )
+                    continue
 
-            except InsufficientTradableCashError as e:
-                logger.error("Order Blocked by Tax Escrow Engine: %s", e)
+                try:
+                    # Hard capital gate enforcement
+                    self.tax_engine.validate_order_budget(account.cash, target_order_size)
 
-        elif signal_type == "SELL":
-            if position and position.qty > 0:
-                logger.info("Exiting Position: %s | Reason: %s", self.config.TARGET_SYMBOL, exit_reason)
-                close_order = self.client.close_crypto_position(self.config.TARGET_SYMBOL)
-                
-                if close_order:
-                    # Calculate realized PnL and update virtual tax escrow
-                    entry_p = self.position_entry_price or position.avg_entry_price
-                    exit_p = close_order.filled_avg_price or current_price
-                    trade_record = self.tax_engine.record_closed_trade(
-                        symbol=self.config.TARGET_SYMBOL,
-                        side="SELL",
-                        qty=position.qty,
-                        entry_price=entry_p,
-                        exit_price=exit_p,
+                    logger.info(
+                        "Submitting BUY Market Order: $%s for %s",
+                        f"{target_order_size:,.2f}",
+                        symbol,
+                    )
+                    order_receipt = self.client.submit_market_order(
+                        symbol=symbol,
+                        side="BUY",
+                        notional=target_order_size,
+                        estimated_price=current_price,
                     )
                     logger.info(
-                        "Trade Settled: Gross PnL=$%+0.2f | Tax Allocated=$%0.2f | Tax Credit=$%0.2f | New Reserve=$%0.2f",
-                        trade_record.gross_pnl,
-                        trade_record.tax_allocated,
-                        trade_record.tax_credit,
-                        trade_record.reserve_after,
+                        "Order Executed: %s (Status: %s)",
+                        order_receipt.client_order_id,
+                        order_receipt.status,
                     )
+
+                    # Update local position tracking
+                    if symbol not in self.crypto_positions:
+                        self.crypto_positions[symbol] = {"qty": 0.0, "entry_price": None, "peak_price": None}
+                    self.crypto_positions[symbol]["entry_price"] = current_price
+                    self.crypto_positions[symbol]["peak_price"] = current_price
+                    remaining_cash -= target_order_size
 
                     # Dispatch Real-Time Trade Alert to all iCloud devices
-                    self.notifier.notify_sell(
-                        symbol=self.config.TARGET_SYMBOL,
-                        exit_price=exit_p,
-                        qty=position.qty,
-                        reason=exit_reason or "Composite Score <= Sell Threshold",
-                        gross_pnl=trade_record.gross_pnl,
-                        tax_allocated=trade_record.tax_allocated,
-                        tax_credit=trade_record.tax_credit,
-                        reserve_after=trade_record.reserve_after,
+                    self.notifier.notify_buy(
+                        symbol=symbol,
+                        price=current_price,
+                        notional=target_order_size,
+                        qty=order_receipt.qty or (target_order_size / current_price),
+                        composite_score=composite_score,
+                        tech_score=tech_score,
+                        vol_score=vol_score,
+                        sent_score=sent_score,
+                        tradable_cash=remaining_cash,
+                        tax_reserve=self.tax_engine.current_reserve,
                     )
 
-                    # Reset position tracking
-                    self.position_qty = 0.0
-                    self.position_entry_price = None
-                    self.position_peak_price = None
-            else:
-                logger.debug("SELL signal generated but no open position to liquidate.")
+                except InsufficientTradableCashError as e:
+                    logger.error("Order Blocked by Tax Escrow Engine for %s: %s", symbol, e)
+                except Exception as e:
+                    logger.exception("Failed to execute BUY order for %s: %s", symbol, e)
 
-        elif signal_type == "HOLD":
-            if position and self.position_peak_price:
-                pct_drawdown = (self.position_peak_price - current_price) / self.position_peak_price
-                logger.debug(
-                    "Holding %s: Drawdown from peak: %.2f%% (Stop threshold: %.2f%%)",
-                    self.config.TARGET_SYMBOL,
-                    pct_drawdown * 100,
-                    self.config.TRAILING_STOP_LOSS_PCT * 100,
-                )
+            elif signal_type == "SELL":
+                if position and position.qty > 0:
+                    logger.info("Exiting Position: %s | Reason: %s", symbol, exit_reason)
+                    close_order = self.client.close_crypto_position(symbol)
+
+                    if close_order:
+                        # Calculate realized PnL and update virtual tax escrow
+                        entry_p = (
+                            self.crypto_positions.get(symbol, {}).get("entry_price")
+                            or position.avg_entry_price
+                        )
+                        exit_p = close_order.filled_avg_price or current_price
+                        trade_record = self.tax_engine.record_closed_trade(
+                            symbol=symbol,
+                            side="SELL",
+                            qty=position.qty,
+                            entry_price=entry_p,
+                            exit_price=exit_p,
+                        )
+
+                        logger.info(
+                            "Trade Settled [%s]: Gross PnL=$%+0.2f | Tax Allocated=$%0.2f | Tax Credit=$%0.2f | New Reserve=$%0.2f",
+                            symbol,
+                            trade_record.gross_pnl,
+                            trade_record.tax_allocated,
+                            trade_record.tax_credit,
+                            trade_record.reserve_after,
+                        )
+
+                        # Dispatch Real-Time Trade Alert to all iCloud devices
+                        self.notifier.notify_sell(
+                            symbol=symbol,
+                            exit_price=exit_p,
+                            qty=position.qty,
+                            reason=exit_reason or "Composite Score <= Sell Threshold",
+                            gross_pnl=trade_record.gross_pnl,
+                            tax_allocated=trade_record.tax_allocated,
+                            tax_credit=trade_record.tax_credit,
+                            reserve_after=trade_record.reserve_after,
+                        )
+
+                        # Reset position tracking
+                        self.crypto_positions[symbol] = {
+                            "qty": 0.0,
+                            "entry_price": None,
+                            "peak_price": None,
+                        }
+                else:
+                    logger.debug(
+                        "SELL signal generated for %s but no open position to liquidate.",
+                        symbol,
+                    )
+
+            elif signal_type == "HOLD":
+                pos_peak = self.crypto_positions.get(symbol, {}).get("peak_price")
+                if position and pos_peak:
+                    pct_drawdown = (pos_peak - current_price) / pos_peak
+                    logger.debug(
+                        "Holding %s: Drawdown from peak: %.2f%% (Stop threshold: %.2f%%)",
+                        symbol,
+                        pct_drawdown * 100,
+                        self.config.TRAILING_STOP_LOSS_PCT * 100,
+                    )
+
+        # Portfolio Summary Logging
+        open_positions = [
+            f"{s}: {p['qty']:.4f} units"
+            for s, p in self.crypto_positions.items()
+            if p.get("qty", 0.0) > 0
+        ]
+        pos_summary_str = ", ".join(open_positions) if open_positions else "None (Flat)"
+        logger.info(
+            "Portfolio: Cash=$%s | Tax Reserve=$%s | Tradable Cash=$%s | Crypto Positions=[%s]",
+            f"{account.cash:,.2f}",
+            f"{self.tax_engine.current_reserve:,.2f}",
+            f"{remaining_cash:,.2f}",
+            pos_summary_str,
+        )
 
         # --- Strategy 2: Multi-Asset Option Wheel Execution ---
         if self.config.WHEEL_ENABLED:
@@ -344,10 +454,24 @@ class TradingDaemon:
 
     def start(self, max_cycles: Optional[int] = None) -> None:
         """Starts the daemon loop."""
+        target_display = (
+            ", ".join(self.config.TARGET_SYMBOLS)
+            if isinstance(self.config.TARGET_SYMBOLS, list)
+            else self.config.TARGET_SYMBOL
+        )
         logger.info("==========================================================")
         logger.info("Starting Crypto Paper Trading Bot (Apple Silicon Edition)")
-        logger.info("Target Symbol: %s | Interval: %ds | Paper Mode: %s", self.config.TARGET_SYMBOL, self.config.CYCLE_INTERVAL_SECONDS, self.config.ALPACA_PAPER)
-        logger.info("Sentiment Provider: %s | Tax Escrow Rate: %.0f%%", self.config.SENTIMENT_PROVIDER, self.config.TAX_RATE * 100)
+        logger.info(
+            "Target Symbols: %s | Interval: %ds | Paper Mode: %s",
+            target_display,
+            self.config.CYCLE_INTERVAL_SECONDS,
+            self.config.ALPACA_PAPER,
+        )
+        logger.info(
+            "Sentiment Provider: %s | Tax Escrow Rate: %.0f%%",
+            self.config.SENTIMENT_PROVIDER,
+            self.config.TAX_RATE * 100,
+        )
         logger.info("==========================================================")
 
         while self.running:
@@ -418,6 +542,7 @@ def main():
     config = get_config()
     if args.symbol:
         config.TARGET_SYMBOL = args.symbol
+        config.TARGET_SYMBOLS = [args.symbol]
     if args.interval:
         config.CYCLE_INTERVAL_SECONDS = args.interval
 

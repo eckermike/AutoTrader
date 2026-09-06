@@ -115,3 +115,55 @@ def test_daemon_trailing_stop_loss_trigger(tmp_path):
     assert signal_type == "SELL"
     assert exit_reason is not None
     assert "Trailing Stop-Loss Triggered" in exit_reason
+
+
+def test_daemon_multi_crypto_scanning(tmp_path):
+    test_tax_file = tmp_path / "multi_crypto_tax.json"
+    basket = ["BTC/USD", "ETH/USD", "SOL/USD", "LINK/USD"]
+    config = BotConfig(
+        ALPACA_PAPER=True,
+        TAX_RESERVE_FILE=test_tax_file,
+        TARGET_SYMBOLS=basket,
+        WHEEL_ENABLED=False,
+    )
+    daemon = TradingDaemon(config=config, dry_run=True)
+    daemon.run_cycle()
+
+    assert daemon.cycle_count == 1
+    # Verify all symbols have been tracked in crypto_positions
+    for sym in basket:
+        assert sym in daemon.crypto_positions
+
+
+def test_daemon_multi_crypto_position_isolation(tmp_path):
+    test_tax_file = tmp_path / "isolation_tax.json"
+    config = BotConfig(
+        ALPACA_PAPER=True,
+        TAX_RESERVE_FILE=test_tax_file,
+        TRAILING_STOP_LOSS_PCT=0.05,
+        TARGET_SYMBOLS=["BTC/USD", "LINK/USD"],
+        WHEEL_ENABLED=False,
+    )
+    daemon = TradingDaemon(config=config, dry_run=True)
+    # Set LINK/USD into a trailing stop condition
+    daemon.crypto_positions["LINK/USD"] = {
+        "qty": 50.0,
+        "entry_price": 20.0,
+        "peak_price": 25.0,
+    }
+    # BTC/USD has no position
+    daemon.crypto_positions["BTC/USD"] = {
+        "qty": 0.0,
+        "entry_price": None,
+        "peak_price": None,
+    }
+
+    # Evaluate LINK at 22.0 (drawdown = (25-22)/25 = 12% > 5%)
+    _, _, _, _, link_signal, link_reason = daemon.evaluate_signals(22.0, symbol="LINK/USD")
+    assert link_signal == "SELL"
+    assert "Trailing Stop-Loss Triggered" in (link_reason or "")
+
+    # Evaluate BTC at 65000.0 (BTC has 0 qty, so trailing stop should not trigger)
+    _, _, _, _, btc_signal, btc_reason = daemon.evaluate_signals(65000.0, symbol="BTC/USD")
+    assert btc_reason != link_reason
+
