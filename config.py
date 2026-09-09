@@ -150,6 +150,26 @@ class BotConfig(BaseSettings):
         default=True,
         description="Whether to display local macOS desktop notification banners",
     )
+    DAILY_RECAP_ENABLED: bool = Field(
+        default=True,
+        description="Whether to send an automated end-of-day summary notification",
+    )
+    DAILY_RECAP_HOUR: int = Field(
+        default=17,
+        ge=0,
+        le=23,
+        description="Hour of day (0-23, local time) to send daily recap (17 = 5:00 PM)",
+    )
+    DAILY_RECAP_MINUTE: int = Field(
+        default=0,
+        ge=0,
+        le=59,
+        description="Minute of hour (0-59) to send daily recap",
+    )
+    DAILY_RECAP_ONLY_ZERO_TRADES: bool = Field(
+        default=False,
+        description="If True, only sends recap if zero trades were executed that day",
+    )
 
     # --- Option Wheel Strategy (Multi-Asset Portfolio) ---
     WHEEL_ENABLED: bool = Field(

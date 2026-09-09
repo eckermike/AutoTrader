@@ -371,3 +371,69 @@ class TradeNotifier:
             body=desc,
         )
         self.send_imessage(message)
+
+    def notify_daily_recap(
+        self,
+        date_str: str,
+        trades_count: int,
+        crypto_diagnostics: list[str],
+        wheel_diagnostics: list[str],
+        cash: float,
+        tradable_cash: float,
+        tax_reserve: float,
+    ) -> None:
+        """
+        Sends an automated end-of-day daily briefing.
+        If trades_count == 0, provides a clear diagnostic breakdown explaining
+        why no trades were triggered across both Crypto and Option Wheel strategies.
+        """
+        status_line = (
+            f"⚡ Today's Trades: {trades_count} executed"
+            if trades_count > 0
+            else "💤 Today's Trades: 0 New Orders"
+        )
+
+        crypto_section = (
+            "\n".join(f"• {item}" for item in crypto_diagnostics)
+            if crypto_diagnostics
+            else "• All quiet"
+        )
+        wheel_section = (
+            "\n".join(f"• {item}" for item in wheel_diagnostics)
+            if wheel_diagnostics
+            else "• No active wheel orders"
+        )
+
+        reason_header = (
+            "\n🔍 WHY NO TRADES WERE TRIGGERED TODAY:\n"
+            if trades_count == 0
+            else "\n📋 ACTIVITY & STATUS BREAKDOWN:\n"
+        )
+
+        message = (
+            f"📊 [AUTOTRADER DAILY BRIEFING — {date_str}]\n"
+            f"{status_line}\n"
+            f"{reason_header}"
+            f"🪙 Crypto Momentum Scanner:\n"
+            f"{crypto_section}\n\n"
+            f"🎡 Multi-Asset Option Wheel:\n"
+            f"{wheel_section}\n\n"
+            f"💰 Portfolio Financials:\n"
+            f"• Total Cash:    ${cash:,.2f}\n"
+            f"• Tradable Cash: ${tradable_cash:,.2f}\n"
+            f"• Tax Escrow:    ${tax_reserve:,.2f}"
+        )
+
+        self.send_ntfy(
+            message=message,
+            title=f"AutoTrader Daily Briefing ({date_str})",
+            priority="default",
+            tags="bar_chart,memo,clipboard",
+        )
+        self.send_macos_banner(
+            title=f"AutoTrader Daily Briefing — {date_str}",
+            subtitle=f"{trades_count} trades today | Cash: ${cash:,.2f}",
+            body="Tap to view full daily breakdown.",
+        )
+        self.send_imessage(message)
+

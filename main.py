@@ -100,6 +100,12 @@ class TradingDaemon:
             notifier=self.notifier,
         )
 
+        # Daily tracking and briefing state
+        self.current_day_str: Optional[str] = None
+        self.trades_executed_today: int = 0
+        self.daily_max_composite_scores: Dict[str, float] = {}
+        self.last_daily_recap_date: Optional[str] = None
+
         # Register POSIX signal handlers for graceful termination
         signal.signal(signal.SIGINT, self._handle_signal)
         signal.signal(signal.SIGTERM, self._handle_signal)
@@ -252,6 +258,14 @@ class TradingDaemon:
         tradable_cash = self.tax_engine.calculate_tradable_cash(account.cash)
         remaining_cash = tradable_cash
 
+        # Track daily rollover
+        now = datetime.now()
+        today_str = now.strftime("%Y-%m-%d")
+        if self.current_day_str != today_str:
+            self.current_day_str = today_str
+            self.trades_executed_today = 0
+            self.daily_max_composite_scores = {}
+
         # Determine target crypto symbols list
         raw_symbols = getattr(self.config, "TARGET_SYMBOLS", [self.config.TARGET_SYMBOL])
         if isinstance(raw_symbols, str):
@@ -278,6 +292,12 @@ class TradingDaemon:
             # Evaluate Tri-Factor Engine
             tech_score, vol_score, sent_score, composite_score, signal_type, exit_reason = (
                 self.evaluate_signals(current_price, symbol=symbol, bars_df=bars_df)
+            )
+
+            # Track daily peak momentum score
+            self.daily_max_composite_scores[symbol] = max(
+                self.daily_max_composite_scores.get(symbol, -1.0),
+                composite_score,
             )
 
             # Exact Breakdown Logging (as specified in requirements)
@@ -359,6 +379,7 @@ class TradingDaemon:
                     self.crypto_positions[symbol]["entry_price"] = current_price
                     self.crypto_positions[symbol]["peak_price"] = current_price
                     remaining_cash -= target_order_size
+                    self.trades_executed_today += 1
 
                     # Dispatch Real-Time Trade Alert to all iCloud devices
                     self.notifier.notify_buy(
@@ -420,6 +441,8 @@ class TradingDaemon:
                             reserve_after=trade_record.reserve_after,
                         )
 
+                        self.trades_executed_today += 1
+
                         # Reset position tracking
                         self.crypto_positions[symbol] = {
                             "qty": 0.0,
@@ -464,6 +487,129 @@ class TradingDaemon:
                 self.wheel_engine.step(total_cash=account.cash)
             except Exception as e:
                 logger.exception("Error executing Multi-Asset Wheel Strategy cycle: %s", e)
+
+        # --- Strategy 3: End-of-Day Daily Briefing & Zero-Trade Diagnostics ---
+        try:
+            self.check_and_dispatch_daily_recap(
+                account_cash=account.cash,
+                tradable_cash=remaining_cash,
+            )
+        except Exception as e:
+            logger.exception("Error executing Daily Briefing check: %s", e)
+
+    def check_and_dispatch_daily_recap(
+        self,
+        account_cash: float,
+        tradable_cash: float,
+        force: bool = False,
+    ) -> bool:
+        """
+        Checks if the daily recap schedule is met, compiles diagnostics, and dispatches notification.
+        Returns True if a recap was dispatched, False otherwise.
+        """
+        if not getattr(self.config, "DAILY_RECAP_ENABLED", True) and not force:
+            return False
+
+        now = datetime.now()
+        today_str = now.strftime("%Y-%m-%d")
+
+        target_hour = getattr(self.config, "DAILY_RECAP_HOUR", 17)
+        target_minute = getattr(self.config, "DAILY_RECAP_MINUTE", 0)
+
+        is_time = (now.hour > target_hour) or (now.hour == target_hour and now.minute >= target_minute)
+        if (not is_time or self.last_daily_recap_date == today_str) and not force:
+            return False
+
+        # Query total trade fills today from Alpaca if live client is active
+        trades_count = self.trades_executed_today
+        if not self.dry_run and getattr(self.client, "trading_client", None):
+            try:
+                from alpaca.trading.requests import GetActivitiesRequest
+                from alpaca.trading.enums import ActivityType
+                acts = self.client.trading_client.get_activities(
+                    GetActivitiesRequest(activity_types=[ActivityType.FILL], date=today_str)
+                )
+                if acts is not None:
+                    trades_count = len(acts)
+            except Exception as e:
+                logger.debug("Could not query Alpaca daily activities: %s", e)
+
+        # Check if only zero trades mode is enabled
+        if getattr(self.config, "DAILY_RECAP_ONLY_ZERO_TRADES", False) and trades_count > 0 and not force:
+            self.last_daily_recap_date = today_str
+            return False
+
+        # 1. Gather Crypto Scanner diagnostics
+        crypto_diag: List[str] = []
+        raw_symbols = getattr(self.config, "TARGET_SYMBOLS", [self.config.TARGET_SYMBOL])
+        if isinstance(raw_symbols, str):
+            symbols = [s.strip().upper() for s in raw_symbols.split(",") if s.strip()]
+        else:
+            symbols = list(raw_symbols)
+        if not symbols:
+            symbols = [self.config.TARGET_SYMBOL]
+
+        for sym in symbols:
+            pos_info = self.crypto_positions.get(sym, {})
+            qty = pos_info.get("qty", 0.0)
+            entry = pos_info.get("entry_price")
+            peak = pos_info.get("peak_price")
+            max_score = self.daily_max_composite_scores.get(sym, 0.0)
+
+            if qty > 0:
+                pos = self.client.get_crypto_position(sym)
+                curr_p = pos.current_price if pos else (peak or entry or 0.0)
+                gain_pct = ((curr_p - entry) / entry * 100) if (entry and entry > 0) else 0.0
+                crypto_diag.append(
+                    f"{sym}: Active position ({qty:.4f} units, {gain_pct:+.1f}%). 5% trailing stop active."
+                )
+            else:
+                crypto_diag.append(
+                    f"{sym}: Peak score {max_score:+.3f} (Trigger: {self.config.BUY_TRIGGER_SCORE:+.2f}). Market below momentum breakout threshold."
+                )
+
+        # 2. Gather Option Wheel diagnostics
+        wheel_diag: List[str] = []
+        if getattr(self.config, "WHEEL_ENABLED", True) and hasattr(self, "wheel_engine"):
+            for sym, engine in self.wheel_engine.engines.items():
+                active_positions = engine.client.get_active_option_positions(sym)
+                open_orders = engine.client.get_open_orders(sym)
+
+                active_puts = [p for p in active_positions if p.contract_type == "put" and p.qty < 0]
+                active_calls = [p for p in active_positions if p.contract_type == "call" and p.qty < 0]
+
+                if active_puts:
+                    for p in active_puts:
+                        wheel_diag.append(f"{sym}: Short Put active ({p.symbol}). Waiting for 50% profit decay.")
+                elif active_calls:
+                    for p in active_calls:
+                        wheel_diag.append(f"{sym}: Covered Call active ({p.symbol}).")
+                elif open_orders:
+                    for o in open_orders:
+                        wheel_diag.append(f"{sym}: Limit order pending in order book ({getattr(o, 'symbol', 'limit')}).")
+                else:
+                    wheel_diag.append(f"{sym}: Idle / Staging next entry.")
+        else:
+            wheel_diag.append("Option Wheel strategy disabled.")
+
+        # 3. Dispatch Daily Recap Alert
+        logger.info(
+            "Dispatching End-of-Day Briefing for %s (Trades Today: %d)...",
+            today_str,
+            trades_count,
+        )
+        self.notifier.notify_daily_recap(
+            date_str=today_str,
+            trades_count=trades_count,
+            crypto_diagnostics=crypto_diag,
+            wheel_diagnostics=wheel_diag,
+            cash=account_cash,
+            tradable_cash=tradable_cash,
+            tax_reserve=self.tax_engine.current_reserve,
+        )
+
+        self.last_daily_recap_date = today_str
+        return True
 
     def start(self, max_cycles: Optional[int] = None) -> None:
         """Starts the daemon loop."""
