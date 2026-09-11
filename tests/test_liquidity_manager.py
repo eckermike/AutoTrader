@@ -255,3 +255,46 @@ def test_liquidity_manager_layer2_slippage_success(mock_config, mock_notifier, m
     # Verify execution confirmation sent
     mock_notifier.notify_approval_resolution.assert_called_once()
     assert "Liquidation Executed" in mock_notifier.notify_approval_resolution.call_args[1]["title"]
+
+
+def test_liquidity_manager_dividend_auto_escrow(mock_config, mock_notifier, mock_trading_client, tmp_path):
+    """Test autonomous dividend capture: 30% of incoming cash dividends are auto-escrowed into TaxEngine."""
+    from tax_engine import TaxEngine
+    tax_file = tmp_path / "tax_reserve_test.json"
+    tax_engine = TaxEngine(filepath=tax_file, tax_rate=0.30)
+
+    manager = LiquidityManager(
+        config=mock_config,
+        trading_client=mock_trading_client,
+        notifier=mock_notifier,
+        tax_engine=tax_engine,
+        state_file=mock_config.LIQUIDITY_STATE_FILE,
+    )
+
+    # Mock Alpaca dividend activity
+    mock_div = MagicMock()
+    mock_div.id = "DIV-ACT-12345"
+    mock_div.symbol = "SGOV"
+    mock_div.net_amount = 85.00
+    mock_trading_client.get_activities.return_value = [mock_div]
+
+    # Run step
+    with patch.object(manager, "poll_action_topic", return_value=[]):
+        manager.step()
+
+    # Verify dividend was recorded in tax_engine
+    assert tax_engine.current_reserve == 25.50  # 30% of $85.00
+    assert tax_engine.state.total_realized_profit == 85.00
+    assert "DIV-ACT-12345" in manager.state.processed_dividend_ids
+
+    # Verify push notification sent
+    mock_notifier.send_ntfy.assert_called_once()
+    assert "Dividend Tax Escrow" in mock_notifier.send_ntfy.call_args[1]["title"]
+
+    # Second step should be idempotent and not duplicate
+    with patch.object(manager, "poll_action_topic", return_value=[]):
+        manager.step()
+
+    assert tax_engine.current_reserve == 25.50
+    assert tax_engine.state.trade_count == 1
+

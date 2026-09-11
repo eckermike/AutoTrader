@@ -128,3 +128,19 @@ def test_json_state_persistence_and_reload(temp_tax_file: Path):
     assert engine2.state.trade_count == 1
     assert len(engine2.state.trade_history) == 1
     assert engine2.state.trade_history[0].symbol == "BTC/USD"
+
+
+def test_record_dividend_income(temp_tax_file: Path):
+    engine = TaxEngine(filepath=temp_tax_file, tax_rate=0.30)
+    record = engine.record_dividend(
+        symbol="SGOV",
+        gross_amount=85.00,
+        activity_id="DIV-SGOV-001",
+    )
+    assert record.symbol == "SGOV"
+    assert record.gross_pnl == 85.00
+    assert record.tax_allocated == 25.50  # 30% of $85.00
+    assert engine.current_reserve == 25.50
+    assert engine.state.total_realized_profit == 85.00
+    assert engine.state.trade_count == 1
+

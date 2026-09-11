@@ -40,13 +40,15 @@ class LiquidityState(BaseModel):
     pending_approval: Optional[PendingApproval] = None
     last_poll_timestamp: int = 0
     history: List[Dict[str, Any]] = Field(default_factory=list)
+    processed_dividend_ids: List[str] = Field(default_factory=list)
 
 
 class LiquidityManager:
     """
-    Coordinates idle cash deployment into cash-yield funds (SGOV / FBND)
-    and manages two-way mobile approvals via ntfy.sh action buttons with
-    Layer 1 (4h TTL) and Layer 2 (Pre-execution viability) safety gates.
+    Coordinates idle cash deployment into cash-yield funds (SGOV / FBND),
+    manages two-way mobile approvals via ntfy.sh action buttons with
+    Layer 1 (4h TTL) and Layer 2 (Pre-execution viability) safety gates,
+    and automatically escrows 30% of bond dividends & realized capital gains.
     """
 
     def __init__(
@@ -54,14 +56,17 @@ class LiquidityManager:
         config: BotConfig,
         trading_client: Any,
         notifier: TradeNotifier,
+        tax_engine: Optional[Any] = None,
         state_file: Optional[Path | str] = None,
     ):
         self.config = config
         self.trading_client = trading_client
         self.notifier = notifier
+        self.tax_engine = tax_engine
         self.state_file = Path(state_file or getattr(config, "LIQUIDITY_STATE_FILE", "liquidity_state.json"))
         self.action_topic = getattr(config, "NTFY_ACTION_TOPIC", "eckermike87-actions")
         self.state = self._load_state()
+
 
         if self.state.last_poll_timestamp == 0:
             self.state.last_poll_timestamp = int(time.time()) - 120
@@ -325,24 +330,105 @@ class LiquidityManager:
                 )
             )
             logger.info("%s liquidation order submitted: ID=%s, status=%s", symbol, getattr(order, "id", None), getattr(order, "status", None))
+
+            # Reconcile realized capital gains or losses with TaxEngine if available
+            if self.tax_engine and self.trading_client:
+                try:
+                    pos = self.trading_client.get_open_position(symbol)
+                    if pos:
+                        entry_p = float(pos.avg_entry_price)
+                        exit_p = float(getattr(order, "filled_avg_price", None) or pos.current_price or entry_p)
+                        qty = notional_amount / exit_p if exit_p > 0 else 0.0
+                        self.tax_engine.record_closed_trade(
+                            symbol=symbol,
+                            side="SELL",
+                            qty=qty,
+                            entry_price=entry_p,
+                            exit_price=exit_p,
+                        )
+                except Exception as e:
+                    logger.debug("Could not record liquidation tax reconciliation for %s: %s", symbol, e)
+
             return order
         except Exception as e:
             logger.exception("Failed to submit %s liquidation order: %s", symbol, e)
             return None
 
+    def check_and_process_dividends(self) -> List[Any]:
+        """
+        Queries Alpaca account activities for cash dividend distributions (DIV, DIVCQA).
+        Automatically withholds 30% into the virtual tax escrow reserve.
+        """
+        if not self.tax_engine or not self.trading_client:
+            return []
+
+        processed_records = []
+        try:
+            activities = []
+            if hasattr(self.trading_client, "get_activities"):
+                activities = self.trading_client.get_activities(activity_types=["DIV", "DIVCQA"])
+            elif hasattr(self.trading_client, "get"):
+                activities = self.trading_client.get("/account/activities", {"activity_types": "DIV,DIVCQA"}) or []
+
+            if activities:
+                for act in activities:
+                    if isinstance(act, dict):
+                        act_id = str(act.get("id", ""))
+                        symbol = str(act.get("symbol", "YIELD_ETF"))
+                        net_amount = float(act.get("net_amount", 0.0) or 0.0)
+                    else:
+                        act_id = str(getattr(act, "id", ""))
+                        symbol = str(getattr(act, "symbol", "YIELD_ETF"))
+                        net_amount = float(getattr(act, "net_amount", 0.0) or 0.0)
+
+                    if act_id and act_id not in self.state.processed_dividend_ids:
+                        if net_amount > 0:
+                            trade_rec = self.tax_engine.record_dividend(
+                                symbol=symbol,
+                                gross_amount=net_amount,
+                                activity_id=act_id,
+                            )
+                            processed_records.append(trade_rec)
+                            logger.info(
+                                "Dividend auto-captured for %s: +$%.2f. 30%% tax ($%.2f) escrowed.",
+                                symbol,
+                                net_amount,
+                                trade_rec.tax_allocated,
+                            )
+                            if self.notifier:
+                                self.notifier.send_ntfy(
+                                    message=(
+                                        f"💰 Cash Dividend Received from {symbol}: ${net_amount:,.2f}.\n"
+                                        f"30% (${trade_rec.tax_allocated:,.2f}) allocated to virtual tax reserve."
+                                    ),
+                                    title=f"Dividend Tax Escrow ({symbol})",
+                                    tags="moneybag,bank",
+                                )
+                        self.state.processed_dividend_ids.append(act_id)
+                self._save_state()
+        except Exception as e:
+            logger.debug("Could not query Alpaca dividend activities: %s", e)
+
+        return processed_records
+
     def step(self) -> Optional[str]:
         """
         Runs a check cycle:
-        1. Checks Layer 1 TTL expiration (4.0 hours).
-        2. Polls action topic for user tap events.
-        3. Runs Layer 2 Pre-execution viability & slippage check upon approval.
-        4. Executes orders or safely aborts.
+        1. Checks and processes dividend distributions (30% tax escrow).
+        2. Checks Layer 1 TTL expiration (4.0 hours).
+        3. Polls action topic for user tap events.
+        4. Runs Layer 2 Pre-execution viability & slippage check upon approval.
+        5. Executes orders or safely aborts.
         """
         # Always synchronize state from disk
         self.state = self._load_state()
 
+        # --- Dividend Auto-Capture (30% Tax Escrow) ---
+        self.check_and_process_dividends()
+
         # --- Layer 1: Time-To-Live (TTL) Check ---
         pending = self.state.pending_approval
+
         if pending and pending.status == "PENDING":
             ttl_hours = getattr(self.config, "APPROVAL_TTL_HOURS", 4.0)
             elapsed_hours = (time.time() - pending.created_timestamp) / 3600.0

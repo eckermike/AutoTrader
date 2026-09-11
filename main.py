@@ -111,7 +111,9 @@ class TradingDaemon:
             config=self.config,
             trading_client=trading_client,
             notifier=self.notifier,
+            tax_engine=self.tax_engine,
         )
+
 
         # Daily tracking and briefing state
 

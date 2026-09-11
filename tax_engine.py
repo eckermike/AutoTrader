@@ -273,7 +273,49 @@ class TaxEngine:
             exit_price=close_cost / (contracts * 100) if contracts > 0 else 0.0,
         )
 
+    def record_dividend(
+
+        self,
+        symbol: str,
+        gross_amount: float,
+        activity_id: Optional[str] = None,
+    ) -> TradeRecord:
+        """
+        Records cash dividend/distribution income from yield funds (e.g. SGOV, FBND).
+        Allocates tax_rate (30%) of dividend income into virtual tax escrow.
+        """
+        tax_allocated = gross_amount * self.tax_rate
+        self.state.tax_reserve += tax_allocated
+        self.state.total_realized_profit += gross_amount
+        self.state.total_tax_allocated += tax_allocated
+        self.state.trade_count += 1
+
+        record = TradeRecord(
+            id=activity_id or str(uuid.uuid4())[:8],
+            symbol=symbol,
+            side="DIVIDEND",
+            qty=1.0,
+            entry_price=round(gross_amount, 2),
+            exit_price=round(gross_amount, 2),
+            fee=0.0,
+            gross_pnl=round(gross_amount, 2),
+            tax_allocated=round(tax_allocated, 2),
+            tax_credit=0.0,
+            reserve_after=round(self.state.tax_reserve, 2),
+        )
+        self.state.trade_history.append(record)
+        self._save_state()
+        logger.info(
+            "Dividend Income Recorded [%s]: +$%0.2f. Tax Allocated: $%0.2f. New Reserve: $%0.2f",
+            symbol,
+            gross_amount,
+            tax_allocated,
+            self.state.tax_reserve,
+        )
+        return record
+
     def get_summary(self) -> Dict[str, Any]:
+
         """Returns diagnostic summary of current tax escrow and cumulative performance."""
         return {
             "tax_reserve": self.current_reserve,

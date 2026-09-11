@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoTrader Capital Partners | Investor Dashboard</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    
+    .glass-card {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card:hover {
+      border-color: rgba(99, 102, 241, 0.35);
+    }
+  </style>
+</head>
+<body class="bg-[#070b14] text-slate-100 antialiased font-sans min-h-screen p-4 md:p-8 selection:bg-indigo-500/30">
+
+  <!-- Header Section -->
+  <header class="max-w-7xl mx-auto mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              AutoTrader Capital Partners
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                LIVE FUND FEED
+              </span>
+            </h1>
+            <p class="text-sm text-slate-400">Multi-Asset Derivative & Yield Harvesting Portfolio | Apple Silicon Private Instance</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <div class="text-right hidden sm:block">
+          <p class="text-xs text-slate-400">Broker Execution</p>
+          <p class="text-sm font-medium text-slate-200">Alpaca Paper Markets (v2)</p>
+        </div>
+        <button onclick="window.location.reload()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          Refresh Feed
+        </button>
+      </div>
+    </div>
+
+    <!-- Top KPI Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
+      <div class="glass-card rounded-2xl p-4 transition-all">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Fund Assets</p>
+        <p class="text-2xl font-bold text-white mt-1.5 tracking-tight">$100,306.05</p>
+        <div class="flex items-center gap-1 mt-2 text-xs text-emerald-400 font-medium">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+          <span>+$306.05 Realized</span>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 transition-all">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Bond Yield Run-Rate</p>
+        <p class="text-2xl font-bold text-cyan-400 mt-1.5 tracking-tight">+$168.33<span class="text-xs text-slate-400 font-normal"> / mo</span></p>
+        <p class="text-xs text-slate-400 mt-2">5.05% Blended on $40k</p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 transition-all">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Tax Escrow Reserve</p>
+        <p class="text-2xl font-bold text-amber-400 mt-1.5 tracking-tight">$109.76</p>
+        <p class="text-xs text-slate-400 mt-2">30% Auto-Withheld in JSON</p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 transition-all">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Option Win Rate</p>
+        <p class="text-2xl font-bold text-emerald-400 mt-1.5 tracking-tight">100.0%</p>
+        <p class="text-xs text-slate-400 mt-2">7 Contracts Settled Early</p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 transition-all col-span-2 md:col-span-1">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Active Deployments</p>
+        <p class="text-2xl font-bold text-indigo-400 mt-1.5 tracking-tight">13 Tickers</p>
+        <p class="text-xs text-slate-400 mt-2">6 Wheels • 6 Crypto • 2 Bonds</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto">
+    
+    <!-- Tab Navigation Bar -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-slate-800 text-sm font-medium">
+      <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-button px-4 py-2 rounded-xl bg-indigo-600 text-white shadow-sm flex items-center gap-2 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        Overview & Allocation
+      </button>
+
+      <button onclick="switchTab('wheel')" id="tab-btn-wheel" class="tab-button px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-2 transition">
+        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        Multi-Asset Option Wheel (6)
+      </button>
+
+      <button onclick="switchTab('crypto')" id="tab-btn-crypto" class="tab-button px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-2 transition">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        Crypto Tri-Factor Scanner (6)
+      </button>
+
+      <button onclick="switchTab('liquidity')" id="tab-btn-liquidity" class="tab-button px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-2 transition">
+        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Treasury Yield Barbell ($40k)
+      </button>
+
+      <button onclick="switchTab('tax')" id="tab-btn-tax" class="tab-button px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-2 transition">
+        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        Tax Escrow Audit Ledger
+      </button>
+    </div>
+
+    <!-- ==================== TAB 1: OVERVIEW & ALLOCATION ==================== -->
+    <div id="tab-overview" class="tab-content block space-y-6">
+      
+      <!-- Capital Allocation Progress Bar -->
+      <div class="glass-card rounded-2xl p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white">Portfolio Capital Allocation</h2>
+            <p class="text-xs text-slate-400">Dynamic capital deployment protecting against cash drag while securing derivative commitments</p>
+          </div>
+          <span class="text-sm font-semibold text-slate-300">100.0% Capital Active</span>
+        </div>
+
+        <div class="w-full h-4 bg-slate-800 rounded-full overflow-hidden flex shadow-inner">
+          <div style="width: 39.87%" class="bg-cyan-500 hover:bg-cyan-400 transition-all cursor-pointer" title="Treasury & Bond Barbell: $40,000 (39.9%)"></div>
+          <div style="width: 45.06%" class="bg-indigo-600 hover:bg-indigo-500 transition-all cursor-pointer" title="Option Wheel Collateral: $45,200 (45.1%)"></div>
+          <div style="width: 14.57%" class="bg-emerald-500 hover:bg-emerald-400 transition-all cursor-pointer" title="Liquid Cash Reserve: $14,608.83 (14.6%)"></div>
+          <div style="width: 0.50%" class="bg-amber-500 hover:bg-amber-400 transition-all cursor-pointer" title="Spot Crypto: $497.22 (0.5%)"></div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-slate-800 text-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-md bg-cyan-500 shrink-0"></span>
+            <div>
+              <p class="text-slate-400">Bond Barbell (Yield)</p>
+              <p class="font-bold text-slate-200 text-sm">$40,000.00 <span class="font-normal text-slate-400 text-xs">(39.9%)</span></p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-md bg-indigo-600 shrink-0"></span>
+            <div>
+              <p class="text-slate-400">Option CSP Collateral</p>
+              <p class="font-bold text-slate-200 text-sm">$45,200.00 <span class="font-normal text-slate-400 text-xs">(45.1%)</span></p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-md bg-emerald-500 shrink-0"></span>
+            <div>
+              <p class="text-slate-400">Liquid Cash Buffer</p>
+              <p class="font-bold text-slate-200 text-sm">$14,608.83 <span class="font-normal text-slate-400 text-xs">(14.6%)</span></p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-md bg-amber-500 shrink-0"></span>
+            <div>
+              <p class="text-slate-400">Spot Crypto (ETH)</p>
+              <p class="font-bold text-slate-200 text-sm">$497.22 <span class="font-normal text-slate-400 text-xs">(0.5%)</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Institutional Strategy Pillars -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-cyan-500">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h3 class="font-bold text-white">Cash Drag Elimination</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Idle liquidity is never left at 0%. $40,000 is partitioned into an institutional 50/50 bond barbell ($20k SGOV + $20k FBND) generating ~5.05% annualized risk-free return while preserving margin buying power.
+          </p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-indigo-500">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </div>
+            <h3 class="font-bold text-white">Triple Income Wheel</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Simultaneously harvests option theta decay across 6 diversified equities (INTC, HOOD, PLTR, SOFI, F, XLF). Out-of-the-money puts are closed early at a strict 50% profit target to recycle collateral velocity.
+          </p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-amber-500">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            </div>
+            <h3 class="font-bold text-white">Autonomous Tax Escrow</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Every trade settlement mathematically withholds 30% into an isolated virtual tax reserve file. Hard capital gates reject any order that infringes upon tax withholdings, guaranteeing zero year-end surprises.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: OPTION WHEEL (6) ==================== -->
+    <div id="tab-wheel" class="tab-content hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white">Multi-Asset Option Wheel Strategy</h2>
+          <p class="text-xs text-slate-400">Harvesting theta decay on high-conviction tickers | 50% Max Profit Target Early-Exit</p>
+        </div>
+        
+        <div class="flex items-center gap-2 text-xs">
+          <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">4 Contracts Filled</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 font-medium">2 Orders Queued</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        
+        <!-- INTC Card -->
+        <div onclick="openModal('INTC', 'Intel Corporation', 'INTC261002P00089000', '$89.00', '2026-10-02', '21 Days', '$8,900.00', '+$55.00 (+34.4%)', '68.8% to 50% Target', 'MONITORING_PUT', '$102.52')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-indigo-500/50">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold text-white">INTC</span>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">ACTIVE PUT</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$102.52</span></p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-mono text-cyan-400 font-semibold">$89.00 Strike</span>
+              <p class="text-[11px] text-slate-400">Oct 02 Exp (21 DTE)</p>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80">
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Progress to 50% Profit Exit:</span>
+              <span class="text-emerald-400 font-semibold">68.8% ($55 / $80)</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 rounded-full" style="width: 68.8%"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+            <div>
+              <p class="text-slate-500">Collateral Locked</p>
+              <p class="font-semibold text-slate-200">$8,900.00</p>
+            </div>
+            <div class="text-right">
+              <p class="text-slate-500">Unrealized PnL</p>
+              <p class="font-semibold text-emerald-400">+$55.00 (+34.4%)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- HOOD Card -->
+        <div onclick="openModal('HOOD', 'Robinhood Markets', 'HOOD261002P00115000', '$115.00', '2026-10-02', '21 Days', '$11,500.00', '-$290.00', 'Decaying toward exit', 'MONITORING_PUT', '$113.66')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-indigo-500/50">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold text-white">HOOD</span>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">ACTIVE PUT</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$113.66</span></p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-mono text-cyan-400 font-semibold">$115.00 Strike</span>
+              <p class="text-[11px] text-slate-400">Oct 02 Exp (21 DTE)</p>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80">
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Phase & Strategy:</span>
+              <span class="text-indigo-300 font-medium">Cash-Secured Put</span>
+            </div>
+            <p class="text-[11px] text-slate-400">If assigned, bot automatically flips to Covered Calls at $115+ strike.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+            <div>
+              <p class="text-slate-500">Collateral Locked</p>
+              <p class="font-semibold text-slate-200">$11,500.00</p>
+            </div>
+            <div class="text-right">
+              <p class="text-slate-500">Premium Captured</p>
+              <p class="font-semibold text-slate-300">$380.00 Initial</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLTR Card -->
+        <div onclick="openModal('PLTR', 'Palantir Technologies', 'PLTR261002P00162500', '$162.50', '2026-10-02', '21 Days', '$16,250.00', '-$115.00', 'Decaying toward exit', 'MONITORING_PUT', '$167.93')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-indigo-500/50">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold text-white">PLTR</span>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">ACTIVE PUT</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$167.93</span></p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-mono text-cyan-400 font-semibold">$162.50 Strike</span>
+              <p class="text-[11px] text-slate-400">Oct 02 Exp (21 DTE)</p>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80">
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Strike Distance:</span>
+              <span class="text-emerald-400 font-medium">+3.3% OTM Safe</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-500 rounded-full" style="width: 45%"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+            <div>
+              <p class="text-slate-500">Collateral Locked</p>
+              <p class="font-semibold text-slate-200">$16,250.00</p>
+            </div>
+            <div class="text-right">
+              <p class="text-slate-500">Premium Captured</p>
+              <p class="font-semibold text-slate-300">$375.00 Initial</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SOFI Card -->
+        <div onclick="openModal('SOFI', 'SoFi Technologies', 'SOFI261002P00017000', '$17.00', '2026-10-02', '21 Days', '$1,700.00', '-$12.00', 'Decaying toward exit', 'MONITORING_PUT', '$17.32')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-indigo-500/50">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold text-white">SOFI</span>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">ACTIVE PUT</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$17.32</span></p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-mono text-cyan-400 font-semibold">$17.00 Strike</span>
+              <p class="text-[11px] text-slate-400">Oct 02 Exp (21 DTE)</p>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80">
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Strike Distance:</span>
+              <span class="text-emerald-400 font-medium">+1.9% OTM</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-500 rounded-full" style="width: 35%"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+            <div>
+              <p class="text-slate-500">Collateral Locked</p>
+              <p class="font-semibold text-slate-200">$1,700.00</p>
+            </div>
+            <div class="text-right">
+              <p class="text-slate-500">Premium Captured</p>
+              <p class="font-semibold text-slate-300">$50.00 Initial</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- F Card (Pending) -->
+        <div onclick="openModal('F', 'Ford Motor Company', 'F261002P00013500', '$13.50', '2026-10-02', '21 Days', '$1,350.00', 'Queued in Book', 'Awaiting open fill', 'PENDING_ORDER', '$13.95')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-slate-600 opacity-90">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold text-white">F</span>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-slate-700 text-slate-300 font-medium border border-slate-600">QUEUED ORDER</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$13.95</span></p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-mono text-cyan-400 font-semibold">$13.50 Strike</span>
+              <p class="text-[11px] text-slate-400">Oct 02 Exp (21 DTE)</p>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80">
+            <p class="text-xs text-slate-400">Limit order active in Alpaca book. Awaiting Monday market open execution.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+            <div>
+              <p class="text-slate-500">Earmarked Collateral</p>
+              <p class="font-semibold text-slate-200">$1,350.00</p>
+            </div>
+            <div class="text-right">
+              <p class="text-slate-500">Target Premium</p>
+              <p class="font-semibold text-slate-300">$50.00</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- XLF Card (Pending) -->
+        <div onclick="openModal('XLF', 'Financial Select Sector SPDR', 'XLF260930P00055000', '$55.00', '2026-09-30', '19 Days', '$5,500.00', 'Queued in Book', 'Awaiting open fill', 'PENDING_ORDER', '$57.24')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-slate-600 opacity-90">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold text-white">XLF</span>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-slate-700 text-slate-300 font-medium border border-slate-600">QUEUED ORDER</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">ETF Price: <span class="text-slate-200 font-medium">$57.24</span></p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-mono text-cyan-400 font-semibold">$55.00 Strike</span>
+              <p class="text-[11px] text-slate-400">Sep 30 Exp (19 DTE)</p>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80">
+            <p class="text-xs text-slate-400">Broad financial sector ETF. Diversifies away from single-company headline risk.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+            <div>
+              <p class="text-slate-500">Earmarked Collateral</p>
+              <p class="font-semibold text-slate-200">$5,500.00</p>
+            </div>
+            <div class="text-right">
+              <p class="text-slate-500">Target Premium</p>
+              <p class="font-semibold text-slate-300">$50.00</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: CRYPTO TRI-FACTOR ==================== -->
+    <div id="tab-crypto" class="tab-content hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white">Tri-Factor Momentum Decision Matrix</h2>
+          <p class="text-xs text-slate-400">Technical (40%) + Volume Regime (30%) + Ollama AI Sentiment (30%)</p>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Buy Trigger: &ge; +0.60</span>
+          <span class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 font-medium">Sell Trigger: &le; -0.40</span>
+        </div>
+      </div>
+
+      <!-- Active Position Highlight -->
+      <div class="glass-card rounded-2xl p-6 border-l-4 border-l-emerald-500 bg-gradient-to-r from-emerald-950/20 to-transparent">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xl font-bold text-white">ETH / USD</span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30">ACTIVE POSITION IN PROFIT</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-1">Holding <span class="font-mono font-semibold text-white">0.1884 units</span> entered at <span class="font-mono text-slate-200">$2,494.48</span> | Market Value: <span class="font-semibold text-white">$497.22</span></p>
+          </div>
+          <div class="text-left md:text-right">
+            <p class="text-xs text-slate-400">Unrealized Gain</p>
+            <p class="text-2xl font-bold text-emerald-400 tracking-tight">+$7.96 <span class="text-sm font-semibold">(+1.7%)</span></p>
+            <p class="text-xs text-slate-400 mt-0.5">5.0% Trailing Stop Active</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Factor Breakdown Table -->
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-900/80 text-xs uppercase font-semibold text-slate-400 border-b border-slate-800">
+              <tr>
+                <th class="py-3.5 px-4">Asset</th>
+                <th class="py-3.5 px-4">Live Price</th>
+                <th class="py-3.5 px-4">Technical (40%)</th>
+                <th class="py-3.5 px-4">Volume (30%)</th>
+                <th class="py-3.5 px-4">AI Sentiment (30%)</th>
+                <th class="py-3.5 px-4">Composite Score</th>
+                <th class="py-3.5 px-4 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-xs">
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-3 px-4 font-bold font-sans text-slate-100 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span> BTC/USD
+                </td>
+                <td class="py-3 px-4 text-white">$77,379.71</td>
+                <td class="py-3 px-4 text-rose-400">-0.156</td>
+                <td class="py-3 px-4 text-rose-400">-0.286</td>
+                <td class="py-3 px-4 text-slate-400">+0.000</td>
+                <td class="py-3 px-4 font-bold text-rose-400">-0.148</td>
+                <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-sans">HOLD</span></td>
+              </tr>
+
+              <tr class="hover:bg-slate-800/40 transition bg-indigo-950/10">
+                <td class="py-3 px-4 font-bold font-sans text-slate-100 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> ETH/USD
+                </td>
+                <td class="py-3 px-4 text-white">$2,536.50</td>
+                <td class="py-3 px-4 text-emerald-400">+0.275</td>
+                <td class="py-3 px-4 text-emerald-400">+0.987</td>
+                <td class="py-3 px-4 text-slate-400">+0.000</td>
+                <td class="py-3 px-4 font-bold text-emerald-400">+0.406</td>
+                <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-sans font-medium">IN POSITION</span></td>
+              </tr>
+
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-3 px-4 font-bold font-sans text-slate-100 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-purple-400"></span> SOL/USD
+                </td>
+                <td class="py-3 px-4 text-white">$102.86</td>
+                <td class="py-3 px-4 text-emerald-400">+0.184</td>
+                <td class="py-3 px-4 text-emerald-400">+0.206</td>
+                <td class="py-3 px-4 text-slate-400">+0.000</td>
+                <td class="py-3 px-4 font-bold text-emerald-400">+0.136</td>
+                <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-sans">HOLD</span></td>
+              </tr>
+
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-3 px-4 font-bold font-sans text-slate-100 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-blue-400"></span> LINK/USD
+                </td>
+                <td class="py-3 px-4 text-white">$11.61</td>
+                <td class="py-3 px-4 text-rose-400">-0.251</td>
+                <td class="py-3 px-4 text-rose-400">-0.242</td>
+                <td class="py-3 px-4 text-slate-400">+0.000</td>
+                <td class="py-3 px-4 font-bold text-rose-400">-0.173</td>
+                <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-sans">HOLD</span></td>
+              </tr>
+
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-3 px-4 font-bold font-sans text-slate-100 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-rose-400"></span> AVAX/USD
+                </td>
+                <td class="py-3 px-4 text-white">$7.47</td>
+                <td class="py-3 px-4 text-rose-400">-0.306</td>
+                <td class="py-3 px-4 text-emerald-400">+0.470</td>
+                <td class="py-3 px-4 text-slate-400">+0.000</td>
+                <td class="py-3 px-4 font-bold text-slate-300">+0.019</td>
+                <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-sans">HOLD</span></td>
+              </tr>
+
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-3 px-4 font-bold font-sans text-slate-100 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-yellow-400"></span> DOGE/USD
+                </td>
+                <td class="py-3 px-4 text-white">$0.0845</td>
+                <td class="py-3 px-4 text-rose-400">-0.217</td>
+                <td class="py-3 px-4 text-rose-400">-0.043</td>
+                <td class="py-3 px-4 text-slate-400">+0.000</td>
+                <td class="py-3 px-4 font-bold text-rose-400">-0.100</td>
+                <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-sans">HOLD</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 4: TREASURY YIELD BARBELL ==================== -->
+    <div id="tab-liquidity" class="tab-content hidden space-y-6">
+      <div>
+        <h2 class="text-lg font-bold text-white">50/50 Treasury & Bond Barbell Engine</h2>
+        <p class="text-xs text-slate-400">$40,000 Parked Capital Generating Institutional Cash Flow</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- SGOV Card -->
+        <div class="glass-card rounded-2xl p-6 border-t-4 border-t-cyan-500">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2.5 py-1 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">THE STABLE ANCHOR</span>
+            <span class="text-xs text-slate-400">Alpaca Order: bbca4aa4</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white mt-3">SGOV <span class="text-sm font-normal text-slate-400">(iShares 0-3 Month Treasury)</span></h3>
+          <p class="text-3xl font-bold text-cyan-400 mt-2">$20,000.00</p>
+
+          <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-slate-800 text-xs">
+            <div>
+              <p class="text-slate-400">Annualized Yield</p>
+              <p class="font-bold text-slate-200 text-sm">~5.10%</p>
+            </div>
+            <div>
+              <p class="text-slate-400">Monthly Cash Dividend</p>
+              <p class="font-bold text-emerald-400 text-sm">+$85.00 / mo</p>
+            </div>
+            <div>
+              <p class="text-slate-400">Duration Risk</p>
+              <p class="font-bold text-slate-200">0.1 Years (Zero)</p>
+            </div>
+            <div>
+              <p class="text-slate-400">Liquidity Role</p>
+              <p class="font-bold text-cyan-400">1st Tier Liquidation</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FBND Card -->
+        <div class="glass-card rounded-2xl p-6 border-t-4 border-t-indigo-500">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">GROWTH & DURATION</span>
+            <span class="text-xs text-slate-400">Alpaca Order: b4d91246</span>
+          </div>
+          <h3 class="text-2xl font-bold text-white mt-3">FBND <span class="text-sm font-normal text-slate-400">(Fidelity Total Bond ETF)</span></h3>
+          <p class="text-3xl font-bold text-indigo-400 mt-2">$20,000.00</p>
+
+          <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-slate-800 text-xs">
+            <div>
+              <p class="text-slate-400">Annualized Yield</p>
+              <p class="font-bold text-slate-200 text-sm">~5.00%</p>
+            </div>
+            <div>
+              <p class="text-slate-400">Monthly Cash Dividend</p>
+              <p class="font-bold text-emerald-400 text-sm">+$83.33 / mo</p>
+            </div>
+            <div>
+              <p class="text-slate-400">Duration Risk</p>
+              <p class="font-bold text-slate-200">~6.0 Years</p>
+            </div>
+            <div>
+              <p class="text-slate-400">Tailwind</p>
+              <p class="font-bold text-indigo-300">Rate Cut Capital Gains</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-Tier Safety Gate Architecture -->
+      <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-base font-bold text-white mb-2">Automated Human-in-the-Loop (HITL) Safety Architecture</h3>
+        <p class="text-xs text-slate-400 mb-6">Autonomous operation for routine trades; multi-layer cryptographic safeguards when capital liquidation is required</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <span class="text-xs font-bold text-indigo-400 uppercase">Tier 1: Autonomous</span>
+            <h4 class="font-bold text-slate-200 mt-1">Routine Execution</h4>
+            <p class="text-slate-400 mt-1.5 leading-relaxed">
+              Trades fitting within the $15.1k liquid buffer execute 100% autonomously without pinging stakeholders.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <span class="text-xs font-bold text-cyan-400 uppercase">Layer 1: Time-To-Live</span>
+            <h4 class="font-bold text-slate-200 mt-1">4.0-Hour Expiration</h4>
+            <p class="text-slate-400 mt-1.5 leading-relaxed">
+              If an approval request is not answered within 4 hours, it automatically expires, clearing the order book and protecting capital.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <span class="text-xs font-bold text-emerald-400 uppercase">Layer 2: Pre-Execution</span>
+            <h4 class="font-bold text-slate-200 mt-1">0.5% Slippage Gate</h4>
+            <p class="text-slate-400 mt-1.5 leading-relaxed">
+              Upon approval tap, live prices are re-verified. If market moved &gt;0.5%, the trade is aborted immediately.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 5: TAX ESCROW AUDIT LEDGER ==================== -->
+    <div id="tax" class="tab-content hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white">Virtual Tax Escrow Audit Ledger</h2>
+          <p class="text-xs text-slate-400">Strict 30% tax segregation on all realized profits | Immutable local state persistence</p>
+        </div>
+        <div class="text-right">
+          <span class="text-xs text-slate-400">Current Reserve Balance:</span>
+          <span class="text-lg font-bold text-amber-400 ml-1.5">$109.76</span>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-900/80 text-xs uppercase font-semibold text-slate-400 border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Date / Time (UTC)</th>
+                <th class="py-3 px-4">Asset / Contract</th>
+                <th class="py-3 px-4">Side</th>
+                <th class="py-3 px-4">Gross PnL</th>
+                <th class="py-3 px-4">30% Tax Allocated</th>
+                <th class="py-3 px-4">Tax Credit</th>
+                <th class="py-3 px-4 text-right">Reserve Balance</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-xs">
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 18:50</td>
+                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">INTC261009P00020000</td>
+                <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
+                <td class="py-2.5 px-4 text-emerald-400">+$95.00</td>
+                <td class="py-2.5 px-4 text-amber-400">+$28.50</td>
+                <td class="py-2.5 px-4 text-slate-500">$0.00</td>
+                <td class="py-2.5 px-4 text-right font-bold text-amber-300">$28.50</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 18:53</td>
+                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">INTC261002P00089000</td>
+                <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
+                <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
+                <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
+                <td class="py-2.5 px-4 text-slate-500">$0.00</td>
+                <td class="py-2.5 px-4 text-right font-bold text-amber-300">$43.50</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 19:04</td>
+                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">F261002P00013500</td>
+                <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
+                <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
+                <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
+                <td class="py-2.5 px-4 text-slate-500">$0.00</td>
+                <td class="py-2.5 px-4 text-right font-bold text-amber-300">$58.50</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 19:04</td>
+                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">SOFI261002P00017000</td>
+                <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
+                <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
+                <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
+                <td class="py-2.5 px-4 text-slate-500">$0.00</td>
+                <td class="py-2.5 px-4 text-right font-bold text-amber-300">$73.50</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 19:04</td>
+                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">HOOD261002P00115000</td>
+                <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
+                <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
+                <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
+                <td class="py-2.5 px-4 text-slate-500">$0.00</td>
+                <td class="py-2.5 px-4 text-right font-bold text-amber-300">$88.50</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 19:04</td>
+                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">PLTR261002P00162500</td>
+                <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
+                <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
+                <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
+                <td class="py-2.5 px-4 text-slate-500">$0.00</td>
+                <td class="py-2.5 px-4 text-right font-bold text-amber-300">$103.50</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 19:04</td>
+                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">XLF260930P00055000</td>
+                <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
+                <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
+                <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
+                <td class="py-2.5 px-4 text-slate-500">$0.00</td>
+                <td class="py-2.5 px-4 text-right font-bold text-amber-300">$118.50</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition bg-rose-950/10">
+                <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-07 14:34</td>
+                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">LINK/USD</td>
+                <td class="py-2.5 px-4 text-rose-400">SELL (Stop)</td>
+                <td class="py-2.5 px-4 text-rose-400">-$12.18</td>
+                <td class="py-2.5 px-4 text-slate-500">$0.00</td>
+                <td class="py-2.5 px-4 text-cyan-400">+$3.65</td>
+                <td class="py-2.5 px-4 text-right font-bold text-amber-300">$114.85</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition bg-rose-950/10">
+                <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-10 12:39</td>
+                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">AVAX/USD</td>
+                <td class="py-2.5 px-4 text-rose-400">SELL (Stop)</td>
+                <td class="py-2.5 px-4 text-rose-400">-$16.94</td>
+                <td class="py-2.5 px-4 text-slate-500">$0.00</td>
+                <td class="py-2.5 px-4 text-cyan-400">+$5.08</td>
+                <td class="py-2.5 px-4 text-right font-bold text-amber-300">$109.76</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Contract Details Modal -->
+  <div id="detail-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl max-w-lg w-full p-6 border border-slate-700 shadow-2xl relative">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-lg" id="modal-ticker">
+          INTC
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white" id="modal-name">Intel Corporation</h3>
+          <p class="text-xs text-slate-400" id="modal-symbol">INTC261002P00089000</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs mb-4">
+        <div>
+          <p class="text-slate-400">Current Share Price</p>
+          <p class="text-sm font-semibold text-white" id="modal-stock-price">$102.52</p>
+        </div>
+        <div>
+          <p class="text-slate-400">Contract Strike</p>
+          <p class="text-sm font-semibold text-cyan-400" id="modal-strike">$89.00 Put</p>
+        </div>
+        <div>
+          <p class="text-slate-400">Expiration & DTE</p>
+          <p class="text-sm font-semibold text-slate-200" id="modal-expiry">Oct 02 (21 Days)</p>
+        </div>
+        <div>
+          <p class="text-slate-400">Collateral Required</p>
+          <p class="text-sm font-semibold text-slate-200" id="modal-collateral">$8,900.00</p>
+        </div>
+        <div>
+          <p class="text-slate-400">Unrealized PnL</p>
+          <p class="text-sm font-semibold text-emerald-400" id="modal-pnl">+$55.00</p>
+        </div>
+        <div>
+          <p class="text-slate-400">Exit Target</p>
+          <p class="text-sm font-semibold text-indigo-300" id="modal-target">50% Max Profit ($80)</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-400 leading-relaxed">
+        <strong class="text-slate-200">Execution Rule:</strong> The bot continuously polls live bid/ask spreads. When option value decays by 50%, an automated Buy-to-Close limit order executes immediately, locking in capital gain and freeing collateral.
+      </p>
+
+      <button onclick="closeModal()" class="w-full mt-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-xs text-white transition">
+        Close Inspector
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    function switchTab(tabId) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+
+      // Show selected tab
+      const target = document.getElementById('tab-' + tabId);
+      if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('block');
+      }
+
+      // Update button styling
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('bg-slate-800/60', 'text-slate-400', 'hover:bg-slate-800', 'hover:text-slate-200');
+      });
+
+      const activeBtn = document.getElementById('tab-btn-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-slate-800/60', 'text-slate-400');
+        activeBtn.classList.add('bg-indigo-600', 'text-white');
+      }
+    }
+
+    function openModal(ticker, name, symbol, strike, expiry, dte, collateral, pnl, target, status, stockPrice) {
+      document.getElementById('modal-ticker').innerText = ticker;
+      document.getElementById('modal-name').innerText = name;
+      document.getElementById('modal-symbol').innerText = symbol;
+      document.getElementById('modal-strike').innerText = strike + ' Put';
+      document.getElementById('modal-expiry').innerText = expiry + ' (' + dte + ')';
+      document.getElementById('modal-collateral').innerText = collateral;
+      document.getElementById('modal-pnl').innerText = pnl;
+      document.getElementById('modal-target').innerText = target;
+      document.getElementById('modal-stock-price').innerText = stockPrice;
+      document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('detail-modal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
