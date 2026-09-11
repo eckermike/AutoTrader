@@ -198,6 +198,23 @@ class BotConfig(BaseSettings):
         default="liquidity_state.json",
         description="Persistent state file tracking pending approvals and bond holdings",
     )
+    APPROVAL_ON_LIQUIDATION_ONLY: bool = Field(
+        default=True,
+        description="If True, interactive mobile approval is only required when selling parked funds (SGOV/FBND)",
+    )
+    APPROVAL_TTL_HOURS: float = Field(
+        default=4.0,
+        ge=0.25,
+        le=24.0,
+        description="Maximum approval window in hours before a trade request expires (Layer 1 safety)",
+    )
+    APPROVAL_MAX_SLIPPAGE_PCT: float = Field(
+        default=0.005,
+        ge=0.001,
+        le=0.05,
+        description="Maximum price slippage allowed (0.005 = 0.5%) upon approval before aborting (Layer 2 safety)",
+    )
+
 
 
     # --- Option Wheel Strategy (Multi-Asset Portfolio) ---

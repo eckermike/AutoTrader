@@ -1,7 +1,9 @@
 """
 Autonomous Liquidity and Cash Yield Management Engine.
 Manages cash-yield allocations (SGOV, FBND) and two-way human-in-the-loop (HITL)
-trade approvals via ntfy.sh iOS action buttons.
+trade approvals via ntfy.sh iOS action buttons with two-layer safety guardrails:
+- Layer 1: Time-To-Live (TTL) expiration window (default 4.0 hours).
+- Layer 2: Pre-execution live price slippage & viability reassessment (max 0.5% slippage).
 """
 
 import json
@@ -22,11 +24,15 @@ logger = logging.getLogger("execution.liquidity")
 
 class PendingApproval(BaseModel):
     id: str
-    request_type: str
+    request_type: str  # BOND_BARBELL_5050 or LIQUIDATION_FOR_TRADE
     created_at: str
-    sgov_amount: float
-    fbnd_amount: float
-    status: str = "PENDING"  # PENDING, APPROVED, REJECTED, EXECUTED
+    created_timestamp: float = Field(default_factory=time.time)
+    sgov_amount: float = 0.0
+    fbnd_amount: float = 0.0
+    target_symbol: Optional[str] = None
+    reference_price: Optional[float] = None
+    opportunity_type: Optional[str] = None
+    status: str = "PENDING"  # PENDING, APPROVED, REJECTED, EXECUTED, EXPIRED, ABORTED_VIABILITY
     order_ids: List[str] = Field(default_factory=list)
 
 
@@ -39,7 +45,8 @@ class LiquidityState(BaseModel):
 class LiquidityManager:
     """
     Coordinates idle cash deployment into cash-yield funds (SGOV / FBND)
-    and manages two-way mobile approvals via ntfy.sh action buttons.
+    and manages two-way mobile approvals via ntfy.sh action buttons with
+    Layer 1 (4h TTL) and Layer 2 (Pre-execution viability) safety gates.
     """
 
     def __init__(
@@ -79,8 +86,8 @@ class LiquidityManager:
 
     def dispatch_5050_bond_request(self, force: bool = False) -> bool:
         """
-        Dispatches an interactive approval notification to iOS via ntfy.
-        Returns True if a request was dispatched, False otherwise.
+        Dispatches an interactive approval notification to iOS via ntfy to deploy
+        idle cash into a 50/50 SGOV + FBND bond barbell.
         """
         if not getattr(self.config, "LIQUIDITY_RESERVE_ENABLED", True) and not force:
             return False
@@ -92,6 +99,7 @@ class LiquidityManager:
         sgov_amt = getattr(self.config, "SGOV_ALLOCATION_USD", 20000.0)
         fbnd_amt = getattr(self.config, "FBND_ALLOCATION_USD", 20000.0)
         total_amt = sgov_amt + fbnd_amt
+        ttl_hours = getattr(self.config, "APPROVAL_TTL_HOURS", 4.0)
 
         req_id = f"REQ-5050-{datetime.now().strftime('%Y%m%d%H%M%S')}"
         proposal_title = f"Capital Allocation Request (${total_amt:,.0f})"
@@ -100,7 +108,8 @@ class LiquidityManager:
             f"• SGOV (0-3M T-Bills, ~5.1% yield): ${sgov_amt:,.2f}\n"
             f"• FBND (Fidelity Total Bond, ~5.0% yield): ${fbnd_amt:,.2f}\n\n"
             f"Liquid Cash Buffer Remaining: ~$15,100\n"
-            f"Option Collateral Unaffected: $45,200\n\n"
+            f"Option Collateral Unaffected: $45,200\n"
+            f"Approval Window: {ttl_hours:.0f} hours.\n\n"
             f"Tap [Approve] on your iPhone to execute."
         )
 
@@ -120,12 +129,106 @@ class LiquidityManager:
             id=req_id,
             request_type="BOND_BARBELL_5050",
             created_at=datetime.now().isoformat(),
+            created_timestamp=time.time(),
             sgov_amount=sgov_amt,
             fbnd_amount=fbnd_amt,
             status="PENDING",
         )
         self._save_state()
         return True
+
+    def request_liquidation_for_opportunity(
+        self,
+        needed_cash: float,
+        target_symbol: str,
+        opportunity_type: str,
+        current_price: float,
+        reserve_symbol: str = "SGOV",
+    ) -> bool:
+        """
+        Dispatches an interactive approval request to sell shares of a reserve fund (SGOV)
+        to finance an opportunity (e.g. Option Wheel put or Crypto breakout).
+        Includes Layer 1 (4h TTL) and Layer 2 (0.5% max slippage check).
+        """
+        if not getattr(self.config, "LIQUIDITY_RESERVE_ENABLED", True):
+            return False
+
+        if self.state.pending_approval and self.state.pending_approval.status == "PENDING":
+            logger.info("Approval request %s already pending. Skipping duplicate.", self.state.pending_approval.id)
+            return False
+
+        est_reserve_price = 100.50 if reserve_symbol == "SGOV" else 44.50
+        est_shares = round(needed_cash / est_reserve_price, 2)
+        ttl_hours = getattr(self.config, "APPROVAL_TTL_HOURS", 4.0)
+
+        req_id = f"REQ-LIQ-{target_symbol}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        proposal_title = f"Capital Request: {target_symbol} (${needed_cash:,.0f})"
+        proposal_msg = (
+            f"⚠️ Capital needed for {opportunity_type} on {target_symbol}:\n\n"
+            f"• Target Symbol: {target_symbol} @ ${current_price:,.2f}\n"
+            f"• Capital Needed: ${needed_cash:,.2f}\n"
+            f"• Proposed Action: Sell ~{est_shares:.1f} shares of {reserve_symbol}\n"
+            f"• Safety Gate: Valid for {ttl_hours:.0f}h with max 0.5% price slippage.\n\n"
+            f"Tap [Approve] to authorize liquidation & order entry."
+        )
+
+        logger.info("Dispatching liquidation approval request [%s] for %s ($%.2f)...", req_id, target_symbol, needed_cash)
+
+        self.notifier.notify_approval_request(
+            proposal_title=proposal_title,
+            proposal_message=proposal_msg,
+            action_topic=self.action_topic,
+            approve_body=f"APPROVE_LIQUIDATION_{req_id}",
+            reject_body=f"REJECT_LIQUIDATION_{req_id}",
+            approve_label=f"Approve Sell (${needed_cash/1000:,.1f}k)",
+            reject_label="Reject",
+        )
+
+        self.state.pending_approval = PendingApproval(
+            id=req_id,
+            request_type="LIQUIDATION_FOR_TRADE",
+            created_at=datetime.now().isoformat(),
+            created_timestamp=time.time(),
+            sgov_amount=needed_cash if reserve_symbol == "SGOV" else 0.0,
+            fbnd_amount=needed_cash if reserve_symbol == "FBND" else 0.0,
+            target_symbol=target_symbol,
+            reference_price=current_price,
+            opportunity_type=opportunity_type,
+            status="PENDING",
+        )
+        self._save_state()
+        return True
+
+    def reassess_viability(self, pending: Optional[PendingApproval]) -> Tuple[bool, str]:
+        """
+        Layer 2 Pre-Execution Viability & Slippage Gate:
+        Re-verifies market price slippage against reference price before submitting broker orders.
+        """
+        if not pending or not pending.target_symbol or pending.reference_price is None or pending.reference_price <= 0:
+            return True, "Viability confirmed (no reference price constraint)"
+
+        max_slippage = getattr(self.config, "APPROVAL_MAX_SLIPPAGE_PCT", 0.005)
+        current_price = None
+
+        try:
+            if hasattr(self.trading_client, "get_latest_quote"):
+                quote = self.trading_client.get_latest_quote(pending.target_symbol)
+                current_price = getattr(quote, "ask_price", None) or getattr(quote, "bid_price", None)
+            elif hasattr(self.trading_client, "get_stock_latest_quote"):
+                quote = self.trading_client.get_stock_latest_quote(pending.target_symbol)
+                current_price = getattr(quote, "ask_price", None) or getattr(quote, "bid_price", None)
+        except Exception as e:
+            logger.warning("Could not query live quote for %s viability check: %s", pending.target_symbol, e)
+
+        if current_price is not None and current_price > 0:
+            slippage = abs(current_price - pending.reference_price) / pending.reference_price
+            if slippage > max_slippage:
+                return (
+                    False,
+                    f"Price moved {slippage * 100:.2f}% (from ${pending.reference_price:,.2f} to ${current_price:,.2f}), exceeding max allowed slippage of {max_slippage * 100:.1f}%",
+                )
+
+        return True, "Viability confirmed"
 
     def poll_action_topic(self) -> List[str]:
         """
@@ -204,71 +307,176 @@ class LiquidityManager:
 
         return sgov_order, fbnd_order
 
+    def execute_liquidation_order(self, symbol: str = "SGOV", notional_amount: float = 0.0) -> Optional[Any]:
+        """
+        Submits market sell order to liquidate shares of reserve fund (SGOV/FBND).
+        """
+        from alpaca.trading.requests import MarketOrderRequest
+        from alpaca.trading.enums import OrderSide, TimeInForce
+
+        try:
+            logger.info("Submitting Alpaca Market Sell: $%.2f %s...", notional_amount, symbol)
+            order = self.trading_client.submit_order(
+                MarketOrderRequest(
+                    symbol=symbol,
+                    notional=round(notional_amount, 2),
+                    side=OrderSide.SELL,
+                    time_in_force=TimeInForce.DAY,
+                )
+            )
+            logger.info("%s liquidation order submitted: ID=%s, status=%s", symbol, getattr(order, "id", None), getattr(order, "status", None))
+            return order
+        except Exception as e:
+            logger.exception("Failed to submit %s liquidation order: %s", symbol, e)
+            return None
+
     def step(self) -> Optional[str]:
         """
-        Runs a check cycle: polls the action topic and resolves pending approvals.
-        Returns 'APPROVED', 'REJECTED', or None.
+        Runs a check cycle:
+        1. Checks Layer 1 TTL expiration (4.0 hours).
+        2. Polls action topic for user tap events.
+        3. Runs Layer 2 Pre-execution viability & slippage check upon approval.
+        4. Executes orders or safely aborts.
         """
-        # Always synchronize state from disk to catch external changes
+        # Always synchronize state from disk
         self.state = self._load_state()
 
+        # --- Layer 1: Time-To-Live (TTL) Check ---
+        pending = self.state.pending_approval
+        if pending and pending.status == "PENDING":
+            ttl_hours = getattr(self.config, "APPROVAL_TTL_HOURS", 4.0)
+            elapsed_hours = (time.time() - pending.created_timestamp) / 3600.0
+
+            if elapsed_hours > ttl_hours:
+                logger.warning(
+                    "Approval request %s expired after %.2f hours (limit %.1fh). Marking EXPIRED.",
+                    pending.id,
+                    elapsed_hours,
+                    ttl_hours,
+                )
+                pending.status = "EXPIRED"
+                self.state.history.append(pending.model_dump())
+                self.state.pending_approval = None
+                self._save_state()
+
+                sym_label = pending.target_symbol or "50/50 Bond Barbell"
+                exp_msg = (
+                    f"⚠️ Trade Approval Expired!\n\n"
+                    f"The proposal for {sym_label} was not approved within {ttl_hours:.0f} hours.\n"
+                    f"Market conditions have shifted; bot has cancelled the request and preserved your funds."
+                )
+                self.notifier.notify_approval_resolution(
+                    title="Approval Expired",
+                    message=exp_msg,
+                    approved=False,
+                )
+                return "EXPIRED"
+
+        # --- Poll Action Topic ---
         actions = self.poll_action_topic()
         if not actions:
             return None
 
         for act in actions:
-            if "APPROVE_5050" in act:
-                logger.info("Detected user APPROVE action (%s)! Processing bond barbell execution...", act)
+            if "APPROVE" in act:
+                logger.info("Detected user APPROVE action (%s)!", act)
                 pending = self.state.pending_approval
-                sgov_amt = pending.sgov_amount if pending else getattr(self.config, "SGOV_ALLOCATION_USD", 20000.0)
-                fbnd_amt = pending.fbnd_amount if pending else getattr(self.config, "FBND_ALLOCATION_USD", 20000.0)
-                req_id = pending.id if pending else f"REQ-5050-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
-                # Execute orders
-                sgov_order, fbnd_order = self.execute_5050_orders(
-                    sgov_amount=sgov_amt,
-                    fbnd_amount=fbnd_amt,
-                )
+                # --- Layer 2: Pre-Execution Viability & Slippage Gate ---
+                viable, reason = self.reassess_viability(pending)
+                if not viable:
+                    logger.warning("Layer 2 Safety Gate triggered: %s. Aborting execution!", reason)
+                    if pending:
+                        pending.status = "ABORTED_VIABILITY"
+                        self.state.history.append(pending.model_dump())
+                        self.state.pending_approval = None
+                        self._save_state()
 
-                order_ids = []
-                if sgov_order:
-                    order_ids.append(str(getattr(sgov_order, "id", "SGOV")))
-                if fbnd_order:
-                    order_ids.append(str(getattr(fbnd_order, "id", "FBND")))
+                    abort_msg = (
+                        f"🛡️ Pre-Execution Safety Gate Triggered!\n\n"
+                        f"{reason}\n\n"
+                        f"Trade execution aborted to prevent adverse slippage. Funds remain intact."
+                    )
+                    self.notifier.notify_approval_resolution(
+                        title="Execution Aborted (Safety Gate)",
+                        message=abort_msg,
+                        approved=False,
+                    )
+                    return "ABORTED_VIABILITY"
 
-                executed_record = {
-                    "id": req_id,
-                    "request_type": "BOND_BARBELL_5050",
-                    "created_at": datetime.now().isoformat(),
-                    "sgov_amount": sgov_amt,
-                    "fbnd_amount": fbnd_amt,
-                    "status": "EXECUTED",
-                    "order_ids": order_ids,
-                }
-                self.state.history.append(executed_record)
-                self.state.pending_approval = None
-                self._save_state()
+                # Handle specific request types
+                if "APPROVE_5050" in act or (pending and pending.request_type == "BOND_BARBELL_5050"):
+                    sgov_amt = pending.sgov_amount if pending else getattr(self.config, "SGOV_ALLOCATION_USD", 20000.0)
+                    fbnd_amt = pending.fbnd_amount if pending else getattr(self.config, "FBND_ALLOCATION_USD", 20000.0)
+                    req_id = pending.id if pending else f"REQ-5050-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
-                # Dispatch confirmation alert to iOS & iMessage
-                res_msg = (
-                    f"✅ 50/50 Bond Barbell Executed!\n\n"
-                    f"• SGOV: ${sgov_amt:,.2f} order submitted\n"
-                    f"• FBND: ${fbnd_amt:,.2f} order submitted\n\n"
-                    f"Your idle capital is now deployed earning ~5.05% blended yield."
-                )
-                self.notifier.notify_approval_resolution(
-                    title="Orders Executed (50/50 Bonds)",
-                    message=res_msg,
-                    approved=True,
-                )
-                return "APPROVED"
+                    sgov_order, fbnd_order = self.execute_5050_orders(
+                        sgov_amount=sgov_amt,
+                        fbnd_amount=fbnd_amt,
+                    )
 
-            elif "REJECT_5050" in act:
-                logger.info("Detected user REJECT action (%s). Cancelling allocation.", act)
-                req_id = self.state.pending_approval.id if self.state.pending_approval else f"REQ-5050-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                    order_ids = []
+                    if sgov_order:
+                        order_ids.append(str(getattr(sgov_order, "id", "SGOV")))
+                    if fbnd_order:
+                        order_ids.append(str(getattr(fbnd_order, "id", "FBND")))
+
+                    executed_record = {
+                        "id": req_id,
+                        "request_type": "BOND_BARBELL_5050",
+                        "created_at": datetime.now().isoformat(),
+                        "sgov_amount": sgov_amt,
+                        "fbnd_amount": fbnd_amt,
+                        "status": "EXECUTED",
+                        "order_ids": order_ids,
+                    }
+                    self.state.history.append(executed_record)
+                    self.state.pending_approval = None
+                    self._save_state()
+
+                    res_msg = (
+                        f"✅ 50/50 Bond Barbell Executed!\n\n"
+                        f"• SGOV: ${sgov_amt:,.2f} order submitted\n"
+                        f"• FBND: ${fbnd_amt:,.2f} order submitted\n\n"
+                        f"Your idle capital is now deployed earning ~5.05% blended yield."
+                    )
+                    self.notifier.notify_approval_resolution(
+                        title="Orders Executed (50/50 Bonds)",
+                        message=res_msg,
+                        approved=True,
+                    )
+                    return "APPROVED"
+
+                elif pending and pending.request_type == "LIQUIDATION_FOR_TRADE":
+                    liq_amount = pending.sgov_amount or pending.fbnd_amount
+                    res_sym = "SGOV" if pending.sgov_amount > 0 else "FBND"
+                    sell_order = self.execute_liquidation_order(symbol=res_sym, notional_amount=liq_amount)
+
+                    order_ids = [str(getattr(sell_order, "id", res_sym))] if sell_order else []
+                    pending.order_ids = order_ids
+                    pending.status = "EXECUTED"
+                    self.state.history.append(pending.model_dump())
+                    self.state.pending_approval = None
+                    self._save_state()
+
+                    res_msg = (
+                        f"✅ Capital Liquidation Executed!\n\n"
+                        f"• Liquidated: ${liq_amount:,.2f} of {res_sym}\n"
+                        f"• Target Opportunity: {pending.target_symbol} ({pending.opportunity_type})\n\n"
+                        f"Capital released into liquid cash for trade entry."
+                    )
+                    self.notifier.notify_approval_resolution(
+                        title=f"Liquidation Executed ({res_sym})",
+                        message=res_msg,
+                        approved=True,
+                    )
+                    return "APPROVED"
+
+            elif "REJECT" in act:
+                logger.info("Detected user REJECT action (%s). Cancelling request.", act)
+                req_id = self.state.pending_approval.id if self.state.pending_approval else f"REQ-REJ-{datetime.now().strftime('%Y%m%d%H%M%S')}"
                 rejected_record = {
                     "id": req_id,
-                    "request_type": "BOND_BARBELL_5050",
                     "created_at": datetime.now().isoformat(),
                     "status": "REJECTED",
                 }
@@ -276,13 +484,12 @@ class LiquidityManager:
                 self.state.pending_approval = None
                 self._save_state()
 
-                res_msg = "❌ 50/50 Bond allocation rejected. No orders were placed. Funds remain in cash."
+                res_msg = "❌ Allocation proposal rejected. No orders were placed. Funds remain intact."
                 self.notifier.notify_approval_resolution(
-                    title="Allocation Cancelled",
+                    title="Proposal Cancelled",
                     message=res_msg,
                     approved=False,
                 )
                 return "REJECTED"
 
         return None
-

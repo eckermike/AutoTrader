@@ -1,7 +1,11 @@
 """
 Unit tests for Autonomous LiquidityManager & interactive ntfy approval engine.
+Includes tests for:
+- Layer 1: Time-To-Live (4h TTL) expiration window.
+- Layer 2: Pre-execution viability and slippage reassessment gate.
 """
 
+import time
 from unittest.mock import MagicMock, patch
 import pytest
 
@@ -23,6 +27,9 @@ def mock_config(tmp_path):
         SGOV_ALLOCATION_USD=20000.0,
         FBND_ALLOCATION_USD=20000.0,
         LIQUIDITY_STATE_FILE=str(state_path),
+        APPROVAL_ON_LIQUIDATION_ONLY=True,
+        APPROVAL_TTL_HOURS=4.0,
+        APPROVAL_MAX_SLIPPAGE_PCT=0.005,
     )
 
 
@@ -134,3 +141,117 @@ def test_liquidity_manager_rejection(mock_config, mock_notifier, mock_trading_cl
     # Verify cancellation notification
     mock_notifier.notify_approval_resolution.assert_called_once()
     assert mock_notifier.notify_approval_resolution.call_args[1]["approved"] is False
+
+
+def test_liquidity_manager_ttl_expiration(mock_config, mock_notifier, mock_trading_client):
+    """Test Layer 1 TTL expiration: requests older than 4.0 hours are automatically expired."""
+    manager = LiquidityManager(
+        config=mock_config,
+        trading_client=mock_trading_client,
+        notifier=mock_notifier,
+        state_file=mock_config.LIQUIDITY_STATE_FILE,
+    )
+
+    manager.dispatch_5050_bond_request()
+    assert manager.state.pending_approval is not None
+
+    # Simulate 4.5 hours passing
+    manager.state.pending_approval.created_timestamp = time.time() - (4.5 * 3600)
+    manager._save_state()
+
+    result = manager.step()
+    assert result == "EXPIRED"
+
+    # Verify state is cleared and recorded as EXPIRED
+    assert manager.state.pending_approval is None
+    assert len(manager.state.history) == 1
+    assert manager.state.history[0]["status"] == "EXPIRED"
+
+    # Verify notification sent to user
+    mock_notifier.notify_approval_resolution.assert_called_once()
+    assert "Approval Expired" in mock_notifier.notify_approval_resolution.call_args[1]["title"]
+
+
+def test_liquidity_manager_layer2_slippage_failure(mock_config, mock_notifier, mock_trading_client):
+    """Test Layer 2 Pre-Execution Viability: price moves >0.5% aborts execution."""
+    manager = LiquidityManager(
+        config=mock_config,
+        trading_client=mock_trading_client,
+        notifier=mock_notifier,
+        state_file=mock_config.LIQUIDITY_STATE_FILE,
+    )
+
+    # Dispatch opportunity request with reference price $100.00
+    manager.request_liquidation_for_opportunity(
+        needed_cash=10000.0,
+        target_symbol="PLTR",
+        opportunity_type="OPTION_WHEEL_PUT",
+        current_price=100.00,
+    )
+    assert manager.state.pending_approval is not None
+
+    # Mock live quote showing price moved to $102.00 (+2.0% slippage > 0.5% max)
+    mock_quote = MagicMock()
+    mock_quote.ask_price = 102.00
+    mock_trading_client.get_latest_quote.return_value = mock_quote
+
+    # User taps approve
+    with patch.object(manager, "poll_action_topic", return_value=["APPROVE_LIQUIDATION"]):
+        result = manager.step()
+        assert result == "ABORTED_VIABILITY"
+
+    # Verify NO broker orders were submitted
+    assert mock_trading_client.submit_order.call_count == 0
+
+    # Verify state recorded as ABORTED_VIABILITY
+    assert manager.state.pending_approval is None
+    assert len(manager.state.history) == 1
+    assert manager.state.history[0]["status"] == "ABORTED_VIABILITY"
+
+    # Verify abort alert sent to user
+    mock_notifier.notify_approval_resolution.assert_called_once()
+    assert "Execution Aborted" in mock_notifier.notify_approval_resolution.call_args[1]["title"]
+
+
+def test_liquidity_manager_layer2_slippage_success(mock_config, mock_notifier, mock_trading_client):
+    """Test Layer 2 Pre-Execution Viability: price moves within 0.5% passes and executes."""
+    manager = LiquidityManager(
+        config=mock_config,
+        trading_client=mock_trading_client,
+        notifier=mock_notifier,
+        state_file=mock_config.LIQUIDITY_STATE_FILE,
+    )
+
+    # Dispatch opportunity request with reference price $100.00
+    manager.request_liquidation_for_opportunity(
+        needed_cash=10000.0,
+        target_symbol="PLTR",
+        opportunity_type="OPTION_WHEEL_PUT",
+        current_price=100.00,
+    )
+    assert manager.state.pending_approval is not None
+
+    # Mock live quote showing price moved slightly to $100.20 (+0.2% slippage <= 0.5% max)
+    mock_quote = MagicMock()
+    mock_quote.ask_price = 100.20
+    mock_trading_client.get_latest_quote.return_value = mock_quote
+
+    # User taps approve
+    with patch.object(manager, "poll_action_topic", return_value=["APPROVE_LIQUIDATION"]):
+        result = manager.step()
+        assert result == "APPROVED"
+
+    # Verify liquidation order submitted to sell SGOV
+    assert mock_trading_client.submit_order.call_count == 1
+    order_req = mock_trading_client.submit_order.call_args[0][0]
+    assert order_req.symbol == "SGOV"
+    assert order_req.notional == 10000.0
+
+    # Verify state recorded as EXECUTED
+    assert manager.state.pending_approval is None
+    assert len(manager.state.history) == 1
+    assert manager.state.history[0]["status"] == "EXECUTED"
+
+    # Verify execution confirmation sent
+    mock_notifier.notify_approval_resolution.assert_called_once()
+    assert "Liquidation Executed" in mock_notifier.notify_approval_resolution.call_args[1]["title"]
