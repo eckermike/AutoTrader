@@ -9,6 +9,7 @@ Implements the Triple Income Option Wheel state machine:
 
 import enum
 import logging
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
@@ -180,6 +181,18 @@ class WheelEngine:
         if state == WheelState.CASH_SECURED_PUT:
             contract = self.select_put_contract(stock_price)
             if contract:
+                # Query real-time market quote for optimal execution
+                live_quote = self.client.get_option_quote(contract.symbol)
+                if live_quote and live_quote.get("bid_price", 0.0) > 0:
+                    limit_p = live_quote["bid_price"]
+                    contract.bid = live_quote["bid_price"]
+                    contract.ask = live_quote["ask_price"]
+                    contract.mid_price = live_quote["mid_price"]
+                else:
+                    limit_p = contract.mid_price
+
+                # Ensure limit price is valid and floored at $0.05
+                limit_p = max(0.05, round(limit_p, 2))
                 req_collateral = contract.strike_price * 100 * self.config.WHEEL_CONTRACTS
 
                 # Hard Capital Gate check
@@ -192,21 +205,24 @@ class WheelEngine:
                     )
                 else:
                     collateral_locked = req_collateral
+                    order_tif = getattr(self.config, "WHEEL_TIME_IN_FORCE", "DAY")
                     logger.info(
-                        "Submitting Cash-Secured Put order: SELL_TO_OPEN %d %s @ $%0.2f",
+                        "Submitting Cash-Secured Put order: SELL_TO_OPEN %d %s @ $%0.2f (TIF: %s)",
                         self.config.WHEEL_CONTRACTS,
                         contract.symbol,
-                        contract.mid_price,
+                        limit_p,
+                        order_tif,
                     )
                     order_res = self.client.submit_option_order(
                         symbol=contract.symbol,
                         side="SELL",
                         position_intent="SELL_TO_OPEN",
                         qty=self.config.WHEEL_CONTRACTS,
-                        limit_price=contract.mid_price,
+                        limit_price=limit_p,
+                        time_in_force=order_tif,
                     )
                     
-                    premium_collected = contract.mid_price * self.config.WHEEL_CONTRACTS * 100
+                    premium_collected = limit_p * self.config.WHEEL_CONTRACTS * 100
                     
                     # Allocate 30% to Virtual Tax Escrow
                     tax_record = self.tax_engine.record_option_premium(
@@ -218,7 +234,7 @@ class WheelEngine:
 
                     # Update local state
                     self.active_contract_symbol = contract.symbol
-                    self.active_contract_premium = contract.mid_price
+                    self.active_contract_premium = limit_p
                     self.active_contract_strike = contract.strike_price
 
                     # Dispatch Push Notification
@@ -229,7 +245,7 @@ class WheelEngine:
                         strike=contract.strike_price,
                         expiration=contract.expiration_date,
                         dte=contract.days_to_expiration,
-                        premium=contract.mid_price,
+                        premium=limit_p,
                         contracts=self.config.WHEEL_CONTRACTS,
                         collateral=req_collateral,
                         tax_allocated=tax_record.tax_allocated,
@@ -287,10 +303,45 @@ class WheelEngine:
                     self.active_contract_symbol = None
                     self.active_contract_premium = None
             else:
-                logger.info(
-                    "Cash-Secured Put order for %s is pending in order book. Awaiting execution.",
-                    self.symbol,
-                )
+                # No filled position: check if pending order in order book is stale (>24 hours)
+                open_orders = self.client.get_open_orders(self.symbol)
+                order_ttl = getattr(self.config, "WHEEL_ORDER_TTL_HOURS", 24.0)
+                cancelled_stale = False
+
+                for o in open_orders:
+                    sub_time = getattr(o, "submitted_at", None)
+                    if sub_time:
+                        try:
+                            now_utc = datetime.now(timezone.utc)
+                            if isinstance(sub_time, str):
+                                order_dt = datetime.fromisoformat(sub_time.replace("Z", "+00:00"))
+                            else:
+                                order_dt = sub_time
+                            elapsed_hours = (now_utc - order_dt).total_seconds() / 3600.0
+                            if elapsed_hours >= order_ttl:
+                                oid = str(getattr(o, "id", ""))
+                                osym = getattr(o, "symbol", self.symbol)
+                                logger.warning(
+                                    "Pending CSP order %s (%s) is stale (elapsed: %.1f hrs >= limit %.1f hrs). Cancelling for daily refresh.",
+                                    oid,
+                                    osym,
+                                    elapsed_hours,
+                                    order_ttl,
+                                )
+                                self.client.cancel_order(oid)
+                                cancelled_stale = True
+                        except Exception as e:
+                            logger.debug("Error checking order age for %s: %s", getattr(o, "id", ""), e)
+
+                if cancelled_stale:
+                    self.active_contract_symbol = None
+                    self.active_contract_premium = None
+                    logger.info("Stale orders cancelled for %s. Re-evaluating on next cycle with fresh quotes.", self.symbol)
+                else:
+                    logger.info(
+                        "Cash-Secured Put order for %s is pending in order book. Awaiting execution.",
+                        self.symbol,
+                    )
 
         # --- Phase 3: Sell Covered Call ---
         elif state == WheelState.COVERED_CALL:
@@ -300,22 +351,36 @@ class WheelEngine:
             if contract:
                 num_contracts = min(self.config.WHEEL_CONTRACTS, shares_held // 100)
                 if num_contracts > 0:
+                    live_quote = self.client.get_option_quote(contract.symbol)
+                    if live_quote and live_quote.get("bid_price", 0.0) > 0:
+                        call_limit_p = live_quote["bid_price"]
+                        contract.bid = live_quote["bid_price"]
+                        contract.ask = live_quote["ask_price"]
+                        contract.mid_price = live_quote["mid_price"]
+                    else:
+                        call_limit_p = contract.mid_price
+
+                    call_limit_p = max(0.05, round(call_limit_p, 2))
+                    order_tif = getattr(self.config, "WHEEL_TIME_IN_FORCE", "DAY")
+
                     logger.info(
-                        "Submitting Covered Call order: SELL_TO_OPEN %d %s @ $%0.2f (Cost Basis: $%0.2f)",
+                        "Submitting Covered Call order: SELL_TO_OPEN %d %s @ $%0.2f (Cost Basis: $%0.2f, TIF: %s)",
                         num_contracts,
                         contract.symbol,
-                        contract.mid_price,
+                        call_limit_p,
                         basis,
+                        order_tif,
                     )
                     self.client.submit_option_order(
                         symbol=contract.symbol,
                         side="SELL",
                         position_intent="SELL_TO_OPEN",
                         qty=num_contracts,
-                        limit_price=contract.mid_price,
+                        limit_price=call_limit_p,
+                        time_in_force=order_tif,
                     )
                     
-                    call_prem = contract.mid_price * num_contracts * 100
+                    call_prem = call_limit_p * num_contracts * 100
                     tax_rec = self.tax_engine.record_option_premium(
                         symbol=self.symbol,
                         contract_symbol=contract.symbol,
@@ -324,7 +389,7 @@ class WheelEngine:
                     )
 
                     self.active_contract_symbol = contract.symbol
-                    self.active_contract_premium = contract.mid_price
+                    self.active_contract_premium = call_limit_p
 
                     self.notifier.notify_wheel_cc_open(
                         underlying=self.symbol,
@@ -332,7 +397,7 @@ class WheelEngine:
                         strike=contract.strike_price,
                         expiration=contract.expiration_date,
                         dte=contract.days_to_expiration,
-                        premium=contract.mid_price,
+                        premium=call_limit_p,
                         contracts=num_contracts,
                         tax_allocated=tax_rec.tax_allocated,
                     )
@@ -380,10 +445,45 @@ class WheelEngine:
                     self.active_contract_symbol = None
                     self.active_contract_premium = None
             else:
-                logger.info(
-                    "Covered Call order for %s is pending in order book. Awaiting execution.",
-                    self.symbol,
-                )
+                # No filled position: check if pending call order is stale (>24 hours)
+                open_orders = self.client.get_open_orders(self.symbol)
+                order_ttl = getattr(self.config, "WHEEL_ORDER_TTL_HOURS", 24.0)
+                cancelled_stale = False
+
+                for o in open_orders:
+                    sub_time = getattr(o, "submitted_at", None)
+                    if sub_time:
+                        try:
+                            now_utc = datetime.now(timezone.utc)
+                            if isinstance(sub_time, str):
+                                order_dt = datetime.fromisoformat(sub_time.replace("Z", "+00:00"))
+                            else:
+                                order_dt = sub_time
+                            elapsed_hours = (now_utc - order_dt).total_seconds() / 3600.0
+                            if elapsed_hours >= order_ttl:
+                                oid = str(getattr(o, "id", ""))
+                                osym = getattr(o, "symbol", self.symbol)
+                                logger.warning(
+                                    "Pending Covered Call order %s (%s) is stale (elapsed: %.1f hrs >= limit %.1f hrs). Cancelling for daily refresh.",
+                                    oid,
+                                    osym,
+                                    elapsed_hours,
+                                    order_ttl,
+                                )
+                                self.client.cancel_order(oid)
+                                cancelled_stale = True
+                        except Exception as e:
+                            logger.debug("Error checking call order age for %s: %s", getattr(o, "id", ""), e)
+
+                if cancelled_stale:
+                    self.active_contract_symbol = None
+                    self.active_contract_premium = None
+                    logger.info("Stale call orders cancelled for %s. Re-evaluating on next cycle.", self.symbol)
+                else:
+                    logger.info(
+                        "Covered Call order for %s is pending in order book. Awaiting execution.",
+                        self.symbol,
+                    )
 
         return WheelStatus(
             state=state,

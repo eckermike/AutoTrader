@@ -260,6 +260,16 @@ class BotConfig(BaseSettings):
         le=10,
         description="Number of option contracts traded per cycle (1 contract = 100 shares)",
     )
+    WHEEL_ORDER_TTL_HOURS: float = Field(
+        default=24.0,
+        ge=1.0,
+        le=72.0,
+        description="Maximum hours an unfilled option order can remain pending before being cancelled and re-evaluated",
+    )
+    WHEEL_TIME_IN_FORCE: str = Field(
+        default="DAY",
+        description="Time-in-force for option orders ('DAY' or 'GTC')",
+    )
 
     @field_validator("TARGET_SYMBOLS", mode="after")
     @classmethod

@@ -232,3 +232,52 @@ def test_multi_asset_portfolio_capital_gating(tmp_path: Path):
     # F and SOFI should have been rejected due to lack of remaining cash
     assert portfolio.engines["F"].active_contract_symbol is None
     assert portfolio.engines["SOFI"].active_contract_symbol is None
+
+
+def test_option_quote_dynamic_pricing(test_setup):
+    """Verifies that the wheel engine fetches and utilizes dynamic live option quotes."""
+    engine, client, tax = test_setup
+
+    # Mock custom live option quote
+    def fake_quote(symbol):
+        return {"bid_price": 0.35, "ask_price": 0.40, "mid_price": 0.375}
+
+    client.get_option_quote = fake_quote
+
+    # Step: Execute CSP with dynamic pricing
+    status = engine.step(total_cash=100000.0)
+    assert status.state == WheelState.CASH_SECURED_PUT
+    # Should use the bid price 0.35 rather than 0.50 default
+    assert engine.active_contract_premium == 0.35
+
+
+def test_wheel_stale_order_cancellation_24h(test_setup):
+    """Verifies that an unfilled CSP order older than 24 hours is automatically cancelled for daily refresh."""
+    from datetime import datetime, timezone, timedelta
+    from unittest.mock import MagicMock
+
+    engine, client, tax = test_setup
+
+    # Simulate pending order in order book submitted 26 hours ago
+    stale_order = MagicMock()
+    stale_order.id = "ORDER-STALE-123"
+    stale_order.symbol = "INTC261002P00020000"
+    stale_order.side = "SELL"
+    stale_order.submitted_at = (datetime.now(timezone.utc) - timedelta(hours=26)).isoformat()
+
+    client.get_open_orders = MagicMock(return_value=[stale_order])
+    client.cancel_order = MagicMock(return_value=True)
+
+    # Set engine in MONITORING_PUT with active_contract_symbol
+    engine.active_contract_symbol = "INTC261002P00020000"
+    engine.active_contract_premium = 0.50
+
+    # Step in MONITORING_PUT (no filled position, pending stale order in book)
+    status = engine.step(total_cash=100000.0)
+
+    # Should have called cancel_order for the stale order
+    client.cancel_order.assert_called_once_with("ORDER-STALE-123")
+    # State reset for next cycle
+    assert engine.active_contract_symbol is None
+    assert engine.active_contract_premium is None
+

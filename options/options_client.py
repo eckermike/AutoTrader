@@ -356,6 +356,59 @@ class AlpacaOptionsClient:
             logger.debug("Error checking open orders for %s: %s", underlying, e)
             return []
 
+    def get_option_quote(self, symbol: str) -> Optional[Dict[str, float]]:
+        """
+        Fetches live real-time bid, ask, and midpoint quotes for a specific option contract.
+        """
+        if self.mock_mode:
+            return {"bid_price": 0.45, "ask_price": 0.55, "mid_price": 0.50}
+
+        try:
+            if self.option_data_client:
+                req = OptionLatestQuoteRequest(symbol_or_symbols=symbol)
+                quotes = self.option_data_client.get_option_latest_quote(req)
+                q = quotes.get(symbol)
+                if q:
+                    bid = float(q.bid_price) if getattr(q, "bid_price", None) is not None else 0.0
+                    ask = float(q.ask_price) if getattr(q, "ask_price", None) is not None else 0.0
+                    if bid > 0 and ask > 0:
+                        mid = round((bid + ask) / 2.0, 2)
+                    elif bid > 0:
+                        mid = round(bid, 2)
+                    elif ask > 0:
+                        mid = round(ask, 2)
+                    else:
+                        mid = 0.0
+                    return {"bid_price": bid, "ask_price": ask, "mid_price": mid}
+        except Exception as e:
+            logger.debug("Live option quote error for %s: %s", symbol, e)
+
+        return None
+
+    def cancel_order(self, order_id: str) -> bool:
+        """Cancels an open order by ID."""
+        if self.mock_mode:
+            logger.info("Mock mode: cancelled order %s", order_id)
+            return True
+
+        try:
+            self.trading_client.cancel_order_by_id(order_id)
+            logger.info("Cancelled open option order %s", order_id)
+            return True
+        except Exception as e:
+            logger.warning("Failed to cancel order %s: %s", order_id, e)
+            return False
+
+    def cancel_open_orders_for_symbol(self, underlying: str) -> List[str]:
+        """Cancels all pending open orders matching the underlying ticker."""
+        open_orders = self.get_open_orders(underlying)
+        cancelled_ids = []
+        for o in open_orders:
+            oid = str(getattr(o, "id", ""))
+            if oid and self.cancel_order(oid):
+                cancelled_ids.append(oid)
+        return cancelled_ids
+
     def submit_option_order(
         self,
         symbol: str,
@@ -363,13 +416,16 @@ class AlpacaOptionsClient:
         position_intent: str,
         qty: int = 1,
         limit_price: Optional[float] = None,
+        time_in_force: str = "DAY",
     ) -> Dict[str, Any]:
         """
         Submits an option order (e.g. SELL_TO_OPEN or BUY_TO_CLOSE).
+        Supports DAY or GTC time-in-force.
         """
         client_order_id = f"opt_{uuid.uuid4().hex[:10]}"
         side_upper = side.upper()
         intent_upper = position_intent.upper()
+        tif_upper = time_in_force.upper()
 
         if self.mock_mode:
             price = limit_price or 0.50
@@ -410,13 +466,14 @@ class AlpacaOptionsClient:
         # Alpaca live paper option order placement
         alpaca_side = OrderSide.BUY if side_upper == "BUY" else OrderSide.SELL
         alpaca_intent = getattr(PositionIntent, intent_upper, PositionIntent.SELL_TO_OPEN)
+        alpaca_tif = TimeInForce.DAY if tif_upper == "DAY" else TimeInForce.GTC
 
         if limit_price is not None:
             order_req = LimitOrderRequest(
                 symbol=symbol,
                 qty=qty,
                 side=alpaca_side,
-                time_in_force=TimeInForce.GTC,
+                time_in_force=alpaca_tif,
                 limit_price=round(limit_price, 2),
                 position_intent=alpaca_intent,
                 client_order_id=client_order_id,
@@ -426,19 +483,20 @@ class AlpacaOptionsClient:
                 symbol=symbol,
                 qty=qty,
                 side=alpaca_side,
-                time_in_force=TimeInForce.GTC,
+                time_in_force=alpaca_tif,
                 position_intent=alpaca_intent,
                 client_order_id=client_order_id,
             )
 
         order_res = self.trading_client.submit_order(order_data=order_req)
         logger.info(
-            "Alpaca Option Order Submitted: %s %d %s (ID: %s, Intent: %s)",
+            "Alpaca Option Order Submitted: %s %d %s (ID: %s, Intent: %s, TIF: %s)",
             side_upper,
             qty,
             symbol,
             order_res.id,
             intent_upper,
+            tif_upper,
         )
 
         return {
