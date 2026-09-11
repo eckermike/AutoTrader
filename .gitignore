@@ -26,3 +26,8 @@ autotrader_err.log
 
 # MacOS metadata
 .DS_Store
+
+# Public Dashboard & Tunnel Runtime
+bin/
+*.pid
+public_dashboard_url.txt

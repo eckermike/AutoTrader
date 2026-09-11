@@ -52,11 +52,11 @@
           <p class="text-xs text-slate-400">Broker Execution</p>
           <p class="text-sm font-medium text-slate-200">Alpaca Paper Markets (v2)</p>
         </div>
-        <button onclick="window.location.reload()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
-          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button onclick="refreshData()" class="px-3.5 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
+          <svg id="refresh-icon" class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
-          Refresh Feed
+          <span id="refresh-label">Refresh Feed</span>
         </button>
       </div>
     </div>
@@ -65,10 +65,10 @@
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
       <div class="glass-card rounded-2xl p-4 transition-all">
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Fund Assets</p>
-        <p class="text-2xl font-bold text-white mt-1.5 tracking-tight">$100,306.05</p>
+        <p id="kpi-fund-assets" class="text-2xl font-bold text-white mt-1.5 tracking-tight">$100,306.05</p>
         <div class="flex items-center gap-1 mt-2 text-xs text-emerald-400 font-medium">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-          <span>+$306.05 Realized</span>
+          <span id="kpi-realized-pnl">+$306.05 Realized</span>
         </div>
       </div>
 
@@ -80,7 +80,7 @@
 
       <div class="glass-card rounded-2xl p-4 transition-all">
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Tax Escrow Reserve</p>
-        <p class="text-2xl font-bold text-amber-400 mt-1.5 tracking-tight">$109.76</p>
+        <p id="kpi-tax-reserve" class="text-2xl font-bold text-amber-400 mt-1.5 tracking-tight">$109.76</p>
         <p class="text-xs text-slate-400 mt-2">30% Auto-Withheld in JSON</p>
       </div>
 
@@ -895,6 +895,51 @@
     function closeModal() {
       document.getElementById('detail-modal').classList.add('hidden');
     }
+
+    // Live Feed Synchronization
+    async function refreshData() {
+      const btn = document.getElementById('refresh-label');
+      const icon = document.getElementById('refresh-icon');
+      if (btn) btn.innerText = "Syncing...";
+      if (icon) icon.classList.add("animate-spin");
+
+      try {
+        const res = await fetch('/api/status', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.tax_engine) {
+            const tax = data.tax_engine;
+            if (tax.tax_reserve !== undefined) {
+              const el = document.getElementById('kpi-tax-reserve');
+              if (el) el.innerText = '$' + tax.tax_reserve.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+            if (tax.net_realized_pnl !== undefined) {
+              const pnlEl = document.getElementById('kpi-realized-pnl');
+              const sign = tax.net_realized_pnl >= 0 ? '+' : '';
+              if (pnlEl) pnlEl.innerText = `${sign}$${tax.net_realized_pnl.toFixed(2)} Realized`;
+
+              const assetEl = document.getElementById('kpi-fund-assets');
+              if (assetEl) {
+                const totalAssets = 100000.0 + tax.net_realized_pnl;
+                assetEl.innerText = '$' + totalAssets.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.debug("Live sync notice:", err);
+      } finally {
+        setTimeout(() => {
+          if (btn) btn.innerText = "Refresh Feed";
+          if (icon) icon.classList.remove("animate-spin");
+        }, 500);
+      }
+    }
+
+    // Background sync every 15 seconds
+    setInterval(refreshData, 15000);
+    // Initial fetch
+    refreshData();
   </script>
 </body>
 </html>
