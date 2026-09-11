@@ -209,23 +209,25 @@ class LiquidityManager:
         Runs a check cycle: polls the action topic and resolves pending approvals.
         Returns 'APPROVED', 'REJECTED', or None.
         """
+        # Always synchronize state from disk to catch external changes
+        self.state = self._load_state()
+
         actions = self.poll_action_topic()
         if not actions:
             return None
 
-        pending = self.state.pending_approval
-        if not pending or pending.status != "PENDING":
-            return None
-
         for act in actions:
-            if "APPROVE_5050_BONDS" in act:
-                logger.info("User tapped APPROVE for %s! Executing bond barbell orders...", pending.id)
-                pending.status = "APPROVED"
+            if "APPROVE_5050" in act:
+                logger.info("Detected user APPROVE action (%s)! Processing bond barbell execution...", act)
+                pending = self.state.pending_approval
+                sgov_amt = pending.sgov_amount if pending else getattr(self.config, "SGOV_ALLOCATION_USD", 20000.0)
+                fbnd_amt = pending.fbnd_amount if pending else getattr(self.config, "FBND_ALLOCATION_USD", 20000.0)
+                req_id = pending.id if pending else f"REQ-5050-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
                 # Execute orders
                 sgov_order, fbnd_order = self.execute_5050_orders(
-                    sgov_amount=pending.sgov_amount,
-                    fbnd_amount=pending.fbnd_amount,
+                    sgov_amount=sgov_amt,
+                    fbnd_amount=fbnd_amt,
                 )
 
                 order_ids = []
@@ -234,20 +236,25 @@ class LiquidityManager:
                 if fbnd_order:
                     order_ids.append(str(getattr(fbnd_order, "id", "FBND")))
 
-                pending.order_ids = order_ids
-                pending.status = "EXECUTED"
-
-                # Record in history
-                self.state.history.append(pending.model_dump())
+                executed_record = {
+                    "id": req_id,
+                    "request_type": "BOND_BARBELL_5050",
+                    "created_at": datetime.now().isoformat(),
+                    "sgov_amount": sgov_amt,
+                    "fbnd_amount": fbnd_amt,
+                    "status": "EXECUTED",
+                    "order_ids": order_ids,
+                }
+                self.state.history.append(executed_record)
                 self.state.pending_approval = None
                 self._save_state()
 
-                # Dispatch confirmation
+                # Dispatch confirmation alert to iOS & iMessage
                 res_msg = (
                     f"✅ 50/50 Bond Barbell Executed!\n\n"
-                    f"• SGOV: ${pending.sgov_amount:,.2f} order submitted\n"
-                    f"• FBND: ${pending.fbnd_amount:,.2f} order submitted\n\n"
-                    f"Your idle capital is now generating ~5.05% blended yield."
+                    f"• SGOV: ${sgov_amt:,.2f} order submitted\n"
+                    f"• FBND: ${fbnd_amt:,.2f} order submitted\n\n"
+                    f"Your idle capital is now deployed earning ~5.05% blended yield."
                 )
                 self.notifier.notify_approval_resolution(
                     title="Orders Executed (50/50 Bonds)",
@@ -256,10 +263,16 @@ class LiquidityManager:
                 )
                 return "APPROVED"
 
-            elif "REJECT_5050_BONDS" in act:
-                logger.info("User tapped REJECT for %s. Allocation cancelled.", pending.id)
-                pending.status = "REJECTED"
-                self.state.history.append(pending.model_dump())
+            elif "REJECT_5050" in act:
+                logger.info("Detected user REJECT action (%s). Cancelling allocation.", act)
+                req_id = self.state.pending_approval.id if self.state.pending_approval else f"REQ-5050-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                rejected_record = {
+                    "id": req_id,
+                    "request_type": "BOND_BARBELL_5050",
+                    "created_at": datetime.now().isoformat(),
+                    "status": "REJECTED",
+                }
+                self.state.history.append(rejected_record)
                 self.state.pending_approval = None
                 self._save_state()
 
@@ -272,3 +285,4 @@ class LiquidityManager:
                 return "REJECTED"
 
         return None
+

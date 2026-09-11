@@ -16,6 +16,8 @@ mcp_config.json
 .vscode/
 .agents/
 tax_reserve.json
+liquidity_state.json
+
 
 # Log files
 *.log
