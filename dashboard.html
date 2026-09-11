@@ -238,6 +238,93 @@
         </div>
       </div>
 
+      <!-- ELI5 Explainer Card -->
+      <div class="glass-card rounded-2xl p-5 border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleEli5()">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-xl shadow-inner">
+              💡
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">ELI5: How The Option Wheel Generates Predictable Cash Flow</h3>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Investor Primer</span>
+              </div>
+              <p class="text-xs text-slate-400">Explain Like I'm 5: Why this systematic strategy gets paid whether the market goes up, sideways, or slightly down.</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-indigo-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
+            <span id="eli5-toggle-btn-text">Hide Guide</span>
+            <svg id="eli5-arrow" class="w-4 h-4 transition-transform duration-300 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+
+        <!-- Explainer Content (Open by default) -->
+        <div id="eli5-content" class="mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+          <div class="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-xs text-slate-300 leading-relaxed">
+            <span class="font-bold text-indigo-300">The 10-Second Summary:</span> Think of the Wheel like getting paid cash up-front to set a limit order on high-quality blue-chip stocks you already want to own at a discount. We never gamble on directional lottery tickets — our bot acts like an insurance company, collecting upfront premiums from the market and letting time work in our favor.
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <!-- Step 1 -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-xs">1</span>
+                <h4 class="font-bold text-white">Sell Cash-Secured Put</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Get paid to shop."</strong> We pick a quality stock trading at $100 and say: <em>"We will buy your shares for $90 next month if it drops, and you pay us $200 cash today just for making this promise."</em>
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong class="text-emerald-400">Outcome A (Stock stays above $90):</strong> The promise expires. We keep the $200 pure cash (100% win) and repeat next cycle.</p>
+                <p>• <strong class="text-cyan-400">Outcome B (Stock drops below $90):</strong> We buy 100 shares at $90 — a 10% discount from original price!</p>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">2</span>
+                <h4 class="font-bold text-white">50% Max Profit Exit</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Bank profits fast & compound."</strong> Options decay most rapidly in the first 2-3 weeks. As soon as our $200 premium reaches $100 in profit (+50%), our bot automatically buys it back early.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong class="text-slate-300">Zero Late-Stage Tail Risk:</strong> We never wait around for the last pennies during erratic earnings.</p>
+                <p>• <strong class="text-emerald-400">Capital Velocity:</strong> Unlocks collateral 2-3 weeks ahead of schedule, doubling the annual trade turnover.</p>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-xs">3</span>
+                <h4 class="font-bold text-white">Sell Covered Call</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Rent out your shares."</strong> If we get assigned shares at $90, we immediately sell a Covered Call at $95: <em>"Pay us another $200 cash today for the right to buy our shares at $95."</em>
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong class="text-emerald-400">If stock climbs past $95:</strong> We sell shares for a +$500 capital gain PLUS keep the $200 cash, resetting to 100% cash.</p>
+                <p>• <strong class="text-amber-400">If stock stays flat:</strong> We keep the shares and sell another weekly call, collecting continuous rental income!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Summary Bar -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs">
+            <div class="flex items-center gap-2 text-slate-400">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              <span><strong>The Asymmetry:</strong> We win when the stock rises, stays flat, or drops slightly. Downside is strictly buffered by premium collected.</span>
+            </div>
+            <div class="text-slate-500 text-[11px]">
+              Active Collateral: <span class="text-slate-200 font-semibold">$45,200.00 across 6 tickers</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         
         <!-- INTC Card -->
@@ -894,6 +981,21 @@
 
     function closeModal() {
       document.getElementById('detail-modal').classList.add('hidden');
+    }
+
+    function toggleEli5() {
+      const content = document.getElementById('eli5-content');
+      const arrow = document.getElementById('eli5-arrow');
+      const btnText = document.getElementById('eli5-toggle-btn-text');
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        arrow.classList.add('rotate-180');
+        if (btnText) btnText.innerText = 'Hide Guide';
+      } else {
+        content.classList.add('hidden');
+        arrow.classList.remove('rotate-180');
+        if (btnText) btnText.innerText = 'Show Guide';
+      }
     }
 
     // Live Feed Synchronization
