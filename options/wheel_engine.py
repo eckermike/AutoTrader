@@ -309,6 +309,10 @@ class WheelEngine:
                 cancelled_stale = False
 
                 for o in open_orders:
+                    status = str(getattr(o, "status", "")).lower()
+                    if any(term in status for term in ("cancel", "reject", "expire", "fill")):
+                        continue
+
                     sub_time = getattr(o, "submitted_at", None)
                     if sub_time:
                         try:
@@ -451,6 +455,10 @@ class WheelEngine:
                 cancelled_stale = False
 
                 for o in open_orders:
+                    status = str(getattr(o, "status", "")).lower()
+                    if any(term in status for term in ("cancel", "reject", "expire", "fill")):
+                        continue
+
                     sub_time = getattr(o, "submitted_at", None)
                     if sub_time:
                         try:

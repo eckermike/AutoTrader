@@ -5,6 +5,7 @@ Serves the interactive dashboard.html and real-time JSON fund status API.
 """
 
 import os
+import re
 import json
 import logging
 from pathlib import Path
@@ -23,8 +24,59 @@ TAX_RESERVE_FILE = BASE_DIR / "tax_reserve.json"
 LIQUIDITY_STATE_FILE = BASE_DIR / "liquidity_state.json"
 
 
+AUTOTRADER_LOG_FILE = BASE_DIR / "autotrader.log"
+
+
+def parse_latest_daemon_state():
+    matrix = {}
+    portfolio = {}
+    if not AUTOTRADER_LOG_FILE.exists():
+        return list(matrix.values()), portfolio
+
+    try:
+        with open(AUTOTRADER_LOG_FILE, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()[-300:]
+
+        matrix_pattern = re.compile(
+            r"\[CYCLE #(\d+)\] Symbol: ([\w/]+) \| Price: \$([0-9,.]+) \| Technical: ([+-]?[0-9.]+) \| "
+            r"Volume: ([+-]?[0-9.]+) \| Sentiment: ([+-]?[0-9.]+) \| Composite: ([+-]?[0-9.]+) => Signal: (\w+)"
+        )
+        portfolio_pattern = re.compile(
+            r"Portfolio: Cash=\$([0-9,.]+) \| Tax Reserve=\$([0-9,.]+) \| Tradable Cash=\$([0-9,.]+) \| Crypto Positions=\[(.*?)\]"
+        )
+
+        for line in lines:
+            m = matrix_pattern.search(line)
+            if m:
+                c_num, sym, price, tech, vol, sent, comp, sig = m.groups()
+                matrix[sym] = {
+                    "cycle": int(c_num),
+                    "symbol": sym,
+                    "price": price,
+                    "technical": float(tech),
+                    "volume": float(vol),
+                    "sentiment": float(sent),
+                    "composite": float(comp),
+                    "signal": sig,
+                }
+            mp = portfolio_pattern.search(line)
+            if mp:
+                c, tr, tc, pos = mp.groups()
+                portfolio = {
+                    "cash": float(c.replace(",", "")),
+                    "tax_reserve": float(tr.replace(",", "")),
+                    "tradable_cash": float(tc.replace(",", "")),
+                    "positions_str": pos,
+                }
+    except Exception as e:
+        logger.warning("Could not parse autotrader.log: %s", e)
+
+    return list(matrix.values()), portfolio
+
+
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
+    allow_reuse_address = True
 
 
 class DashboardHandler(SimpleHTTPRequestHandler):
@@ -64,12 +116,15 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             self.send_error(500, "Internal Server Error")
 
     def serve_status_api(self):
-        """Returns live fund metrics from disk states (tax escrow, liquid reserves, trade counts)."""
+        """Returns live fund metrics from disk states (tax escrow, liquid reserves, trade counts, crypto matrix)."""
+        crypto_matrix, portfolio = parse_latest_daemon_state()
         data = {
             "status": "online",
             "fund_name": "AutoTrader Capital Partners",
             "tax_engine": {},
             "liquidity": {},
+            "portfolio": portfolio,
+            "crypto_matrix": crypto_matrix,
         }
 
         if TAX_RESERVE_FILE.exists():
