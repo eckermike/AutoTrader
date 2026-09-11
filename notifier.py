@@ -38,6 +38,7 @@ class TradeNotifier:
         title: str = "AutoTrader Alert",
         priority: str = "default",
         tags: str = "robot",
+        actions: Optional[str] = None,
     ) -> bool:
         """
         Sends an instant Web Push notification to ntfy.sh/topic.
@@ -54,6 +55,9 @@ class TradeNotifier:
             "Priority": priority,
             "Tags": tags,
         }
+        if actions:
+            headers["Actions"] = actions
+
 
         try:
             resp = requests.post(
@@ -436,4 +440,63 @@ class TradeNotifier:
             body="Tap to view full daily breakdown.",
         )
         self.send_imessage(message)
+
+    def notify_approval_request(
+        self,
+        proposal_title: str,
+        proposal_message: str,
+        action_topic: str = "eckermike87-actions",
+        approve_body: str = "APPROVE_5050_BONDS",
+        reject_body: str = "REJECT_5050_BONDS",
+        approve_label: str = "Approve 50/50 Buy ($40k)",
+        reject_label: str = "Reject",
+    ) -> bool:
+        """
+        Sends an interactive notification with Action buttons to iPhone / Apple Watch.
+        Tapping a button posts a background HTTP request to the ntfy action topic.
+        """
+        actions_header = (
+            f"http, {approve_label}, https://ntfy.sh/{action_topic}, method=POST, body={approve_body}, clear=true; "
+            f"http, {reject_label}, https://ntfy.sh/{action_topic}, method=POST, body={reject_body}, clear=true"
+        )
+        self.send_ntfy(
+            message=proposal_message,
+            title=proposal_title,
+            priority="urgent",
+            tags="bank,moneybag,scales",
+            actions=actions_header,
+        )
+        self.send_macos_banner(
+            title=proposal_title,
+            subtitle="Action required via ntfy on iPhone",
+            body="Check iPhone lock screen for Approve / Reject buttons.",
+        )
+        self.send_imessage(
+            f"⚠️ [{proposal_title}]\n\n{proposal_message}\n\n👉 Tap [Approve] or [Reject] in your ntfy alert."
+        )
+        return True
+
+    def notify_approval_resolution(
+        self,
+        title: str,
+        message: str,
+        approved: bool = True,
+    ) -> None:
+        """
+        Notifies user of the execution or cancellation of an approved trade.
+        """
+        tags = "white_check_mark,bank" if approved else "x,warning"
+        self.send_ntfy(
+            message=message,
+            title=title,
+            priority="default",
+            tags=tags,
+        )
+        self.send_macos_banner(
+            title=title,
+            subtitle="AutoTrader Capital Manager",
+            body=message[:100],
+        )
+        self.send_imessage(f"📢 [{title}]\n{message}")
+
 

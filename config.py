@@ -170,6 +170,35 @@ class BotConfig(BaseSettings):
         default=False,
         description="If True, only sends recap if zero trades were executed that day",
     )
+    NTFY_ACTION_TOPIC: Optional[str] = Field(
+        default="eckermike87-actions",
+        description="ntfy.sh topic for receiving two-way action button approvals from iOS",
+    )
+
+    # --- Liquidity Reserve & Cash Management ---
+    LIQUIDITY_RESERVE_ENABLED: bool = Field(
+        default=True,
+        description="Whether the autonomous liquidity and cash yield manager is active",
+    )
+    LIQUIDITY_SYMBOLS: Union[List[str], str] = Field(
+        default=["SGOV", "FBND"],
+        description="Tickers used for cash-yield parking (e.g. SGOV, FBND)",
+    )
+    SGOV_ALLOCATION_USD: float = Field(
+        default=20000.0,
+        ge=0.0,
+        description="Target notional allocation into SGOV (ultra-short Treasury)",
+    )
+    FBND_ALLOCATION_USD: float = Field(
+        default=20000.0,
+        ge=0.0,
+        description="Target notional allocation into FBND (total bond ETF)",
+    )
+    LIQUIDITY_STATE_FILE: str = Field(
+        default="liquidity_state.json",
+        description="Persistent state file tracking pending approvals and bond holdings",
+    )
+
 
     # --- Option Wheel Strategy (Multi-Asset Portfolio) ---
     WHEEL_ENABLED: bool = Field(
@@ -234,6 +263,17 @@ class BotConfig(BaseSettings):
         elif isinstance(v, (list, tuple)):
             return [str(s).strip().upper() for s in v if str(s).strip()]
         return ["INTC", "F", "SOFI", "HOOD", "PLTR", "XLF"]
+
+    @field_validator("LIQUIDITY_SYMBOLS", mode="after")
+    @classmethod
+    def parse_liquidity_symbols(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            symbols = [s.strip().upper() for s in v.split(",") if s.strip()]
+            return symbols if symbols else ["SGOV", "FBND"]
+        elif isinstance(v, (list, tuple)):
+            return [str(s).strip().upper() for s in v if str(s).strip()]
+        return ["SGOV", "FBND"]
+
 
     # --- Strict Paper Trading Enforcement ---
     @field_validator("ALPACA_PAPER")

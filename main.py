@@ -20,7 +20,9 @@ from typing import Any, Dict, List, Optional
 
 from config import BotConfig, get_config
 from execution.alpaca_client import AlpacaPaperClient, PositionInfo
+from execution.liquidity_manager import LiquidityManager
 from factors.sentiment import create_sentiment_analyzer
+
 from factors.technical import TechnicalFactor
 from factors.volume_regime import VolumeRegimeFactor
 from notifier import TradeNotifier
@@ -100,7 +102,19 @@ class TradingDaemon:
             notifier=self.notifier,
         )
 
+        # 6. Initialize Autonomous Liquidity & Cash Yield Manager
+        trading_client = (
+            getattr(self.options_client, "trading_client", None)
+            or getattr(self.client, "trading_client", None)
+        )
+        self.liquidity_manager = LiquidityManager(
+            config=self.config,
+            trading_client=trading_client,
+            notifier=self.notifier,
+        )
+
         # Daily tracking and briefing state
+
         self.current_day_str: Optional[str] = None
         self.trades_executed_today: int = 0
         self.daily_max_composite_scores: Dict[str, float] = {}
@@ -496,6 +510,14 @@ class TradingDaemon:
             )
         except Exception as e:
             logger.exception("Error executing Daily Briefing check: %s", e)
+
+        # --- Strategy 4: Autonomous Liquidity & Cash Yield Manager ---
+        if getattr(self.config, "LIQUIDITY_RESERVE_ENABLED", True) and hasattr(self, "liquidity_manager"):
+            try:
+                self.liquidity_manager.step()
+            except Exception as e:
+                logger.exception("Error executing Liquidity Manager cycle: %s", e)
+
 
     def check_and_dispatch_daily_recap(
         self,
