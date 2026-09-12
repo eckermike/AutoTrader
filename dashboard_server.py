@@ -133,14 +133,18 @@ class DashboardHandler(SimpleHTTPRequestHandler):
                     tax_data = json.load(f)
                     data["tax_engine"] = {
                         "tax_reserve": round(tax_data.get("tax_reserve", 0.0), 2),
+                        "tax_rate": tax_data.get("tax_rate", 0.3),
                         "total_realized_profit": round(tax_data.get("total_realized_profit", 0.0), 2),
                         "total_realized_loss": round(tax_data.get("total_realized_loss", 0.0), 2),
+                        "total_tax_allocated": round(tax_data.get("total_tax_allocated", 0.0), 2),
+                        "total_tax_credits": round(tax_data.get("total_tax_credits", 0.0), 2),
                         "net_realized_pnl": round(
                             tax_data.get("total_realized_profit", 0.0) - tax_data.get("total_realized_loss", 0.0), 2
                         ),
                         "trade_count": tax_data.get("trade_count", 0),
                         "last_updated": tax_data.get("last_updated"),
-                        "recent_trades": tax_data.get("trade_history", [])[-10:],
+                        "recent_trades": tax_data.get("trade_history", []),
+                        "trade_history": tax_data.get("trade_history", []),
                     }
             except Exception as e:
                 logger.warning("Could not read tax_reserve.json: %s", e)

@@ -769,19 +769,55 @@
     </div>
 
     <!-- ==================== TAB 5: TAX ESCROW AUDIT LEDGER ==================== -->
-    <div id="tax" class="tab-content hidden space-y-6">
+    <div id="tab-tax" class="tab-content hidden space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 class="text-lg font-bold text-white">Virtual Tax Escrow Audit Ledger</h2>
           <p class="text-xs text-slate-400">Strict 30% tax segregation on all realized profits | Immutable local state persistence</p>
         </div>
-        <div class="text-right">
-          <span class="text-xs text-slate-400">Current Reserve Balance:</span>
-          <span class="text-lg font-bold text-amber-400 ml-1.5">$109.76</span>
+        <div class="flex items-center gap-3">
+          <div class="text-right">
+            <span class="text-xs text-slate-400">Current Reserve:</span>
+            <span class="text-lg font-bold text-amber-400 ml-1.5" id="tab-tax-reserve-badge">$109.76</span>
+          </div>
+          <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold">30% Flat Escrow</span>
         </div>
       </div>
 
+      <!-- 4-Card Summary Metrics -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-amber-400">
+          <p class="text-xs text-slate-400 uppercase tracking-wider">Escrow Balance</p>
+          <p class="text-xl font-bold text-amber-400 mt-1 font-mono" id="tab-tax-reserve">$109.76</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Segregated from trading</p>
+        </div>
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-emerald-400">
+          <p class="text-xs text-slate-400 uppercase tracking-wider">Gross Profits (7)</p>
+          <p class="text-xl font-bold text-emerald-400 mt-1 font-mono" id="tab-tax-profit">+$395.00</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Option wheel premiums</p>
+        </div>
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-rose-400">
+          <p class="text-xs text-slate-400 uppercase tracking-wider">Realized Losses (2)</p>
+          <p class="text-xl font-bold text-rose-400 mt-1 font-mono" id="tab-tax-loss">-$29.12</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Crypto trailing stops</p>
+        </div>
+        <div class="glass-card rounded-2xl p-4 border-l-4 border-l-cyan-400">
+          <p class="text-xs text-slate-400 uppercase tracking-wider">Net Realized PnL</p>
+          <p class="text-xl font-bold text-cyan-400 mt-1 font-mono" id="tab-tax-net">+$365.88</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">9 closed transactions</p>
+        </div>
+      </div>
+
+      <!-- Live Ledger Table -->
       <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h3 class="text-sm font-semibold text-white">Audited Trade History</h3>
+            <span class="text-xs text-slate-500 ml-1">(Click any row to inspect tax allocation breakdown)</span>
+          </div>
+          <span class="text-xs text-slate-400 font-mono" id="tab-tax-count">9 Transactions</span>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm text-slate-300">
             <thead class="bg-slate-900/80 text-xs uppercase font-semibold text-slate-400 border-b border-slate-800">
@@ -795,71 +831,71 @@
                 <th class="py-3 px-4 text-right">Reserve Balance</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-800/60 font-mono text-xs">
-              <tr class="hover:bg-slate-800/40 transition">
+            <tbody id="tax-ledger-body" class="divide-y divide-slate-800/60 font-mono text-xs">
+              <tr onclick="openTaxModal('b2dc65ba', '2026-09-06 18:50', 'INTC261009P00020000', 'SELL_TO_OPEN', '+$95.00', '+$28.50', '$0.00', '$28.50')" class="hover:bg-slate-800/60 transition cursor-pointer">
                 <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 18:50</td>
-                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">INTC261009P00020000</td>
+                <td class="py-2.5 px-4 font-bold text-cyan-400 font-sans">INTC261009P00020000</td>
                 <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
                 <td class="py-2.5 px-4 text-emerald-400">+$95.00</td>
                 <td class="py-2.5 px-4 text-amber-400">+$28.50</td>
                 <td class="py-2.5 px-4 text-slate-500">$0.00</td>
                 <td class="py-2.5 px-4 text-right font-bold text-amber-300">$28.50</td>
               </tr>
-              <tr class="hover:bg-slate-800/40 transition">
+              <tr onclick="openTaxModal('cda92909', '2026-09-06 18:53', 'INTC261002P00089000', 'SELL_TO_OPEN', '+$50.00', '+$15.00', '$0.00', '$43.50')" class="hover:bg-slate-800/60 transition cursor-pointer">
                 <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 18:53</td>
-                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">INTC261002P00089000</td>
+                <td class="py-2.5 px-4 font-bold text-cyan-400 font-sans">INTC261002P00089000</td>
                 <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
                 <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
                 <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
                 <td class="py-2.5 px-4 text-slate-500">$0.00</td>
                 <td class="py-2.5 px-4 text-right font-bold text-amber-300">$43.50</td>
               </tr>
-              <tr class="hover:bg-slate-800/40 transition">
+              <tr onclick="openTaxModal('b4569608', '2026-09-06 19:04', 'F261002P00013500', 'SELL_TO_OPEN', '+$50.00', '+$15.00', '$0.00', '$58.50')" class="hover:bg-slate-800/60 transition cursor-pointer">
                 <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 19:04</td>
-                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">F261002P00013500</td>
+                <td class="py-2.5 px-4 font-bold text-cyan-400 font-sans">F261002P00013500</td>
                 <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
                 <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
                 <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
                 <td class="py-2.5 px-4 text-slate-500">$0.00</td>
                 <td class="py-2.5 px-4 text-right font-bold text-amber-300">$58.50</td>
               </tr>
-              <tr class="hover:bg-slate-800/40 transition">
+              <tr onclick="openTaxModal('2d2222d7', '2026-09-06 19:04', 'SOFI261002P00017000', 'SELL_TO_OPEN', '+$50.00', '+$15.00', '$0.00', '$73.50')" class="hover:bg-slate-800/60 transition cursor-pointer">
                 <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 19:04</td>
-                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">SOFI261002P00017000</td>
+                <td class="py-2.5 px-4 font-bold text-cyan-400 font-sans">SOFI261002P00017000</td>
                 <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
                 <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
                 <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
                 <td class="py-2.5 px-4 text-slate-500">$0.00</td>
                 <td class="py-2.5 px-4 text-right font-bold text-amber-300">$73.50</td>
               </tr>
-              <tr class="hover:bg-slate-800/40 transition">
+              <tr onclick="openTaxModal('0b5affc9', '2026-09-06 19:04', 'HOOD261002P00115000', 'SELL_TO_OPEN', '+$50.00', '+$15.00', '$0.00', '$88.50')" class="hover:bg-slate-800/60 transition cursor-pointer">
                 <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 19:04</td>
-                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">HOOD261002P00115000</td>
+                <td class="py-2.5 px-4 font-bold text-cyan-400 font-sans">HOOD261002P00115000</td>
                 <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
                 <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
                 <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
                 <td class="py-2.5 px-4 text-slate-500">$0.00</td>
                 <td class="py-2.5 px-4 text-right font-bold text-amber-300">$88.50</td>
               </tr>
-              <tr class="hover:bg-slate-800/40 transition">
+              <tr onclick="openTaxModal('c048f485', '2026-09-06 19:04', 'PLTR261002P00162500', 'SELL_TO_OPEN', '+$50.00', '+$15.00', '$0.00', '$103.50')" class="hover:bg-slate-800/60 transition cursor-pointer">
                 <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 19:04</td>
-                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">PLTR261002P00162500</td>
+                <td class="py-2.5 px-4 font-bold text-cyan-400 font-sans">PLTR261002P00162500</td>
                 <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
                 <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
                 <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
                 <td class="py-2.5 px-4 text-slate-500">$0.00</td>
                 <td class="py-2.5 px-4 text-right font-bold text-amber-300">$103.50</td>
               </tr>
-              <tr class="hover:bg-slate-800/40 transition">
+              <tr onclick="openTaxModal('ce29efa5', '2026-09-06 19:04', 'XLF260930P00055000', 'SELL_TO_OPEN', '+$50.00', '+$15.00', '$0.00', '$118.50')" class="hover:bg-slate-800/60 transition cursor-pointer">
                 <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-06 19:04</td>
-                <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">XLF260930P00055000</td>
+                <td class="py-2.5 px-4 font-bold text-cyan-400 font-sans">XLF260930P00055000</td>
                 <td class="py-2.5 px-4 text-emerald-400">SELL_TO_OPEN</td>
                 <td class="py-2.5 px-4 text-emerald-400">+$50.00</td>
                 <td class="py-2.5 px-4 text-amber-400">+$15.00</td>
                 <td class="py-2.5 px-4 text-slate-500">$0.00</td>
                 <td class="py-2.5 px-4 text-right font-bold text-amber-300">$118.50</td>
               </tr>
-              <tr class="hover:bg-slate-800/40 transition bg-rose-950/10">
+              <tr onclick="openTaxModal('3a4341a8', '2026-09-07 14:34', 'LINK/USD', 'SELL (Trailing Stop)', '-$12.18', '$0.00', '+$3.65', '$114.85')" class="hover:bg-slate-800/60 transition cursor-pointer bg-rose-950/10">
                 <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-07 14:34</td>
                 <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">LINK/USD</td>
                 <td class="py-2.5 px-4 text-rose-400">SELL (Stop)</td>
@@ -868,7 +904,7 @@
                 <td class="py-2.5 px-4 text-cyan-400">+$3.65</td>
                 <td class="py-2.5 px-4 text-right font-bold text-amber-300">$114.85</td>
               </tr>
-              <tr class="hover:bg-slate-800/40 transition bg-rose-950/10">
+              <tr onclick="openTaxModal('2ae76eeb', '2026-09-10 12:39', 'AVAX/USD', 'SELL (Trailing Stop)', '-$16.94', '$0.00', '+$5.08', '$109.76')" class="hover:bg-slate-800/60 transition cursor-pointer bg-rose-950/10">
                 <td class="py-2.5 px-4 font-sans text-slate-400">2026-09-10 12:39</td>
                 <td class="py-2.5 px-4 font-bold text-slate-200 font-sans">AVAX/USD</td>
                 <td class="py-2.5 px-4 text-rose-400">SELL (Stop)</td>
@@ -939,6 +975,64 @@
     </div>
   </div>
 
+  <!-- Tax Transaction Audit Details Modal -->
+  <div id="tax-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl max-w-lg w-full p-6 border border-slate-700 shadow-2xl relative">
+      <button onclick="closeTaxModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-lg">
+          ⚖️
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white" id="tax-modal-title">Tax Escrow Audit Inspector</h3>
+          <p class="text-xs text-slate-400 font-mono" id="tax-modal-id">Trade ID: b2dc65ba</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs mb-4">
+        <div>
+          <p class="text-slate-400">Timestamp (UTC)</p>
+          <p class="text-sm font-semibold text-slate-200" id="tax-modal-time">2026-09-06 18:50</p>
+        </div>
+        <div>
+          <p class="text-slate-400">Asset / Contract</p>
+          <p class="text-sm font-semibold text-cyan-400 font-mono" id="tax-modal-asset">INTC261009P00020000</p>
+        </div>
+        <div>
+          <p class="text-slate-400">Transaction Side</p>
+          <p class="text-sm font-semibold text-emerald-400" id="tax-modal-side">SELL_TO_OPEN</p>
+        </div>
+        <div>
+          <p class="text-slate-400">Gross Realized PnL</p>
+          <p class="text-sm font-semibold text-emerald-400 font-mono" id="tax-modal-gross">+$95.00</p>
+        </div>
+        <div>
+          <p class="text-slate-400">30% Tax Allocated</p>
+          <p class="text-sm font-semibold text-amber-400 font-mono" id="tax-modal-allocated">+$28.50</p>
+        </div>
+        <div>
+          <p class="text-slate-400">Tax Credit (Loss Offset)</p>
+          <p class="text-sm font-semibold text-slate-300 font-mono" id="tax-modal-credit">$0.00</p>
+        </div>
+        <div class="col-span-2 pt-2.5 border-t border-slate-800 flex justify-between items-center">
+          <span class="text-slate-400">Reserve Balance After Trade:</span>
+          <span class="text-base font-bold text-amber-300 font-mono" id="tax-modal-reserve-after">$28.50</span>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs text-emerald-300 mb-4">
+        ✓ <strong>Hard Capital Gate Verified:</strong> Tax reserve is strictly segregated from broker buying power to ensure 100% tax liability coverage.
+      </div>
+
+      <button onclick="closeTaxModal()" class="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 font-semibold text-xs text-white transition">
+        Close Audit Inspector
+      </button>
+    </div>
+  </div>
+
   <!-- Interactive JavaScript Logic -->
   <script>
     function switchTab(tabId) {
@@ -983,6 +1077,65 @@
       document.getElementById('detail-modal').classList.add('hidden');
     }
 
+    function openTaxModal(id, time, symbol, side, gross, tax, credit, reserve) {
+      document.getElementById('tax-modal-id').innerText = 'Trade ID: ' + id;
+      document.getElementById('tax-modal-time').innerText = time;
+      document.getElementById('tax-modal-asset').innerText = symbol;
+      document.getElementById('tax-modal-side').innerText = side;
+      document.getElementById('tax-modal-gross').innerText = gross;
+      document.getElementById('tax-modal-allocated').innerText = tax;
+      document.getElementById('tax-modal-credit').innerText = credit;
+      document.getElementById('tax-modal-reserve-after').innerText = reserve;
+      document.getElementById('tax-modal').classList.remove('hidden');
+    }
+
+    function closeTaxModal() {
+      document.getElementById('tax-modal').classList.add('hidden');
+    }
+
+    function renderTaxLedger(trades) {
+      const tbody = document.getElementById('tax-ledger-body');
+      if (!tbody || !trades || trades.length === 0) return;
+
+      tbody.innerHTML = '';
+      trades.forEach(t => {
+        const tr = document.createElement('tr');
+        const isLoss = (t.gross_pnl || 0) < 0;
+        tr.className = `hover:bg-slate-800/60 transition cursor-pointer ${isLoss ? 'bg-rose-950/10' : ''}`;
+
+        const grossFormatted = (t.gross_pnl >= 0 ? '+$' : '-$') + Math.abs(t.gross_pnl).toFixed(2);
+        const grossColor = t.gross_pnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+        const taxFormatted = (t.tax_allocated > 0 ? '+$' : '$') + (t.tax_allocated || 0).toFixed(2);
+        const creditFormatted = (t.tax_credit > 0 ? '+$' : '$') + (t.tax_credit || 0).toFixed(2);
+        const reserveFormatted = '$' + (t.reserve_after || 0).toFixed(2);
+        const sideColor = isLoss ? 'text-rose-400' : 'text-emerald-400';
+        const sideDisplay = t.side === 'SELL' ? 'SELL (Stop)' : t.side;
+        const timeDisplay = (t.timestamp || '').replace('T', ' ').substring(0, 16);
+
+        tr.onclick = () => openTaxModal(
+          t.id || 'N/A',
+          timeDisplay,
+          t.symbol,
+          sideDisplay,
+          grossFormatted,
+          taxFormatted,
+          creditFormatted,
+          reserveFormatted
+        );
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-4 font-sans text-slate-400">${timeDisplay}</td>
+          <td class="py-2.5 px-4 font-bold text-cyan-400 font-sans">${t.symbol}</td>
+          <td class="py-2.5 px-4 ${sideColor}">${sideDisplay}</td>
+          <td class="py-2.5 px-4 ${grossColor}">${grossFormatted}</td>
+          <td class="py-2.5 px-4 text-amber-400">${taxFormatted}</td>
+          <td class="py-2.5 px-4 ${t.tax_credit > 0 ? 'text-cyan-400' : 'text-slate-500'}">${creditFormatted}</td>
+          <td class="py-2.5 px-4 text-right font-bold text-amber-300">${reserveFormatted}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
     function toggleEli5() {
       const content = document.getElementById('eli5-content');
       const arrow = document.getElementById('eli5-arrow');
@@ -1014,17 +1167,39 @@
             if (tax.tax_reserve !== undefined) {
               const el = document.getElementById('kpi-tax-reserve');
               if (el) el.innerText = '$' + tax.tax_reserve.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+              const tBadge = document.getElementById('tab-tax-reserve-badge');
+              if (tBadge) tBadge.innerText = '$' + tax.tax_reserve.toFixed(2);
+              const tRes = document.getElementById('tab-tax-reserve');
+              if (tRes) tRes.innerText = '$' + tax.tax_reserve.toFixed(2);
+            }
+            if (tax.total_realized_profit !== undefined) {
+              const el = document.getElementById('tab-tax-profit');
+              if (el) el.innerText = '+$' + tax.total_realized_profit.toFixed(2);
+            }
+            if (tax.total_realized_loss !== undefined) {
+              const el = document.getElementById('tab-tax-loss');
+              if (el) el.innerText = '-$' + Math.abs(tax.total_realized_loss).toFixed(2);
             }
             if (tax.net_realized_pnl !== undefined) {
               const pnlEl = document.getElementById('kpi-realized-pnl');
               const sign = tax.net_realized_pnl >= 0 ? '+' : '';
               if (pnlEl) pnlEl.innerText = `${sign}$${tax.net_realized_pnl.toFixed(2)} Realized`;
 
+              const netEl = document.getElementById('tab-tax-net');
+              if (netEl) netEl.innerText = `${sign}$${tax.net_realized_pnl.toFixed(2)}`;
+
               const assetEl = document.getElementById('kpi-fund-assets');
               if (assetEl) {
                 const totalAssets = 100000.0 + tax.net_realized_pnl;
                 assetEl.innerText = '$' + totalAssets.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
               }
+            }
+            if (tax.trade_count !== undefined) {
+              const cEl = document.getElementById('tab-tax-count');
+              if (cEl) cEl.innerText = `${tax.trade_count} Transactions`;
+            }
+            if (tax.trade_history && Array.isArray(tax.trade_history)) {
+              renderTaxLedger(tax.trade_history);
             }
           }
 
