@@ -26,6 +26,7 @@ SPREAD_STATE_FILE = BASE_DIR / "spreads_state.json"
 HEDGE_STATE_FILE = BASE_DIR / "tail_hedge_state.json"
 DIP_STATE_FILE = BASE_DIR / "dip_buyer_state.json"
 MACRO_STATE_FILE = BASE_DIR / "macro_rotation_state.json"
+PAIRS_STATE_FILE = BASE_DIR / "pairs_trading_state.json"
 
 
 AUTOTRADER_LOG_FILE = BASE_DIR / "autotrader.log"
@@ -310,6 +311,46 @@ class DashboardHandler(SimpleHTTPRequestHandler):
                     }
             except Exception as e:
                 logger.warning("Could not read macro_rotation_state.json: %s", e)
+
+        data["pairs_trading"] = {
+            "enabled": True,
+            "max_capital_usd": 5000.0,
+            "allocated_capital_usd": 0.0,
+            "available_capital_usd": 5000.0,
+            "active_positions_count": 0,
+            "active_positions": [],
+            "closed_trades_count": 0,
+            "closed_trades": [],
+            "scanned_metrics": {},
+            "total_realized_pnl": 0.0,
+            "total_tax_escrow": 0.0,
+            "win_rate_pct": 0.0,
+        }
+        if PAIRS_STATE_FILE.exists():
+            try:
+                with open(PAIRS_STATE_FILE, "r", encoding="utf-8") as f:
+                    pairs_data = json.load(f)
+                    active_pos = list(pairs_data.get("active_positions", {}).values())
+                    closed_tr = pairs_data.get("closed_trades", [])
+                    deployed = sum(p.get("total_notional", 0.0) for p in active_pos)
+                    wins = sum(1 for t in closed_tr if t.get("net_realized_pnl", 0.0) > 0)
+                    win_rate = (wins / len(closed_tr) * 100.0) if closed_tr else 0.0
+                    data["pairs_trading"] = {
+                        "enabled": True,
+                        "max_capital_usd": 5000.0,
+                        "allocated_capital_usd": round(deployed, 2),
+                        "available_capital_usd": round(max(0.0, 5000.0 - deployed), 2),
+                        "active_positions_count": len(active_pos),
+                        "active_positions": active_pos,
+                        "closed_trades_count": len(closed_tr),
+                        "closed_trades": closed_tr[-10:],
+                        "scanned_metrics": pairs_data.get("last_scanned_metrics", {}),
+                        "total_realized_pnl": round(pairs_data.get("total_realized_pnl", 0.0), 2),
+                        "total_tax_escrow": round(pairs_data.get("total_tax_escrow", 0.0), 2),
+                        "win_rate_pct": round(win_rate, 1),
+                    }
+            except Exception as e:
+                logger.warning("Could not read pairs_trading_state.json: %s", e)
 
         payload = json.dumps(data, indent=2).encode("utf-8")
         self.send_response(200)

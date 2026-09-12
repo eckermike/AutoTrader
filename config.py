@@ -5,7 +5,7 @@ Uses Pydantic Settings for type validation, environment variable parsing, and ri
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Tuple, Union
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -530,6 +530,80 @@ class BotConfig(BaseSettings):
         default="DAY",
         description="Time-in-force for macro rotation equity orders ('DAY' or 'GTC')",
     )
+
+    # --- Strategy 5: Statistical Pairs Trading (Market-Neutral Arbitrage) ---
+    PAIRS_ENABLED: bool = Field(
+        default=True,
+        description="Enable Statistical Pairs Trading strategy",
+    )
+    PAIRS_LIST: List[Tuple[str, str]] = Field(
+        default_factory=lambda: [("XOM", "CVX"), ("KO", "PEP"), ("GOOGL", "MSFT")],
+        description="List of cointegrated equity pair tuples (Symbol A, Symbol B)",
+    )
+    PAIRS_MAX_CAPITAL_USD: float = Field(
+        default=5000.0,
+        ge=500.0,
+        le=50000.0,
+        description="Maximum cumulative capital allocated to pairs trading",
+    )
+    PAIRS_ALLOCATION_PER_PAIR_USD: float = Field(
+        default=2500.0,
+        ge=250.0,
+        le=25000.0,
+        description="Total notional capital per pair trade ($1,250 long + $1,250 short)",
+    )
+    PAIRS_LOOKBACK_DAYS: int = Field(
+        default=30,
+        ge=10,
+        le=120,
+        description="Lookback window in days to compute spread mean and std dev",
+    )
+    PAIRS_ENTRY_ZSCORE: float = Field(
+        default=2.0,
+        ge=1.0,
+        le=4.0,
+        description="Z-score divergence threshold to enter pair trade",
+    )
+    PAIRS_EXIT_ZSCORE: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.5,
+        description="Z-score convergence threshold to exit pair trade for profit",
+    )
+    PAIRS_STOP_LOSS_ZSCORE: float = Field(
+        default=3.5,
+        ge=2.5,
+        le=6.0,
+        description="Z-score divergence threshold to trigger stop-loss",
+    )
+    PAIRS_TIME_STOP_DAYS: int = Field(
+        default=20,
+        ge=5,
+        le=60,
+        description="Maximum holding duration in days before time stop exit",
+    )
+    PAIRS_STATE_FILE: str = Field(
+        default="pairs_trading_state.json",
+        description="Persistent JSON state file for statistical pairs trading",
+    )
+    PAIRS_TIME_IN_FORCE: str = Field(
+        default="DAY",
+        description="Time-in-force for pairs equity orders ('DAY' or 'GTC')",
+    )
+
+    @field_validator("PAIRS_LIST", mode="after")
+    @classmethod
+    def parse_pairs_list(cls, v: Any) -> List[Tuple[str, str]]:
+        if isinstance(v, (list, tuple)):
+            clean_pairs = []
+            for item in v:
+                if isinstance(item, (list, tuple)) and len(item) == 2:
+                    clean_pairs.append((str(item[0]).strip().upper(), str(item[1]).strip().upper()))
+                elif isinstance(item, str) and "/" in item:
+                    parts = item.split("/")
+                    clean_pairs.append((parts[0].strip().upper(), parts[1].strip().upper()))
+            return clean_pairs if clean_pairs else [("XOM", "CVX"), ("KO", "PEP"), ("GOOGL", "MSFT")]
+        return [("XOM", "CVX"), ("KO", "PEP"), ("GOOGL", "MSFT")]
 
     @field_validator("MACRO_SYMBOLS", mode="after")
     @classmethod

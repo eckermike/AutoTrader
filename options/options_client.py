@@ -187,6 +187,10 @@ class AlpacaOptionsClient:
                 "GLD": 235.00,
                 "VNQ": 88.00,
                 "SGOV": 100.50,
+                "XOM": 115.00,
+                "CVX": 150.00,
+                "KO": 68.00,
+                "PEP": 172.00,
             }
             return mock_prices.get(sym, 21.50)
 
@@ -240,6 +244,10 @@ class AlpacaOptionsClient:
             "GLD": 235.00,
             "VNQ": 88.00,
             "SGOV": 100.50,
+            "XOM": 115.00,
+            "CVX": 150.00,
+            "KO": 68.00,
+            "PEP": 172.00,
         }
         fallback = default_fallbacks.get(sym, 21.50)
         logger.warning("Using fallback price $%0.2f for %s", fallback, sym)
@@ -918,14 +926,21 @@ class AlpacaOptionsClient:
                 cur_pos = self._mock_stock_positions.get(sym)
                 if cur_pos:
                     new_qty = cur_pos.qty + calc_qty
-                    new_avg = ((cur_pos.qty * cur_pos.avg_entry_price) + calc_notional) / new_qty
-                    self._mock_stock_positions[sym] = StockPositionInfo(
-                        symbol=sym,
-                        qty=new_qty,
-                        avg_entry_price=round(new_avg, 2),
-                        current_price=current_p,
-                        market_value=round(new_qty * current_p, 2),
-                    )
+                    if abs(new_qty) <= 0.0001:
+                        self._mock_stock_positions.pop(sym, None)
+                    else:
+                        if cur_pos.qty < 0:
+                            # Covering short position
+                            new_avg = cur_pos.avg_entry_price
+                        else:
+                            new_avg = ((cur_pos.qty * cur_pos.avg_entry_price) + calc_notional) / new_qty
+                        self._mock_stock_positions[sym] = StockPositionInfo(
+                            symbol=sym,
+                            qty=round(new_qty, 4),
+                            avg_entry_price=round(new_avg, 2),
+                            current_price=current_p,
+                            market_value=round(new_qty * current_p, 2),
+                        )
                 else:
                     self._mock_stock_positions[sym] = StockPositionInfo(
                         symbol=sym,
@@ -938,16 +953,30 @@ class AlpacaOptionsClient:
                 cur_pos = self._mock_stock_positions.get(sym)
                 if cur_pos:
                     new_qty = cur_pos.qty - calc_qty
-                    if new_qty <= 0.0001:
+                    if abs(new_qty) <= 0.0001:
                         self._mock_stock_positions.pop(sym, None)
                     else:
+                        if cur_pos.qty > 0:
+                            new_avg = cur_pos.avg_entry_price
+                        else:
+                            # Adding to short position
+                            new_avg = ((abs(cur_pos.qty) * cur_pos.avg_entry_price) + calc_notional) / abs(new_qty)
                         self._mock_stock_positions[sym] = StockPositionInfo(
                             symbol=sym,
-                            qty=new_qty,
-                            avg_entry_price=cur_pos.avg_entry_price,
+                            qty=round(new_qty, 4),
+                            avg_entry_price=round(new_avg, 2),
                             current_price=current_p,
                             market_value=round(new_qty * current_p, 2),
                         )
+                else:
+                    # Initiate short sell position
+                    self._mock_stock_positions[sym] = StockPositionInfo(
+                        symbol=sym,
+                        qty=round(-calc_qty, 4),
+                        avg_entry_price=current_p,
+                        current_price=current_p,
+                        market_value=round(-calc_qty * current_p, 2),
+                    )
 
             receipt = {
                 "id": f"mock_stk_{uuid.uuid4().hex[:8]}",

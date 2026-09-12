@@ -21,6 +21,7 @@ spreads_state.json
 tail_hedge_state.json
 dip_buyer_state.json
 macro_rotation_state.json
+pairs_trading_state.json
 
 
 # Log files

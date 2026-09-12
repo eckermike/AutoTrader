@@ -22,6 +22,7 @@ from config import BotConfig, get_config
 from execution.alpaca_client import AlpacaPaperClient, PositionInfo
 from execution.dip_buyer_engine import DipBuyerEngine
 from execution.macro_rotation_engine import MacroRotationEngine
+from execution.pairs_trading_engine import PairsTradingEngine
 from execution.liquidity_manager import LiquidityManager
 from factors.sentiment import create_sentiment_analyzer
 
@@ -150,6 +151,15 @@ class TradingDaemon:
 
         # 11. Initialize Macro Dual-Momentum / Sector Rotation Engine
         self.macro_rotation_engine = MacroRotationEngine(
+            config=self.config,
+            options_client=self.options_client,
+            tax_engine=self.tax_engine,
+            notifier=self.notifier,
+            liquidity_manager=self.liquidity_manager,
+        )
+
+        # 12. Initialize Statistical Pairs Trading Engine (Market-Neutral Arbitrage)
+        self.pairs_engine = PairsTradingEngine(
             config=self.config,
             options_client=self.options_client,
             tax_engine=self.tax_engine,
@@ -628,6 +638,18 @@ class TradingDaemon:
             except Exception as e:
                 logger.exception("Error executing Macro Dual-Momentum cycle: %s", e)
 
+        # --- Strategy 9: Statistical Pairs Trading (XOM/CVX, KO/PEP, GOOGL/MSFT) ---
+        if getattr(self.config, "PAIRS_ENABLED", True) and hasattr(self, "pairs_engine"):
+            try:
+                is_mkt_open = (
+                    self.options_client.is_market_open()
+                    if hasattr(self.options_client, "is_market_open")
+                    else True
+                )
+                self.pairs_engine.step(is_market_open=is_mkt_open)
+            except Exception as e:
+                logger.exception("Error executing Pairs Trading cycle: %s", e)
+
 
     def check_and_dispatch_daily_recap(
         self,
@@ -780,7 +802,14 @@ class TradingDaemon:
         else:
             macro_diag.append("Macro Dual-Momentum strategy disabled.")
 
-        # 7. Dispatch Daily Recap Alert
+        # 7. Gather Statistical Pairs Trading diagnostics
+        pairs_diag: List[str] = []
+        if getattr(self.config, "PAIRS_ENABLED", True) and hasattr(self, "pairs_engine"):
+            pairs_diag = self.pairs_engine.get_diagnostics()
+        else:
+            pairs_diag.append("Statistical Pairs Trading strategy disabled.")
+
+        # 8. Dispatch Daily Recap Alert
         logger.info(
             "Dispatching End-of-Day Briefing for %s (Trades Today: %d)...",
             today_str,
@@ -798,6 +827,7 @@ class TradingDaemon:
             tail_hedge_diagnostics=tail_hedge_diag,
             dip_diagnostics=dip_diag,
             macro_diagnostics=macro_diag,
+            pairs_diagnostics=pairs_diag,
         )
 
         self.last_daily_recap_date = today_str

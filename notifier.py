@@ -734,6 +734,96 @@ class TradeNotifier:
         )
         self.send_imessage(message)
 
+    def notify_pair_trade_open(
+        self,
+        pair_id: str,
+        symbol_a: str,
+        symbol_b: str,
+        side_a: str,
+        side_b: str,
+        shares_a: float,
+        shares_b: float,
+        price_a: float,
+        price_b: float,
+        zscore: float,
+        ratio: float,
+        notional: float,
+    ) -> None:
+        """Alerts when a Statistical Pairs Trade (Market-Neutral Arbitrage) is opened."""
+        action_a = f"{side_a.upper()} {shares_a:.4f} {symbol_a} @ ${price_a:,.2f}"
+        action_b = f"{side_b.upper()} {shares_b:.4f} {symbol_b} @ ${price_b:,.2f}"
+        message = (
+            f"⚖️ [STATISTICAL PAIRS TRADE: OPENED]\n"
+            f"Pair: {symbol_a} / {symbol_b} ({pair_id})\n"
+            f"📊 Spread Z-Score: {zscore:+.2f} (Ratio: {ratio:.4f})\n"
+            f"Leg A: {action_a}\n"
+            f"Leg B: {action_b}\n"
+            f"Total Notional: ${notional:,.2f} ($1,250 Long + $1,250 Short)\n"
+            f"Market-Neutral: Long undervalued leg & Short overvalued leg.\n"
+            f"Target Exit: Z-Score reversion toward 0.0 (|z| <= 0.50).\n"
+            f"Stop-Loss: Divergence guard at |z| >= 3.50 (or 20d time stop)."
+        )
+        self.send_ntfy(
+            message=message,
+            title=f"⚖️ PAIRS TRADE: {symbol_a}/{symbol_b} (z={zscore:+.2f})",
+            priority="high",
+            tags="scales,balance_scale,chart_with_upwards_trend",
+        )
+        self.send_macos_banner(
+            title=f"Pairs Trade: {symbol_a}/{symbol_b}",
+            subtitle=f"z={zscore:+.2f} | Notional: ${notional:,.0f}",
+            body=f"{action_a} | {action_b}",
+        )
+        self.send_imessage(message)
+
+    def notify_pair_trade_close(
+        self,
+        pair_id: str,
+        symbol_a: str,
+        symbol_b: str,
+        entry_zscore: float,
+        exit_zscore: float,
+        pnl_a: float,
+        pnl_b: float,
+        net_pnl: float,
+        pnl_pct: float,
+        exit_reason: str,
+        tax_escrow: float,
+    ) -> None:
+        """Alerts when a Statistical Pairs Trade is closed."""
+        sign = "+" if net_pnl >= 0 else "-"
+        abs_pnl = abs(net_pnl)
+        reason_label = {
+            "MEAN_REVERSION": "🎯 Mean Reversion Complete (|z| <= 0.50)",
+            "DIVERGENCE_STOP": "🛑 Divergence Stop-Loss Triggered (|z| >= 3.50)",
+            "TIME_STOP": "⏰ Time Stop (20 Days Holding Expired)",
+        }.get(exit_reason, exit_reason)
+
+        message = (
+            f"⚖️ [STATISTICAL PAIRS TRADE: CLOSED]\n"
+            f"Pair: {symbol_a} / {symbol_b} ({pair_id})\n"
+            f"Reason: {reason_label}\n"
+            f"Spread Z-Score: Entry {entry_zscore:+.2f} ➔ Exit {exit_zscore:+.2f}\n"
+            f"Leg {symbol_a} PnL: {'+' if pnl_a >= 0 else '-'}${abs(pnl_a):,.2f}\n"
+            f"Leg {symbol_b} PnL: {'+' if pnl_b >= 0 else '-'}${abs(pnl_b):,.2f}\n"
+            f"✨ Net Combined PnL: {sign}${abs_pnl:,.2f} ({pnl_pct*100:+.2f}%)\n"
+            f"🏛 Tax Escrow (30% Withheld): ${tax_escrow:,.2f}\n"
+            f"Capital unlocked and recycled back to buying power."
+        )
+        tag = "scales,moneybag,tada" if net_pnl >= 0 else "scales,warning,shield"
+        self.send_ntfy(
+            message=message,
+            title=f"⚖️ PAIRS EXIT: {symbol_a}/{symbol_b} {sign}${abs_pnl:,.2f} ({pnl_pct*100:+.1f}%)",
+            priority="high" if net_pnl >= 0 else "default",
+            tags=tag,
+        )
+        self.send_macos_banner(
+            title=f"Pairs Closed: {symbol_a}/{symbol_b} ({sign}${abs_pnl:,.2f})",
+            subtitle=f"{reason_label[:30]} ({pnl_pct*100:+.1f}%)",
+            body=f"Tax Escrow: ${tax_escrow:,.2f}",
+        )
+        self.send_imessage(message)
+
     def notify_daily_recap(
         self,
         date_str: str,
@@ -747,6 +837,7 @@ class TradeNotifier:
         tail_hedge_diagnostics: Optional[list[str]] = None,
         dip_diagnostics: Optional[list[str]] = None,
         macro_diagnostics: Optional[list[str]] = None,
+        pairs_diagnostics: Optional[list[str]] = None,
     ) -> None:
         """
         Sends an automated end-of-day daily briefing.
@@ -775,7 +866,7 @@ class TradeNotifier:
             spread_lines = (
                 "\n".join(f"• {item}" for item in spread_diagnostics)
                 if spread_diagnostics
-                else "• No active spread orders"
+                else "• No active credit spreads"
             )
             spread_section = f"\n🎯 Defined-Risk Option Spreads:\n{spread_lines}\n"
 
@@ -784,9 +875,9 @@ class TradeNotifier:
             hedge_lines = (
                 "\n".join(f"• {item}" for item in tail_hedge_diagnostics)
                 if tail_hedge_diagnostics
-                else "• No active crash hedges"
+                else "• No active tail hedges"
             )
-            hedge_section = f"\n🛡️ Black Swan Crash Hedge:\n{hedge_lines}\n"
+            hedge_section = f"\n🦅 Black Swan Crash Hedge (Tail-Risk):\n{hedge_lines}\n"
 
         dip_section = ""
         if dip_diagnostics is not None:
@@ -806,6 +897,15 @@ class TradeNotifier:
             )
             macro_section = f"\n🧭 Macro Dual Momentum (Sector Rotation):\n{macro_lines}\n"
 
+        pairs_section = ""
+        if pairs_diagnostics is not None:
+            pairs_lines = (
+                "\n".join(f"• {item}" for item in pairs_diagnostics)
+                if pairs_diagnostics
+                else "• No active pairs positions"
+            )
+            pairs_section = f"\n⚖️ Statistical Pairs Trading (Market-Neutral):\n{pairs_lines}\n"
+
         reason_header = (
             "\n🔍 WHY NO TRADES WERE TRIGGERED TODAY:\n"
             if trades_count == 0
@@ -823,7 +923,8 @@ class TradeNotifier:
             f"{spread_section}"
             f"{hedge_section}"
             f"{dip_section}"
-            f"{macro_section}\n"
+            f"{macro_section}"
+            f"{pairs_section}\n"
             f"💰 Portfolio Financials:\n"
             f"• Total Cash:    ${cash:,.2f}\n"
             f"• Tradable Cash: ${tradable_cash:,.2f}\n"

@@ -147,6 +147,11 @@
         <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         Macro Dual Momentum (Asset Rotation)
       </button>
+
+      <button onclick="switchTab('pairs')" id="tab-btn-pairs" class="tab-button px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-2 transition">
+        <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
+        Statistical Pairs Trading (Arbitrage)
+      </button>
     </div>
 
     <!-- ==================== TAB 1: OVERVIEW & ALLOCATION ==================== -->
@@ -289,6 +294,20 @@
               <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
                 <p>• <strong>Safe Haven Flight:</strong> 100% rotation into SGOV (5.05% APY) during bear regimes</p>
                 <p>• <strong>Trailing Defense:</strong> -7.0% trailing stop protects profits against macro reversals</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-violet-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-violet-500/20 text-violet-400 font-bold flex items-center justify-center text-xs">9</span>
+                <h4 class="font-bold text-white">Statistical Pairs Trading (Market-Neutral)</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2">
+                <strong class="text-slate-200">The Market-Neutral Arbitrageur.</strong> Profits from temporary pricing dislocations between historically cointegrated giants (XOM/CVX, KO/PEP, GOOGL/MSFT) regardless of broader market direction.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>Simultaneous Long/Short:</strong> Buys undervalued leg + shorts overvalued leg at |z| &ge; 2.0</p>
+                <p>• <strong>Mean Reversion Exit:</strong> Takes profit when ratio converges (|z| &le; 0.50); hard stop at |z| &ge; 3.50</p>
               </div>
             </div>
           </div>
@@ -2503,6 +2522,253 @@
 
     </div>
 
+    <!-- ==================== TAB 10: STATISTICAL PAIRS TRADING (MARKET-NEUTRAL ARBITRAGE) ==================== -->
+    <div id="tab-pairs" class="tab-content hidden space-y-6">
+
+      <!-- Header Banner with Status Badges -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h2 class="text-lg font-bold text-white">Statistical Pairs Trading (XOM/CVX, KO/PEP, GOOGL/MSFT)</h2>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 font-medium">Market-Neutral Arbitrage</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Statistical mean-reversion on cointegrated equity pairs. Long undervalued leg + Short overvalued leg on divergence (|z| &ge; 2.0).</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-3 py-1 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700 flex items-center gap-1.5 font-medium" id="pairs-regime-badge">
+            <span class="w-2 h-2 rounded-full bg-violet-400 animate-pulse"></span>
+            Market-Neutral Arbitrage (Zero Beta)
+          </span>
+          <span class="text-xs px-3 py-1 rounded-xl bg-violet-500/10 text-violet-300 border border-violet-500/20 font-medium">
+            $5,000 Total Strategy Cap ($2.5k / Pair)
+          </span>
+        </div>
+      </div>
+
+      <!-- ELI5 Explainer Card for Pairs Trading (Hidden by default) -->
+      <div class="glass-card rounded-2xl p-5 border border-violet-500/30 bg-gradient-to-r from-violet-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-pairs-trading')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/30 text-violet-400 flex items-center justify-center text-xl shadow-inner">
+              ⚖️
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">ELI5: How Statistical Pairs Trading Generates Market-Neutral Cash Flow</h3>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">Arbitrage Primer</span>
+              </div>
+              <p class="text-xs text-slate-400">Explain Like I'm 5: Why we don't care if the stock market crashes or rallies, but instead bet on two tethered twins snapping back together.</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-violet-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
+            <span id="eli5-pairs-trading-btn-text">Show Guide</span>
+            <svg id="eli5-pairs-trading-arrow" class="w-3.5 h-3.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+
+        <!-- Explainer Content (Hidden by default) -->
+        <div id="eli5-pairs-trading-content" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+          <div class="p-3.5 rounded-xl bg-violet-950/30 border border-violet-500/20 text-xs text-slate-300 leading-relaxed">
+            <span class="font-bold text-violet-300">The 10-Second Summary:</span> Think of Coca-Cola (KO) and Pepsi (PEP) like two twin brothers connected by an elastic bungee cord. They sell the same drinks in the same economy, so their stock prices normally walk side-by-side. If Coca-Cola suddenly surges while Pepsi lags for no fundamental reason, the rubber band is stretched tight (Z-score &ge; 2.0). We simultaneously buy Pepsi (cheap) and short sell Coca-Cola (expensive). When the rubber band snaps back to normal, we pocket the difference as pure profit—regardless of whether the broader stock market went up, down, or sideways.
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="flex items-center gap-2 mb-1.5 text-violet-400 font-bold">
+                <span>1.</span> Statistical Cointegration (The Bungee Cord)
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                The bot constantly tracks the historical price ratio between cointegrated sector pairs (XOM vs CVX, KO vs PEP, GOOGL vs MSFT) over a 30-day window, measuring the exact mathematical mean and standard deviation.
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="flex items-center gap-2 mb-1.5 text-indigo-400 font-bold">
+                <span>2.</span> Market-Neutral Execution (Zero Beta)
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                Each trade deploys exactly $2,500 split 50/50: $1,250 Long the undervalued stock and $1,250 Short the overvalued stock. Macro market crashes or geopolitical headlines hit both legs equally, neutralizing general market risk.
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="flex items-center gap-2 mb-1.5 text-emerald-400 font-bold">
+                <span>3.</span> Mean Reversion Exit &amp; 30% Tax Lockbox
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                When the spread returns within normal range (|z| &le; 0.50), both legs liquidate instantly to lock in net profit. 30% is automatically routed to the tax escrow reserve, and capital is recycled. A hard stop-loss (|z| &ge; 3.50) guards against permanent divergence.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Strategy KPI Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Pairs Capital Deployed</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <p class="text-2xl font-black text-white" id="pairs-capital-kpi">$0</p>
+            <span class="text-xs text-slate-400">/ $5,000 Cap</span>
+          </div>
+          <p class="text-xs text-violet-400 mt-2 font-medium" id="pairs-utilization-kpi">0.0% Allocation</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Active Market-Neutral Pairs</p>
+          <div class="flex items-baseline gap-2 mt-1.5">
+            <p class="text-2xl font-black text-violet-400" id="pairs-active-count-kpi">0</p>
+            <span class="text-xs text-slate-400">Active Trades</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-2">1 Long + 1 Short Leg per Trade</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Realized Net Arbitrage PnL</p>
+          <p class="text-2xl font-black text-emerald-400 mt-1.5 tracking-tight" id="pairs-pnl-kpi">+$0.00</p>
+          <p class="text-xs text-slate-400 mt-2" id="pairs-winrate-kpi">0.0% Win Rate (0 Closed)</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Tax Escrow Reserve</p>
+          <p class="text-2xl font-black text-amber-400 mt-1.5 tracking-tight" id="pairs-tax-kpi">$0.00</p>
+          <p class="text-xs text-slate-400 mt-2">30% Auto-Withheld in JSON</p>
+        </div>
+      </div>
+
+      <!-- Active Pairs Positions Table -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Active Market-Neutral Pair Positions</h3>
+            <p class="text-xs text-slate-400">Live dual-leg arbitrage positions tracking real-time price ratios and z-score mean reversion convergence</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/20 font-semibold" id="pairs-active-badge">0 Active Pairs</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Pair</th>
+                <th class="py-2.5 px-4 font-semibold">Leg A (Action / Qty / Price)</th>
+                <th class="py-2.5 px-4 font-semibold">Leg B (Action / Qty / Price)</th>
+                <th class="py-2.5 px-4 font-semibold">Entry Ratio</th>
+                <th class="py-2.5 px-4 font-semibold">Current Ratio</th>
+                <th class="py-2.5 px-4 font-semibold">Spread Z-Score</th>
+                <th class="py-2.5 px-4 font-semibold">Total Notional</th>
+                <th class="py-2.5 px-4 font-semibold">Hold Days</th>
+                <th class="py-2.5 px-4 font-semibold text-right">Net Unrealized PnL</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="pairs-active-table-body">
+              <tr class="text-slate-500 text-center py-4">
+                <td colspan="9" class="py-4 font-sans">No active pairs positions. Capital parked safely awaiting statistical divergence (|z| &ge; 2.0).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pairs Universe Statistical Scanner Matrix -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Pairs Universe Statistical Scanner Matrix</h3>
+            <p class="text-xs text-slate-400">Continuous 30-day historical ratio, rolling standard deviation, and live Z-score divergence tracking</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-400">3 Cointegrated Pairs Monitored</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Pair</th>
+                <th class="py-2.5 px-4 font-semibold">Price A</th>
+                <th class="py-2.5 px-4 font-semibold">Price B</th>
+                <th class="py-2.5 px-4 font-semibold">Live Ratio (A/B)</th>
+                <th class="py-2.5 px-4 font-semibold">30D Mean Ratio</th>
+                <th class="py-2.5 px-4 font-semibold">Spread Std Dev</th>
+                <th class="py-2.5 px-4 font-semibold">Spread Z-Score</th>
+                <th class="py-2.5 px-4 font-semibold">Signal</th>
+                <th class="py-2.5 px-4 font-semibold text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="pairs-scanner-table-body">
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans font-bold text-white">XOM / CVX</td>
+                <td class="py-2.5 px-4 text-slate-300">$115.00</td>
+                <td class="py-2.5 px-4 text-slate-300">$150.00</td>
+                <td class="py-2.5 px-4 text-slate-200 font-semibold">0.7667</td>
+                <td class="py-2.5 px-4 text-slate-400">0.7667</td>
+                <td class="py-2.5 px-4 text-slate-400">0.0383</td>
+                <td class="py-2.5 px-4 text-slate-300 font-bold">+0.00</td>
+                <td class="py-2.5 px-4 text-slate-400">NEUTRAL</td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span></td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans font-bold text-white">KO / PEP</td>
+                <td class="py-2.5 px-4 text-slate-300">$68.00</td>
+                <td class="py-2.5 px-4 text-slate-300">$172.00</td>
+                <td class="py-2.5 px-4 text-slate-200 font-semibold">0.3953</td>
+                <td class="py-2.5 px-4 text-slate-400">0.3953</td>
+                <td class="py-2.5 px-4 text-slate-400">0.0198</td>
+                <td class="py-2.5 px-4 text-slate-300 font-bold">+0.00</td>
+                <td class="py-2.5 px-4 text-slate-400">NEUTRAL</td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span></td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans font-bold text-white">GOOGL / MSFT</td>
+                <td class="py-2.5 px-4 text-slate-300">$165.00</td>
+                <td class="py-2.5 px-4 text-slate-300">$420.00</td>
+                <td class="py-2.5 px-4 text-slate-200 font-semibold">0.3929</td>
+                <td class="py-2.5 px-4 text-slate-400">0.3929</td>
+                <td class="py-2.5 px-4 text-slate-400">0.0196</td>
+                <td class="py-2.5 px-4 text-slate-300 font-bold">+0.00</td>
+                <td class="py-2.5 px-4 text-slate-400">NEUTRAL</td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Closed Pairs Audit History Ledger -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Closed Pairs Audit History Ledger</h3>
+            <p class="text-xs text-slate-400">Historical market-neutral arbitrage trades, profit harvests, and 30% automatic tax escrow allocations</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-400" id="pairs-closed-count-badge">0 Closed Trades</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Pair</th>
+                <th class="py-2.5 px-4 font-semibold">Hold Time</th>
+                <th class="py-2.5 px-4 font-semibold">Entry Z ➔ Exit Z</th>
+                <th class="py-2.5 px-4 font-semibold">Leg A PnL</th>
+                <th class="py-2.5 px-4 font-semibold">Leg B PnL</th>
+                <th class="py-2.5 px-4 font-semibold text-right">Net Realized PnL</th>
+                <th class="py-2.5 px-4 font-semibold text-right">30% Tax Escrow</th>
+                <th class="py-2.5 px-4 font-semibold text-center">Exit Reason</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="pairs-history-table-body">
+              <tr class="text-slate-500 text-center py-4">
+                <td colspan="8" class="py-4 font-sans">No closed pairs trades yet. Capital deployed according to statistical z-score divergence.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- Contract Details Modal -->
@@ -3153,6 +3419,123 @@
                     <td class="py-2.5 px-4 text-right text-amber-400">$${(t.tax_escrow || 0).toFixed(2)}</td>
                     <td class="py-2.5 px-4 text-center font-sans">
                       <span class="px-2 py-0.5 rounded text-[10px] ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${t.exit_reason || 'ROTATION'}</span>
+                    </td>
+                  </tr>
+                `;
+              }).join('');
+            }
+          }
+
+          // Render Strategy 9: Statistical Pairs Trading Telemetry
+          if (data.pairs_trading) {
+            const pairs = data.pairs_trading;
+            const capEl = document.getElementById('pairs-capital-kpi');
+            if (capEl) capEl.innerText = `$${(pairs.allocated_capital_usd || 0).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+            const utilEl = document.getElementById('pairs-utilization-kpi');
+            if (utilEl) {
+              const util = (pairs.max_capital_usd > 0) ? ((pairs.allocated_capital_usd || 0) / pairs.max_capital_usd * 100) : 0;
+              utilEl.innerText = `${util.toFixed(1)}% Allocation`;
+            }
+            const activeCountEl = document.getElementById('pairs-active-count-kpi');
+            if (activeCountEl) activeCountEl.innerText = pairs.active_positions_count || 0;
+            const activeBadge = document.getElementById('pairs-active-badge');
+            if (activeBadge) activeBadge.innerText = `${pairs.active_positions_count || 0} Active Pairs`;
+
+            const pnlEl = document.getElementById('pairs-pnl-kpi');
+            if (pnlEl) {
+              const pnl = pairs.total_realized_pnl || 0;
+              pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
+              pnlEl.className = `text-2xl font-black ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+            }
+            const winrateEl = document.getElementById('pairs-winrate-kpi');
+            if (winrateEl) {
+              winrateEl.innerText = `${pairs.win_rate_pct || 0}% Win Rate (${pairs.closed_trades_count || 0} Closed)`;
+            }
+            const closedBadge = document.getElementById('pairs-closed-count-badge');
+            if (closedBadge) closedBadge.innerText = `${pairs.closed_trades_count || 0} Closed Trades`;
+
+            const taxEl = document.getElementById('pairs-tax-kpi');
+            if (taxEl) taxEl.innerText = `$${(pairs.total_tax_escrow || 0).toFixed(2)}`;
+
+            // Render Active Pairs Positions Table
+            const activeTable = document.getElementById('pairs-active-table-body');
+            if (activeTable && pairs.active_positions && pairs.active_positions.length > 0) {
+              activeTable.innerHTML = pairs.active_positions.map(p => {
+                const legA = p.leg_a || {};
+                const legB = p.leg_b || {};
+                const netPnl = p.net_unrealized_pnl || 0;
+                const pnlSign = netPnl >= 0 ? '+' : '';
+                const pnlColor = netPnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                const zColor = Math.abs(p.current_zscore || 0) <= 0.5 ? 'text-emerald-400' : (Math.abs(p.current_zscore || 0) >= 3.0 ? 'text-rose-400' : 'text-violet-300');
+                return `
+                  <tr class="hover:bg-slate-800/40 transition">
+                    <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol_a} / ${p.symbol_b}</td>
+                    <td class="py-2.5 px-4 text-slate-300">
+                      <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${legA.side === 'BUY' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${legA.side || 'BUY'}</span>
+                      ${(legA.qty || 0).toFixed(4)} @ $${(legA.entry_price || 0).toFixed(2)}
+                    </td>
+                    <td class="py-2.5 px-4 text-slate-300">
+                      <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${legB.side === 'BUY' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${legB.side || 'SELL'}</span>
+                      ${(legB.qty || 0).toFixed(4)} @ $${(legB.entry_price || 0).toFixed(2)}
+                    </td>
+                    <td class="py-2.5 px-4 text-slate-400">${(p.entry_ratio || 0).toFixed(4)}</td>
+                    <td class="py-2.5 px-4 text-slate-200 font-semibold">${(p.current_ratio || 0).toFixed(4)}</td>
+                    <td class="py-2.5 px-4 font-bold ${zColor}">${(p.current_zscore || 0) >= 0 ? '+' : ''}${(p.current_zscore || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-300">$${(p.total_notional || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-400">${(p.holding_days || 0).toFixed(1)}d</td>
+                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${netPnl.toFixed(2)}</td>
+                  </tr>
+                `;
+              }).join('');
+            }
+
+            // Render Pairs Scanner Matrix
+            const scannerTable = document.getElementById('pairs-scanner-table-body');
+            if (scannerTable && pairs.scanned_metrics && Object.keys(pairs.scanned_metrics).length > 0) {
+              const metricsList = Object.values(pairs.scanned_metrics);
+              scannerTable.innerHTML = metricsList.map(m => {
+                const zSign = (m.zscore || 0) >= 0 ? '+' : '';
+                const zColor = Math.abs(m.zscore || 0) >= 2.0 ? 'text-emerald-400 font-black' : (Math.abs(m.zscore || 0) >= 1.5 ? 'text-violet-300 font-bold' : 'text-slate-400 font-medium');
+                const sigColor = m.signal === 'BUY_A_SELL_B' ? 'text-emerald-400 font-bold' : (m.signal === 'SELL_A_BUY_B' ? 'text-indigo-400 font-bold' : 'text-slate-400');
+                const statusBadge = m.status === 'ACTIVE'
+                  ? '<span class="px-2 py-0.5 rounded bg-violet-500/20 text-violet-300 font-bold text-[10px]">ACTIVE</span>'
+                  : (m.status === 'OPPORTUNITY'
+                    ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">OPPORTUNITY</span>'
+                    : '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span>');
+                return `
+                  <tr class="hover:bg-slate-800/40 transition">
+                    <td class="py-2.5 px-4 font-sans font-bold text-white">${m.symbol_a} / ${m.symbol_b}</td>
+                    <td class="py-2.5 px-4 text-slate-300">$${(m.price_a || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-300">$${(m.price_b || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-200 font-semibold">${(m.ratio || 0).toFixed(4)}</td>
+                    <td class="py-2.5 px-4 text-slate-400">${(m.mean_ratio || 0).toFixed(4)}</td>
+                    <td class="py-2.5 px-4 text-slate-400">${(m.std_ratio || 0).toFixed(4)}</td>
+                    <td class="py-2.5 px-4 ${zColor}">${zSign}${(m.zscore || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 ${sigColor}">${m.signal || 'NEUTRAL'}</td>
+                    <td class="py-2.5 px-4 text-center font-sans">${statusBadge}</td>
+                  </tr>
+                `;
+              }).join('');
+            }
+
+            // Render Closed Pairs History Table
+            const historyTable = document.getElementById('pairs-history-table-body');
+            if (historyTable && pairs.closed_trades && pairs.closed_trades.length > 0) {
+              historyTable.innerHTML = pairs.closed_trades.map(t => {
+                const isGain = (t.net_realized_pnl || 0) >= 0;
+                const pnlSign = isGain ? '+' : '';
+                const pnlColor = isGain ? 'text-emerald-400' : 'text-rose-400';
+                return `
+                  <tr class="hover:bg-slate-800/40 transition">
+                    <td class="py-2.5 px-4 font-sans font-bold text-white">${t.symbol_a} / ${t.symbol_b}</td>
+                    <td class="py-2.5 px-4 text-slate-400">${(t.holding_days || 0).toFixed(1)}d</td>
+                    <td class="py-2.5 px-4 text-slate-300 font-semibold">${(t.entry_zscore || 0).toFixed(2)} ➔ ${(t.exit_zscore || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 ${(t.leg_a_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(t.leg_a_pnl || 0) >= 0 ? '+' : ''}$${(t.leg_a_pnl || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 ${(t.leg_b_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(t.leg_b_pnl || 0) >= 0 ? '+' : ''}$${(t.leg_b_pnl || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(t.net_realized_pnl || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-right text-amber-400">$${(t.tax_escrow || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-center font-sans">
+                      <span class="px-2 py-0.5 rounded text-[10px] ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${t.exit_reason || 'MEAN_REVERSION'}</span>
                     </td>
                   </tr>
                 `;
