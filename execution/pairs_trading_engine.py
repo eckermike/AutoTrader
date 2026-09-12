@@ -364,6 +364,24 @@ class PairsTradingEngine:
             else:
                 continue
 
+            # LLM Fundamental Divergence Sanity Guard
+            try:
+                from intelligence.llm_advisor import get_llm_advisor
+                llm_eval = get_llm_advisor().verify_pair_divergence(
+                    symbol_a=metrics.symbol_a,
+                    symbol_b=metrics.symbol_b,
+                    z_score=metrics.zscore,
+                )
+                if not llm_eval.get("safe_to_trade", True):
+                    logger.warning(
+                        "LLM Fundamental Guard blocked pair trade %s: %s",
+                        pair_key,
+                        llm_eval.get("reasoning"),
+                    )
+                    continue
+            except Exception as e:
+                logger.debug("LLM pair divergence check skipped: %s", e)
+
             qty_a = round(leg_allocation / metrics.price_a, 4)
             qty_b = round(leg_allocation / metrics.price_b, 4)
 

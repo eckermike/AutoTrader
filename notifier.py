@@ -906,6 +906,32 @@ class TradeNotifier:
             )
             pairs_section = f"\n⚖️ Statistical Pairs Trading (Market-Neutral):\n{pairs_lines}\n"
 
+        # Generate LLM Executive Summary
+        ai_briefing_section = ""
+        try:
+            from intelligence.llm_advisor import get_llm_advisor
+            diagnostics_map = {
+                "Crypto": crypto_diagnostics,
+                "Wheel": wheel_diagnostics,
+                "Option Spreads": spread_diagnostics or [],
+                "Tail Hedge": tail_hedge_diagnostics or [],
+                "Dip Buyer": dip_diagnostics or [],
+                "Macro Rotation": macro_diagnostics or [],
+                "Pairs Trading": pairs_diagnostics or [],
+            }
+            exec_briefing = get_llm_advisor().generate_daily_briefing(
+                date_str=date_str,
+                trades_count=trades_count,
+                cash=cash,
+                tradable_cash=tradable_cash,
+                tax_reserve=tax_reserve,
+                diagnostics=diagnostics_map,
+            )
+            if exec_briefing:
+                ai_briefing_section = f"\n🤖 AI PORTFOLIO MANAGER BRIEFING:\n{exec_briefing}\n"
+        except Exception as e:
+            logger.debug("Could not generate AI executive briefing: %s", e)
+
         reason_header = (
             "\n🔍 WHY NO TRADES WERE TRIGGERED TODAY:\n"
             if trades_count == 0
@@ -915,6 +941,7 @@ class TradeNotifier:
         message = (
             f"📊 [AUTOTRADER DAILY BRIEFING — {date_str}]\n"
             f"{status_line}\n"
+            f"{ai_briefing_section}"
             f"{reason_header}"
             f"🪙 Crypto Momentum Scanner:\n"
             f"{crypto_section}\n\n"
@@ -953,11 +980,15 @@ class TradeNotifier:
         reject_body: str = "REJECT_5050_BONDS",
         approve_label: str = "Approve 50/50 Buy ($40k)",
         reject_label: str = "Reject",
+        ai_recommendation: Optional[str] = None,
     ) -> bool:
         """
         Sends an interactive notification with Action buttons to iPhone / Apple Watch.
         Tapping a button posts a background HTTP request to the ntfy action topic.
         """
+        if ai_recommendation:
+            proposal_message = f"{proposal_message}\n\n💡 AI Advisor: {ai_recommendation}"
+
         actions_header = (
             f"http, {approve_label}, https://ntfy.sh/{action_topic}, method=POST, body={approve_body}, clear=true; "
             f"http, {reject_label}, https://ntfy.sh/{action_topic}, method=POST, body={reject_body}, clear=true"

@@ -1,26 +1,42 @@
 #!/bin/bash
 set -e
 
-PLIST_SRC="/Users/mikeeckerle/AutoTrader/com.autotrader.bot.plist"
-PLIST_DST="$HOME/Library/LaunchAgents/com.autotrader.bot.plist"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LAUNCH_DIR="$HOME/Library/LaunchAgents"
 
-echo "==> Installing AutoTrader LaunchAgent..."
-mkdir -p "$HOME/Library/LaunchAgents"
+mkdir -p "$LAUNCH_DIR"
 
-# Unload previous instance if loaded
-if launchctl list | grep -q "com.autotrader.bot"; then
-    echo "==> Unloading existing agent..."
-    launchctl unload "$PLIST_DST" 2>/dev/null || true
-fi
+install_agent() {
+    local label="$1"
+    local plist_src="$DIR/$label.plist"
+    local plist_dst="$LAUNCH_DIR/$label.plist"
 
-# Copy plist to LaunchAgents
-cp "$PLIST_SRC" "$PLIST_DST"
-chmod 644 "$PLIST_DST"
+    echo "==> Installing $label LaunchAgent..."
+    if launchctl list | grep -q "$label"; then
+        echo "    Unloading existing $label..."
+        launchctl unload "$plist_dst" 2>/dev/null || true
+    fi
 
-# Load new agent
-echo "==> Loading AutoTrader LaunchAgent into launchd..."
-launchctl load -w "$PLIST_DST"
+    cp "$plist_src" "$plist_dst"
+    chmod 644 "$plist_dst"
+    echo "    Loading $label into launchd..."
+    launchctl load -w "$plist_dst"
+    echo "    $label successfully loaded!"
+}
 
-echo "==> AutoTrader LaunchAgent successfully installed and started!"
-echo "==> Bot will now automatically launch on every login and auto-restart if terminated."
-echo "==> Live logs: tail -f /Users/mikeeckerle/AutoTrader/autotrader.log"
+# Install Bot Agent
+install_agent "com.autotrader.bot"
+
+# Install Dashboard Agent
+install_agent "com.autotrader.dashboard"
+
+echo ""
+echo "=================================================================="
+echo "🎉 AutoTrader LaunchAgents successfully installed!"
+echo "• Bot Daemon:      com.autotrader.bot (main.py)"
+echo "• Dashboard Agent: com.autotrader.dashboard (dashboard_server.py + tunnel)"
+echo "Both services will automatically launch on every login and auto-restart if terminated."
+echo "Live Logs:"
+echo "• Bot:       tail -f $DIR/autotrader.log"
+echo "• Dashboard: tail -f $DIR/dashboard_supervisor.log"
+echo "=================================================================="

@@ -178,6 +178,22 @@ class LiquidityManager:
                     pass
 
         reserve_symbol = chosen_reserve_sym
+
+        # Consult LLM Advisor for optimal tranche selection & rationale
+        ai_recommendation = None
+        try:
+            from intelligence.llm_advisor import get_llm_advisor
+            rec_result = get_llm_advisor().recommend_liquidation_tranche(
+                needed_cash=needed_cash,
+                target_symbol=target_symbol,
+                opportunity_type=opportunity_type,
+            )
+            ai_recommendation = f"Sell {rec_result.get('recommended_tranche', reserve_symbol)}: {rec_result.get('reasoning', '')}"
+            if rec_result.get("recommended_tranche") in ("SGOV", "FBND"):
+                reserve_symbol = rec_result.get("recommended_tranche")
+        except Exception as e:
+            logger.debug("LLM liquidation advisor unavailable: %s", e)
+
         est_reserve_price = 100.50 if reserve_symbol == "SGOV" else 44.50
         est_shares = round(needed_cash / est_reserve_price, 2)
         ttl_hours = getattr(self.config, "APPROVAL_TTL_HOURS", 4.0)
@@ -203,6 +219,7 @@ class LiquidityManager:
             reject_body=f"REJECT_LIQUIDATION_{req_id}",
             approve_label=f"Approve Sell (${needed_cash/1000:,.1f}k)",
             reject_label="Reject",
+            ai_recommendation=ai_recommendation,
         )
 
         self.state.pending_approval = PendingApproval(

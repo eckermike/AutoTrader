@@ -1,12 +1,21 @@
 #!/bin/bash
 set -e
 
-PLIST_DST="$HOME/Library/LaunchAgents/com.autotrader.bot.plist"
+LAUNCH_DIR="$HOME/Library/LaunchAgents"
 
-echo "==> Stopping and removing AutoTrader LaunchAgent..."
-if launchctl list | grep -q "com.autotrader.bot"; then
-    launchctl unload "$PLIST_DST" 2>/dev/null || true
-fi
+uninstall_agent() {
+    local label="$1"
+    local plist_dst="$LAUNCH_DIR/$label.plist"
 
-rm -f "$PLIST_DST"
-echo "==> AutoTrader LaunchAgent uninstalled."
+    echo "==> Stopping and removing $label LaunchAgent..."
+    if launchctl list | grep -q "$label"; then
+        launchctl unload "$plist_dst" 2>/dev/null || true
+    fi
+    rm -f "$plist_dst"
+    echo "    $label uninstalled."
+}
+
+uninstall_agent "com.autotrader.bot"
+uninstall_agent "com.autotrader.dashboard"
+
+echo "==> All AutoTrader LaunchAgents uninstalled."

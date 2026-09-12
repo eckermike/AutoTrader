@@ -431,6 +431,27 @@ class DipBuyerEngine:
                     )
                 continue
 
+            # LLM Dip Safety / Falling Knife Guard
+            try:
+                from intelligence.llm_advisor import get_llm_advisor
+                rsi_val = float(data.get("rsi", 30.0))
+                sma200 = float(data.get("sma200", curr_price))
+                drop_pct = ((curr_price - sma200) / sma200 * 100.0) if sma200 > 0 else 0.0
+                llm_eval = get_llm_advisor().verify_dip_candidate(
+                    symbol=sym,
+                    rsi_val=rsi_val,
+                    drop_pct=drop_pct,
+                )
+                if not llm_eval.get("safe_to_trade", True):
+                    logger.warning(
+                        "LLM Dip Guard blocked entry on %s: %s",
+                        sym,
+                        llm_eval.get("reasoning"),
+                    )
+                    continue
+            except Exception as e:
+                logger.debug("LLM dip candidate check skipped: %s", e)
+
             # 4. Submit Market Order
             calc_shares = round(order_size / curr_price, 4)
             logger.info(

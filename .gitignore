@@ -22,6 +22,7 @@ tail_hedge_state.json
 dip_buyer_state.json
 macro_rotation_state.json
 pairs_trading_state.json
+daily_briefing.json
 
 
 # Log files

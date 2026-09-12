@@ -157,6 +157,31 @@
     <!-- ==================== TAB 1: OVERVIEW & ALLOCATION ==================== -->
     <div id="tab-overview" class="tab-content block space-y-6">
 
+      <!-- AI Executive Briefing Banner Card -->
+      <div class="glass-card rounded-2xl p-6 border border-emerald-500/30 bg-gradient-to-r from-emerald-950/30 via-slate-900/80 to-indigo-950/30 shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-8 -top-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex items-start justify-between gap-4 mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xl shadow-inner">
+              🤖
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">AI Portfolio Manager — Executive Briefing</h3>
+                <span id="briefing-model-tag" class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">AutoTrader PM AI</span>
+              </div>
+              <p id="briefing-timestamp" class="text-xs text-slate-400">Institutional daily market commentary &amp; risk assessment</p>
+            </div>
+          </div>
+          <button onclick="openChatDrawer()" class="px-3 py-1.5 rounded-lg bg-indigo-600/80 hover:bg-indigo-600 text-xs text-white border border-indigo-500/40 flex items-center gap-1.5 font-medium transition shadow-sm">
+            <span>💬 Ask AI Co-Pilot</span>
+          </button>
+        </div>
+        <div id="executive-briefing-text" class="text-xs text-slate-300 leading-relaxed bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 whitespace-pre-line font-normal">
+          Loading latest quantitative executive briefing...
+        </div>
+      </div>
+
       <!-- ELI5 Explainer Card for Overview -->
       <div class="glass-card rounded-2xl p-5 border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
         <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-overview')">
@@ -3540,6 +3565,21 @@
                   </tr>
                 `;
               }).join('');
+            // Render AI Executive Briefing
+            if (data.executive_briefing) {
+              const briefEl = document.getElementById('executive-briefing-text');
+              if (briefEl && data.executive_briefing.summary) {
+                briefEl.innerText = data.executive_briefing.summary;
+              }
+              const timeEl = document.getElementById('briefing-timestamp');
+              if (timeEl && (data.executive_briefing.date || data.executive_briefing.generated_at)) {
+                const dt = data.executive_briefing.date || data.executive_briefing.generated_at.split('T')[0];
+                timeEl.innerText = `Generated for session: ${dt} | Institutional Wall Street PM Review`;
+              }
+              const tagEl = document.getElementById('briefing-model-tag');
+              if (tagEl && data.executive_briefing.provider) {
+                tagEl.innerText = `AutoTrader PM AI (${data.executive_briefing.provider.toUpperCase()})`;
+              }
             }
           }
       } catch (err) {
@@ -3556,6 +3596,145 @@
     setInterval(refreshData, 15000);
     // Initial fetch
     refreshData();
+
+    // ==================== AI CO-PILOT CHAT LOGIC ====================
+    function openChatDrawer() {
+      const drawer = document.getElementById('ai-chat-drawer');
+      const panel = document.getElementById('ai-chat-panel');
+      if (drawer && panel) {
+        drawer.classList.remove('pointer-events-none', 'opacity-0');
+        drawer.classList.add('opacity-100');
+        panel.classList.remove('translate-x-full');
+        panel.classList.add('translate-x-0');
+        setTimeout(() => {
+          const inp = document.getElementById('ai-chat-input');
+          if (inp) inp.focus();
+        }, 300);
+      }
+    }
+
+    function closeChatDrawer() {
+      const drawer = document.getElementById('ai-chat-drawer');
+      const panel = document.getElementById('ai-chat-panel');
+      if (drawer && panel) {
+        panel.classList.remove('translate-x-0');
+        panel.classList.add('translate-x-full');
+        drawer.classList.remove('opacity-100');
+        drawer.classList.add('opacity-0');
+        setTimeout(() => {
+          drawer.classList.add('pointer-events-none');
+        }, 300);
+      }
+    }
+
+    function appendChatMessage(sender, text) {
+      const container = document.getElementById('ai-chat-messages');
+      if (!container) return;
+      const isUser = sender === 'user';
+      const bubble = document.createElement('div');
+      bubble.className = isUser
+        ? 'p-3 rounded-xl bg-indigo-600/90 text-white ml-6 text-xs shadow-md border border-indigo-500/30'
+        : 'p-3 rounded-xl bg-slate-800/90 text-slate-200 mr-6 text-xs shadow-md border border-slate-700 leading-relaxed';
+      
+      // Simple markdown bold conversion
+      const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      bubble.innerHTML = formatted;
+      container.appendChild(bubble);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function sendQuickPrompt(promptText) {
+      const input = document.getElementById('ai-chat-input');
+      if (input) {
+        input.value = promptText;
+        handleChatSubmit(new Event('submit'));
+      }
+    }
+
+    async function handleChatSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const input = document.getElementById('ai-chat-input');
+      const sendBtn = document.getElementById('ai-chat-send-btn');
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendChatMessage('user', text);
+      input.value = '';
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.innerText = '...';
+      }
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+        if (data && data.reply) {
+          appendChatMessage('assistant', data.reply);
+        } else if (data && data.error) {
+          appendChatMessage('assistant', `⚠️ ${data.error}`);
+        } else {
+          appendChatMessage('assistant', '⚠️ Could not process response from AutoTrader AI.');
+        }
+      } catch (err) {
+        appendChatMessage('assistant', `⚠️ Connection error: ${err.message}. Please verify AutoTrader server is running.`);
+      } finally {
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.innerText = 'Send';
+        }
+      }
+    }
   </script>
+
+  <!-- Floating AI Co-Pilot Button -->
+  <button onclick="openChatDrawer()" class="fixed bottom-6 right-6 z-40 px-4 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 text-white font-bold text-xs shadow-2xl flex items-center gap-2.5 transition transform hover:scale-105 border border-indigo-400/40">
+    <span class="text-base">🤖</span>
+    <span>Ask AutoTrader AI</span>
+  </button>
+
+  <!-- Slide-Over AI Assistant Drawer -->
+  <div id="ai-chat-drawer" class="fixed inset-0 z-50 pointer-events-none transition-opacity duration-300 opacity-0">
+    <!-- Backdrop -->
+    <div id="ai-chat-backdrop" onclick="closeChatDrawer()" class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto"></div>
+    <!-- Drawer Panel -->
+    <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col pointer-events-auto transform translate-x-full transition-transform duration-300" id="ai-chat-panel">
+      <!-- Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-sm font-bold">🤖</div>
+          <div>
+            <h4 class="text-sm font-bold text-white">AutoTrader AI Co-Pilot</h4>
+            <p class="text-[11px] text-slate-400">Context-aware portfolio intelligence</p>
+          </div>
+        </div>
+        <button onclick="closeChatDrawer()" class="text-slate-400 hover:text-white text-lg font-bold p-1">✕</button>
+      </div>
+      <!-- Quick Prompt Chips -->
+      <div class="p-3 border-b border-slate-800 bg-slate-900/90 overflow-x-auto flex gap-2 text-[11px] no-scrollbar">
+        <button onclick="sendQuickPrompt('What is our tax escrow status?')" class="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap border border-slate-700">🏛️ Tax Escrow</button>
+        <button onclick="sendQuickPrompt('How much tradable cash do we have?')" class="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap border border-slate-700">💰 Tradable Cash</button>
+        <button onclick="sendQuickPrompt('What is the status of our pairs trading strategy?')" class="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap border border-slate-700">⚖️ Pairs Trading</button>
+        <button onclick="sendQuickPrompt('Summarize our tail-risk black swan hedge')" class="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap border border-slate-700">🦅 Tail Hedge</button>
+      </div>
+      <!-- Chat Messages Container -->
+      <div id="ai-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs leading-relaxed">
+        <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-200">
+          👋 Hello! I am your <strong>AutoTrader AI Portfolio Co-Pilot</strong>. I have real-time access to your cash, tax escrow, options collateral, and all 5 strategy states. How can I assist your fund today?
+        </div>
+      </div>
+      <!-- Chat Input Form -->
+      <form onsubmit="handleChatSubmit(event)" class="p-3 border-t border-slate-800 bg-slate-950 flex gap-2">
+        <input id="ai-chat-input" type="text" placeholder="Ask about fund performance, tax, strategies..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
+        <button type="submit" id="ai-chat-send-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1">
+          Send
+        </button>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
