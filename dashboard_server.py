@@ -23,6 +23,7 @@ DASHBOARD_HTML = BASE_DIR / "dashboard.html"
 TAX_RESERVE_FILE = BASE_DIR / "tax_reserve.json"
 LIQUIDITY_STATE_FILE = BASE_DIR / "liquidity_state.json"
 SPREAD_STATE_FILE = BASE_DIR / "spreads_state.json"
+HEDGE_STATE_FILE = BASE_DIR / "tail_hedge_state.json"
 
 
 AUTOTRADER_LOG_FILE = BASE_DIR / "autotrader.log"
@@ -190,6 +191,46 @@ class DashboardHandler(SimpleHTTPRequestHandler):
                     }
             except Exception as e:
                 logger.warning("Could not read spreads_state.json: %s", e)
+
+        data["tail_hedge"] = {
+            "enabled": True,
+            "underlying": "SPY",
+            "monthly_budget": 150.0,
+            "monthly_spent": 0.0,
+            "monthly_budget_remaining": 150.0,
+            "active_hedge": None,
+            "has_active_hedge": False,
+            "total_realized_pnl": 0.0,
+            "monetized_count": 0,
+            "closed_count": 0,
+            "closed_hedges": [],
+        }
+        if HEDGE_STATE_FILE.exists():
+            try:
+                with open(HEDGE_STATE_FILE, "r", encoding="utf-8") as f:
+                    hdg_data = json.load(f)
+                    active = hdg_data.get("active_hedge")
+                    closed = hdg_data.get("closed_hedges", [])
+                    monthly_spent = float(hdg_data.get("monthly_spent_usd", 0.0))
+                    monthly_budget = 150.0
+                    realized = sum((h.get("realized_pnl") or 0.0) for h in closed)
+                    monetized = len([h for h in closed if "MONETIZATION" in str(h.get("exit_reason", ""))])
+                    data["tail_hedge"] = {
+                        "enabled": True,
+                        "underlying": active.get("underlying", "SPY") if active else "SPY",
+                        "monthly_budget": round(monthly_budget, 2),
+                        "monthly_spent": round(monthly_spent, 2),
+                        "monthly_budget_remaining": round(max(0.0, monthly_budget - monthly_spent), 2),
+                        "active_hedge": active,
+                        "has_active_hedge": bool(active),
+                        "total_realized_pnl": round(realized, 2),
+                        "monetized_count": monetized,
+                        "closed_count": len(closed),
+                        "closed_hedges": closed[-10:],
+                        "updated_at": hdg_data.get("updated_at"),
+                    }
+            except Exception as e:
+                logger.warning("Could not read tail_hedge_state.json: %s", e)
 
         payload = json.dumps(data, indent=2).encode("utf-8")
         self.send_response(200)

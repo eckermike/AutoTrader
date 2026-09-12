@@ -341,6 +341,66 @@ class BotConfig(BaseSettings):
         description="Time-in-force for credit spread orders ('DAY' or 'GTC')",
     )
 
+    # --- Strategy 6: Black Swan Tail-Risk Crash Hedge (Catastrophe Insurance) ---
+    HEDGE_ENABLED: bool = Field(
+        default=True,
+        description="Whether to run the Black Swan Tail-Risk Crash Hedge strategy",
+    )
+    HEDGE_UNDERLYING: str = Field(
+        default="SPY",
+        description="Underlying benchmark ETF symbol to purchase tail-risk puts on",
+    )
+    HEDGE_TARGET_DTE_MIN: int = Field(
+        default=45,
+        ge=21,
+        le=180,
+        description="Minimum days to expiration for tail-risk crash hedge puts",
+    )
+    HEDGE_TARGET_DTE_MAX: int = Field(
+        default=90,
+        ge=30,
+        le=365,
+        description="Maximum days to expiration for tail-risk crash hedge puts",
+    )
+    HEDGE_OTM_PCT: float = Field(
+        default=0.15,
+        ge=0.05,
+        le=0.35,
+        description="Target Out-of-the-Money percentage below spot price for crash puts (0.15 = 15% OTM)",
+    )
+    HEDGE_MAX_COST_PER_CONTRACT_USD: float = Field(
+        default=1.00,
+        ge=0.10,
+        le=5.00,
+        description="Maximum entry cost per share for crash hedge puts in USD (1.00 = $100 per contract)",
+    )
+    HEDGE_MONTHLY_BUDGET_USD: float = Field(
+        default=150.00,
+        ge=25.0,
+        le=2000.0,
+        description="Maximum cumulative monthly expenditure on catastrophe insurance",
+    )
+    HEDGE_PROFIT_TARGET_PCT: float = Field(
+        default=2.50,
+        ge=1.00,
+        le=10.00,
+        description="Profit target ratio to systematically monetize crash hedge (2.50 = +250% gain / 3.5x entry cost)",
+    )
+    HEDGE_ROLL_DTE: int = Field(
+        default=21,
+        ge=7,
+        le=45,
+        description="Days to expiration threshold to close/roll contract before rapid final theta decay",
+    )
+    HEDGE_STATE_FILE: str = Field(
+        default="tail_hedge_state.json",
+        description="Persistent JSON file tracking active and closed tail-risk crash hedges",
+    )
+    HEDGE_TIME_IN_FORCE: str = Field(
+        default="DAY",
+        description="Time-in-force for hedge orders ('DAY' or 'GTC')",
+    )
+
     @field_validator("TARGET_SYMBOLS", mode="after")
     @classmethod
     def parse_target_symbols(cls, v: Any) -> List[str]:

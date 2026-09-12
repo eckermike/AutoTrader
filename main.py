@@ -28,6 +28,7 @@ from factors.volume_regime import VolumeRegimeFactor
 from notifier import TradeNotifier
 from options.options_client import AlpacaOptionsClient
 from options.spread_engine import SpreadPortfolioManager
+from options.tail_hedge_engine import TailHedgeEngine
 from options.wheel_engine import WheelEngine, WheelPortfolioManager
 from tax_engine import InsufficientTradableCashError, TaxEngine
 
@@ -120,6 +121,15 @@ class TradingDaemon:
 
         # 8. Initialize Defined-Risk Option Spreads Engine (SPY, QQQ, IWM)
         self.spread_engine = SpreadPortfolioManager(
+            config=self.config,
+            options_client=self.options_client,
+            tax_engine=self.tax_engine,
+            notifier=self.notifier,
+            liquidity_manager=self.liquidity_manager,
+        )
+
+        # 9. Initialize Black Swan Tail-Risk Crash Hedge Engine (SPY)
+        self.tail_hedge_engine = TailHedgeEngine(
             config=self.config,
             options_client=self.options_client,
             tax_engine=self.tax_engine,
@@ -562,6 +572,18 @@ class TradingDaemon:
             except Exception as e:
                 logger.exception("Error executing Defined-Risk Spreads cycle: %s", e)
 
+        # --- Strategy 6: Black Swan Tail-Risk Crash Hedge (SPY) ---
+        if getattr(self.config, "HEDGE_ENABLED", True) and hasattr(self, "tail_hedge_engine"):
+            try:
+                is_mkt_open = (
+                    self.options_client.is_market_open()
+                    if hasattr(self.options_client, "is_market_open")
+                    else True
+                )
+                self.tail_hedge_engine.step(is_market_open=is_mkt_open)
+            except Exception as e:
+                logger.exception("Error executing Black Swan Crash Hedge cycle: %s", e)
+
 
     def check_and_dispatch_daily_recap(
         self,
@@ -675,7 +697,26 @@ class TradingDaemon:
         else:
             spread_diag.append("Defined-Risk Spreads strategy disabled.")
 
-        # 4. Dispatch Daily Recap Alert
+        # 4. Gather Black Swan Tail-Risk Crash Hedge diagnostics
+        tail_hedge_diag: List[str] = []
+        if getattr(self.config, "HEDGE_ENABLED", True) and hasattr(self, "tail_hedge_engine"):
+            h = self.tail_hedge_engine
+            if h.active_hedge and h.active_hedge.status == "ACTIVE":
+                ah = h.active_hedge
+                tail_hedge_diag.append(
+                    f"{ah.underlying}: Active Put ({ah.contract_symbol}, strike ${ah.strike_price:.0f}P, exp {ah.expiration_date}, {ah.days_to_expiration} DTE). "
+                    f"Market Val: ${ah.current_market_value:.2f} ({ah.gain_pct:+.1f}%), Windfall Target: ${ah.target_monetization_price:.2f}/sh."
+                )
+            elif h.pending_order_id:
+                tail_hedge_diag.append(f"{h.underlying}: Limit order pending in order book.")
+            else:
+                tail_hedge_diag.append(
+                    f"{h.underlying}: Shield Active / Monitoring. Monthly Spend: ${h.monthly_spent_usd:.2f} / ${getattr(self.config, 'HEDGE_MONTHLY_BUDGET_USD', 150.0):.2f}."
+                )
+        else:
+            tail_hedge_diag.append("Black Swan Crash Hedge disabled.")
+
+        # 5. Dispatch Daily Recap Alert
         logger.info(
             "Dispatching End-of-Day Briefing for %s (Trades Today: %d)...",
             today_str,
@@ -690,6 +731,7 @@ class TradingDaemon:
             tradable_cash=tradable_cash,
             tax_reserve=self.tax_engine.current_reserve,
             spread_diagnostics=spread_diag,
+            tail_hedge_diagnostics=tail_hedge_diag,
         )
 
         self.last_daily_recap_date = today_str

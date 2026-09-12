@@ -254,23 +254,25 @@ class AlpacaOptionsClient:
             sym = underlying.upper()
             base_price = self.get_stock_price(sym)
             contracts = []
-            exp_date_str = "2026-10-09"
-            dte = 33
+            target_dte = min(max_dte, max(min_dte, 33))
+            exp_date = today + timedelta(days=target_dte)
+            exp_date_str = exp_date.strftime("%Y-%m-%d")
+            dte = target_dte
             if sym == "INTC":
                 strikes = [19.0, 19.5, 20.0, 20.5, 21.0, 21.5, 22.0, 22.5, 23.0]
             elif sym in ["SPY", "QQQ", "IWM"]:
                 step = 5.0
                 base_rounded = round(base_price / step) * step
-                strikes = [round(base_rounded + i * step, 1) for i in range(-10, 6)]
+                strikes = [round(base_rounded + i * step, 1) for i in range(-25, 6)]
             else:
-                strikes = sorted(set([round(base_price * m, 1) for m in [0.88, 0.90, 0.92, 0.95, 0.98, 1.00, 1.02, 1.05, 1.08]]))
+                strikes = sorted(set([round(base_price * m, 1) for m in [0.80, 0.85, 0.88, 0.90, 0.92, 0.95, 0.98, 1.00, 1.02, 1.05, 1.08]]))
             for strike in strikes:
                 if sym in ["SPY", "QQQ", "IWM"]:
                     diff = strike - base_price
                     if contract_type == "put":
                         # OTM put has strike < base_price
                         dist_pct = (base_price - strike) / base_price
-                        prem = max(0.20, round(6.0 * max(0.05, (1.0 - dist_pct * 12)), 2))
+                        prem = max(0.15, round(6.0 * max(0.02, (1.0 - dist_pct * 6)), 2))
                     else:
                         dist_pct = (strike - base_price) / base_price
                         prem = max(0.20, round(6.0 * max(0.05, (1.0 - dist_pct * 12)), 2))
@@ -463,13 +465,28 @@ class AlpacaOptionsClient:
 
         if self.mock_mode:
             price = limit_price or 0.50
-            if "SELL" in side_upper:
-                # Open short option position
-                und = "INTC"
-                for known_sym in ["INTC", "SOFI", "HOOD", "PLTR", "XLF", "F"]:
-                    if symbol.upper().startswith(known_sym):
-                        und = known_sym
-                        break
+            und = "SPY"
+            for known_sym in ["INTC", "SOFI", "HOOD", "PLTR", "XLF", "F", "SPY", "QQQ", "IWM"]:
+                if symbol.upper().startswith(known_sym):
+                    und = known_sym
+                    break
+
+            if intent_upper == "BUY_TO_OPEN":
+                # Open long option position (e.g. Tail-Risk Put)
+                self._mock_option_positions[symbol] = OptionPositionInfo(
+                    symbol=symbol,
+                    underlying=und,
+                    contract_type="put" if "P" in symbol else "call",
+                    strike_price=450.0 if und in ["SPY", "QQQ"] else 20.0,
+                    expiration_date="2026-11-20",
+                    qty=qty,
+                    avg_entry_price=price,
+                    current_price=price,
+                    market_value=qty * price * 100,
+                    unrealized_pnl=0.0,
+                )
+            elif intent_upper == "SELL_TO_OPEN" or ("SELL" in side_upper and intent_upper != "SELL_TO_CLOSE"):
+                # Open short option position (e.g. Cash-Secured Put / Covered Call)
                 self._mock_option_positions[symbol] = OptionPositionInfo(
                     symbol=symbol,
                     underlying=und,
@@ -483,7 +500,7 @@ class AlpacaOptionsClient:
                     unrealized_pnl=0.0,
                 )
             else:
-                # Close short option position
+                # Close option position (BUY_TO_CLOSE or SELL_TO_CLOSE)
                 self._mock_option_positions.pop(symbol, None)
 
             return {

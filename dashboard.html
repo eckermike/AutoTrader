@@ -132,6 +132,11 @@
         <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
         Defined-Risk Spreads (SPY/QQQ/IWM)
       </button>
+
+      <button onclick="switchTab('hedge')" id="tab-btn-hedge" class="tab-button px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-2 transition">
+        <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        Black Swan Crash Hedge (SPY)
+      </button>
     </div>
 
     <!-- ==================== TAB 1: OVERVIEW & ALLOCATION ==================== -->
@@ -232,6 +237,20 @@
               <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
                 <p>• <strong>50% Profit Rule:</strong> Closes early to lock in gains and free capital</p>
                 <p>• <strong>Zero Surprise Risk:</strong> Maximum loss is known to the penny upfront</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-rose-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-400 font-bold flex items-center justify-center text-xs">6</span>
+                <h4 class="font-bold text-white">Black Swan Crash Hedge</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2">
+                <strong class="text-slate-200">The Catastrophe Insurance Policy.</strong> Deep out-of-the-money SPY put protection funded by 2%–3% of options income. If a 2008 or 2020 crash occurs, this cheap contract surges 5x–10x+, locking in an automated cash windfall.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>+250% Monetization:</strong> Sells automatically on market panic to bank cash</p>
+                <p>• <strong>Generational Dry Powder:</strong> Windfall buys blue chips at deep discounts</p>
               </div>
             </div>
           </div>
@@ -1618,6 +1637,253 @@
       </div>
     </div>
 
+    <!-- ==================== TAB 7: BLACK SWAN CRASH HEDGE (SPY) ==================== -->
+    <div id="tab-hedge" class="tab-content hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white">Black Swan Tail-Risk Crash Hedge (SPY)</h2>
+          <p class="text-xs text-slate-400">Systematic catastrophe insurance | Deep OTM SPY Puts | +250% Systematic Monetization Exit | 21 DTE Theta Defense</p>
+        </div>
+        
+        <div class="flex items-center gap-2 text-xs">
+          <span class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 font-medium" id="hedge-status-badge">Crash Shield Active</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 font-medium">Budget: $150/mo</span>
+          <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">+250% Monetization Target</span>
+        </div>
+      </div>
+
+      <!-- ELI5 Explainer Card -->
+      <div class="glass-card rounded-2xl p-5 border border-rose-500/30 bg-gradient-to-r from-rose-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-tail-hedge')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500/20 to-orange-500/20 border border-rose-500/30 text-rose-400 flex items-center justify-center text-xl shadow-inner">
+              🛡️
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">ELI5: Why Black Swan Catastrophe Insurance Protects Our Entire Portfolio</h3>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">Risk Management Primer</span>
+              </div>
+              <p class="text-xs text-slate-400">Explain Like I'm 5: Why we buy cheap insurance, and how market panic gets turned into automated cash windfalls.</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-rose-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
+            <span id="eli5-tail-hedge-btn-text">Show Guide</span>
+            <svg id="eli5-tail-hedge-arrow" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+
+        <!-- Explainer Content (Hidden by default) -->
+        <div id="eli5-tail-hedge-content" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+          <div class="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/20 text-xs text-slate-300 leading-relaxed">
+            <span class="font-bold text-rose-300">The 10-Second Summary:</span> Think of this as cheap fire insurance for your house. 95% of the time, you hope your house doesn't burn down, and the tiny $50–$100 insurance cost is easily paid for by your weekly Option Wheel profits. But if a 2008 or 2020-style market crash occurs, this cheap contract surges 5x to 10x+, automatically selling to lock in a massive cash windfall that protects your portfolio and buys blue-chip stocks at generational discounts.
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <!-- Step 1 -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-rose-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-400 font-bold flex items-center justify-center text-xs">1</span>
+                <h4 class="font-bold text-white">Cheap Catastrophe Shield</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Paid for by trading profits."</strong> Every month, we budget up to $150 to buy deep Out-of-the-Money Puts on the S&P 500 (`SPY`) expiring 45 to 90 days out. In calm markets, this is a minor business expense.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong class="text-emerald-400">Strictly Budgeted:</strong> Max $150/mo (less than 2% of options profits)</p>
+                <p>• <strong class="text-rose-400">Deep OTM Strikes:</strong> 15% below market price for maximum crash leverage</p>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">2</span>
+                <h4 class="font-bold text-white">The +250% Windfall Exit</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Monetize the panic."</strong> During a sudden market crash, implied volatility spikes and these puts explode in value (+250% to +1,000%). The bot systematically sells to close and banks the windfall.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong class="text-emerald-400">Automated Exit:</strong> Sells immediately when target is hit — zero emotion</p>
+                <p>• <strong class="text-amber-400">Tax Safe:</strong> 30% goes straight to the tax escrow reserve</p>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-xs">3</span>
+                <h4 class="font-bold text-white">21 DTE Theta Roll Defense</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Never hold to zero."</strong> Options lose value fastest in their final 3 weeks. If the market stayed calm, the bot automatically closes the put at 21 DTE to salvage residual cash and buy a fresh contract.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong class="text-cyan-400">Capital Salvage:</strong> Recovers remaining scrap value before steep theta decay</p>
+                <p>• <strong class="text-purple-400">Continuous Shield:</strong> Rolls into next 60-90 DTE cycle seamlessly</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Top KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Monthly Budget -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Monthly Insurance Budget</span>
+            <span class="text-xs p-1 rounded-md bg-rose-500/10 text-rose-400">🛡️</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white" id="hedge-budget-kpi">$150.00</span>
+            <span class="text-xs text-slate-400" id="hedge-spent-kpi">Spent: $0.00</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Remaining Budget:</span>
+            <span class="text-emerald-400 font-medium" id="hedge-remaining-kpi">$150.00</span>
+          </div>
+        </div>
+
+        <!-- Active Protection Shield -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Crash Shield Status</span>
+            <span class="text-xs p-1 rounded-md bg-emerald-500/10 text-emerald-400">Active</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white" id="hedge-contract-kpi">SPY Put Shield</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Underlying Index:</span>
+            <span class="text-cyan-400 font-medium">S&P 500 (SPY)</span>
+          </div>
+        </div>
+
+        <!-- Market Value & Unrealized PnL -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current Market Value</span>
+            <span class="text-xs p-1 rounded-md bg-cyan-500/10 text-cyan-400">Live Quote</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white" id="hedge-value-kpi">$60.00</span>
+            <span class="text-xs font-semibold text-emerald-400" id="hedge-pnl-kpi">+0.0%</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Windfall Target:</span>
+            <span class="text-emerald-400 font-semibold" id="hedge-target-kpi">+250% ($210.00)</span>
+          </div>
+        </div>
+
+        <!-- Realized Crash Windfalls -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Realized Crash Gains</span>
+            <span class="text-xs p-1 rounded-md bg-amber-500/10 text-amber-400">30% Escrow</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white" id="hedge-realized-kpi">$0.00</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Monetized Windfalls:</span>
+            <span class="text-purple-400 font-medium" id="hedge-monetized-count-kpi">0 Harvested</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Crash Hedge Position Card -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Active Tail-Risk Crash Put Protection</h3>
+            <p class="text-xs text-slate-400">Real-time contract telemetry and automated +250% windfall monetization progress</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 font-medium">1 Contract Active (100 Shares)</span>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-base font-bold text-white" id="hedge-active-symbol">SPY</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 font-mono" id="hedge-active-contract">SPY261120P00460000</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300">15% OTM PUT</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Strike: <span class="text-slate-200 font-semibold" id="hedge-active-strike">$460.00 Put</span> | Exp: <span class="text-slate-200" id="hedge-active-exp">2026-11-20</span> (<span class="text-cyan-400 font-medium" id="hedge-active-dte">68 DTE</span>)</p>
+            </div>
+            <div class="text-right">
+              <span class="text-sm font-bold text-emerald-400 font-mono" id="hedge-active-gain">+0.0% Gain</span>
+              <p class="text-[11px] text-slate-500">Monetization Trigger: <span class="text-emerald-300" id="hedge-active-trigger-price">$2.10/sh</span></p>
+            </div>
+          </div>
+
+          <!-- Progress Bar to +250% Monetization -->
+          <div class="mt-4 pt-3 border-t border-slate-800/80">
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Progress to +250% Windfall Monetization Exit:</span>
+              <span class="text-emerald-400 font-semibold" id="hedge-active-progress-text">0.0%</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+              <div id="hedge-active-progress-bar" class="h-full bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+            <div>
+              <p class="text-slate-500">Entry Cost / Share</p>
+              <p class="font-semibold text-slate-200" id="hedge-active-entry-share">$0.60/sh</p>
+            </div>
+            <div>
+              <p class="text-slate-500">Total Capital Spent</p>
+              <p class="font-semibold text-slate-200" id="hedge-active-total-cost">$60.00</p>
+            </div>
+            <div>
+              <p class="text-slate-500">Current Market Quote</p>
+              <p class="font-semibold text-cyan-400" id="hedge-active-quote">$0.60/sh ($60.00)</p>
+            </div>
+            <div class="text-right">
+              <p class="text-slate-500">Roll Defense Rule</p>
+              <p class="font-semibold text-purple-300">Rolls at ≤ 21 DTE</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Closed Hedges Audit History Table -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Closed Crash Hedges Audit Ledger</h3>
+            <p class="text-xs text-slate-400">Historical hedge monetizations, 21 DTE rolls, and 30% tax escrow withholding</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-400" id="hedge-closed-count-badge">0 Closed Hedges</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Contract</th>
+                <th class="py-2.5 px-4 font-semibold">Strike / Type</th>
+                <th class="py-2.5 px-4 font-semibold">Entry Cost</th>
+                <th class="py-2.5 px-4 font-semibold">Exit Price</th>
+                <th class="py-2.5 px-4 font-semibold text-right">Realized PnL</th>
+                <th class="py-2.5 px-4 font-semibold text-right">30% Tax Escrow</th>
+                <th class="py-2.5 px-4 font-semibold text-center">Exit Trigger</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="hedge-history-table-body">
+              <tr class="text-slate-500 text-center py-4">
+                <td colspan="7" class="py-4">No closed hedges yet. Active SPY crash protection is currently standing guard.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Contract Details Modal -->
@@ -1968,6 +2234,70 @@
               const el = document.getElementById('spread-realized-kpi');
               const sign = sprd.total_realized_pnl >= 0 ? '+' : '';
               if (el) el.innerText = `${sign}$${sprd.total_realized_pnl.toFixed(2)}`;
+            }
+          }
+
+          if (data.tail_hedge) {
+            const hdg = data.tail_hedge;
+            if (hdg.monthly_budget !== undefined) {
+              const bEl = document.getElementById('hedge-budget-kpi');
+              if (bEl) bEl.innerText = '$' + hdg.monthly_budget.toFixed(2);
+            }
+            if (hdg.monthly_spent !== undefined) {
+              const sEl = document.getElementById('hedge-spent-kpi');
+              if (sEl) sEl.innerText = `Spent: $${hdg.monthly_spent.toFixed(2)}`;
+            }
+            if (hdg.monthly_budget_remaining !== undefined) {
+              const rEl = document.getElementById('hedge-remaining-kpi');
+              if (rEl) rEl.innerText = `$${hdg.monthly_budget_remaining.toFixed(2)}`;
+            }
+            if (hdg.total_realized_pnl !== undefined) {
+              const relEl = document.getElementById('hedge-realized-kpi');
+              const sign = hdg.total_realized_pnl >= 0 ? '+' : '';
+              if (relEl) relEl.innerText = `${sign}$${hdg.total_realized_pnl.toFixed(2)}`;
+            }
+            if (hdg.monetized_count !== undefined) {
+              const mEl = document.getElementById('hedge-monetized-count-kpi');
+              if (mEl) mEl.innerText = `${hdg.monetized_count} Harvested`;
+            }
+
+            if (hdg.active_hedge) {
+              const ah = hdg.active_hedge;
+              const symEl = document.getElementById('hedge-active-symbol');
+              if (symEl) symEl.innerText = ah.underlying || 'SPY';
+              const cntEl = document.getElementById('hedge-active-contract');
+              if (cntEl) cntEl.innerText = ah.contract_symbol;
+              const stkEl = document.getElementById('hedge-active-strike');
+              if (stkEl) stkEl.innerText = `$${ah.strike_price.toFixed(2)} Put`;
+              const expEl = document.getElementById('hedge-active-exp');
+              if (expEl) expEl.innerText = ah.expiration_date;
+              const dteEl = document.getElementById('hedge-active-dte');
+              if (dteEl) dteEl.innerText = `${ah.days_to_expiration} DTE`;
+              const trigEl = document.getElementById('hedge-active-trigger-price');
+              if (trigEl) trigEl.innerText = `$${ah.target_monetization_price.toFixed(2)}/sh`;
+              const entShEl = document.getElementById('hedge-active-entry-share');
+              if (entShEl) entShEl.innerText = `$${ah.entry_price_per_share.toFixed(2)}/sh`;
+              const totCostEl = document.getElementById('hedge-active-total-cost');
+              if (totCostEl) totCostEl.innerText = `$${ah.entry_total_cost.toFixed(2)}`;
+              const valEl = document.getElementById('hedge-value-kpi');
+              if (valEl) valEl.innerText = `$${ah.current_market_value.toFixed(2)}`;
+              const pnlEl = document.getElementById('hedge-pnl-kpi');
+              if (pnlEl) pnlEl.innerText = `${ah.gain_pct >= 0 ? '+' : ''}${ah.gain_pct.toFixed(1)}%`;
+              const quoteEl = document.getElementById('hedge-active-quote');
+              if (quoteEl) quoteEl.innerText = `$${ah.current_price_per_share.toFixed(2)}/sh ($${ah.current_market_value.toFixed(2)})`;
+              const gainEl = document.getElementById('hedge-active-gain');
+              if (gainEl) gainEl.innerText = `${ah.gain_pct >= 0 ? '+' : ''}${ah.gain_pct.toFixed(1)}% Gain`;
+
+              const pct = Math.min(100, Math.max(0, (ah.progress_to_target || 0) * 100));
+              const progBar = document.getElementById('hedge-active-progress-bar');
+              if (progBar) progBar.style.width = pct.toFixed(1) + '%';
+              const progText = document.getElementById('hedge-active-progress-text');
+              if (progText) progText.innerText = `${pct.toFixed(1)}%`;
+            }
+
+            if (hdg.closed_count !== undefined) {
+              const ccEl = document.getElementById('hedge-closed-count-badge');
+              if (ccEl) ccEl.innerText = `${hdg.closed_count} Closed Hedges`;
             }
           }
         }

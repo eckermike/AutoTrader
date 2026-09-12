@@ -471,6 +471,114 @@ class TradeNotifier:
         )
         self.send_imessage(message)
 
+    def notify_tail_hedge_open(
+        self,
+        underlying: str,
+        contract_symbol: str,
+        strike: float,
+        expiration: str,
+        dte: int,
+        cost_per_share: float,
+        total_cost: float,
+        monetize_target_price: float,
+        monthly_spent: float,
+        monthly_budget: float,
+    ) -> None:
+        """Alerts when a Black Swan Tail-Risk Crash Hedge put option is bought."""
+        message = (
+            f"🛡️ [CRASH HEDGE: CATASTROPHE INSURANCE ACQUIRED]\n"
+            f"Underlying: {underlying}\n"
+            f"Contract: {contract_symbol}\n"
+            f"Strike: ${strike:,.2f} Put (OTM Crash Shield) | Exp: {expiration} ({dte} DTE)\n"
+            f"💵 Insurance Premium Paid: ${total_cost:,.2f} (${cost_per_share:.2f}/sh)\n"
+            f"🎯 Windfall Monetization Target: ${monetize_target_price:.2f}/sh (+250% gain)\n"
+            f"📊 Monthly Budget: ${monthly_spent:,.2f} / ${monthly_budget:,.2f}\n"
+            f"Portfolio now shielded against sudden market crash!"
+        )
+        self.send_ntfy(
+            message=message,
+            title=f"🛡️ CRASH HEDGE: {underlying} ${strike:.0f}P (${total_cost:,.0f})",
+            priority="default",
+            tags="shield,umbrella,moneybag",
+        )
+        self.send_macos_banner(
+            title=f"Crash Insurance Opened: {underlying}",
+            subtitle=f"${strike:.0f} Put | Cost: ${total_cost:,.2f}",
+            body=f"{dte} DTE | Target: ${monetize_target_price:.2f}/sh",
+        )
+        self.send_imessage(message)
+
+    def notify_tail_hedge_monetized(
+        self,
+        underlying: str,
+        contract_symbol: str,
+        strike: float,
+        entry_cost: float,
+        exit_value: float,
+        realized_pnl: float,
+        gain_pct: float,
+        tax_allocated: float,
+        tax_reserve_after: float,
+    ) -> None:
+        """Alerts when the crash hedge spikes during a crash and locks in a massive windfall."""
+        message = (
+            f"🚨 [CRASH HEDGE MONETIZED: WINDFALL LOCKED IN]\n"
+            f"Underlying: {underlying} (${strike:,.2f} Put)\n"
+            f"Contract: {contract_symbol}\n"
+            f"Action: SELL TO CLOSE (Crash Windfall Harvest)\n"
+            f"Initial Cost: ${entry_cost:,.2f}\n"
+            f"Harvest Value: ${exit_value:,.2f}\n"
+            f"✨ Net Realized Gain: +${realized_pnl:,.2f} (+{gain_pct:,.1f}%)\n"
+            f"🏛 Tax Escrow (30% Segregated): +${tax_allocated:,.2f}\n"
+            f"🏦 Tax Reserve Balance: ${tax_reserve_after:,.2f}\n"
+            f"💰 Fresh dry powder unlocked to buy equities at generational bottoms!"
+        )
+        self.send_ntfy(
+            message=message,
+            title=f"🚨 CRASH WINDFALL: +${realized_pnl:,.2f} (+{gain_pct:.0f}%)",
+            priority="urgent",
+            tags="rotating_light,tada,money_with_wings,fire",
+        )
+        self.send_macos_banner(
+            title=f"Crash Hedge Monetized: +${realized_pnl:,.2f}",
+            subtitle=f"+{gain_pct:.0f}% Gain Locked In!",
+            body=f"Tax Reserve: ${tax_reserve_after:,.2f}",
+        )
+        self.send_imessage(message)
+
+    def notify_tail_hedge_rolled(
+        self,
+        underlying: str,
+        contract_symbol: str,
+        dte: int,
+        residual_value: float,
+        realized_pnl: float,
+    ) -> None:
+        """Alerts when a crash hedge is rolled out at 21 DTE to preserve capital."""
+        sign = "+" if realized_pnl >= 0 else "-"
+        abs_pnl = abs(realized_pnl)
+        message = (
+            f"🛡️ [CRASH HEDGE: 21 DTE THETA DEFENSE ROLL]\n"
+            f"Underlying: {underlying} ({contract_symbol})\n"
+            f"Action: SELL TO CLOSE (Roll Defense)\n"
+            f"Days to Expiration: {dte} DTE\n"
+            f"Salvaged Residual Value: ${residual_value:,.2f}\n"
+            f"Net PnL: {sign}${abs_pnl:,.2f}\n"
+            f"Closed before rapid final-month time decay. Staging fresh 60-90 DTE hedge!"
+        )
+        self.send_ntfy(
+            message=message,
+            title=f"CRASH HEDGE ROLLED: {underlying} ({dte} DTE)",
+            priority="default",
+            tags="arrows_counterclockwise,shield",
+        )
+        self.send_macos_banner(
+            title=f"Crash Hedge Rolled: {underlying}",
+            subtitle=f"{dte} DTE | Residual: ${residual_value:,.2f}",
+            body="Preserved capital before final theta decay.",
+        )
+        self.send_imessage(message)
+
     def notify_daily_recap(
         self,
         date_str: str,
@@ -481,6 +589,7 @@ class TradeNotifier:
         tradable_cash: float,
         tax_reserve: float,
         spread_diagnostics: Optional[list[str]] = None,
+        tail_hedge_diagnostics: Optional[list[str]] = None,
     ) -> None:
         """
         Sends an automated end-of-day daily briefing.
@@ -513,6 +622,15 @@ class TradeNotifier:
             )
             spread_section = f"\n🎯 Defined-Risk Option Spreads:\n{spread_lines}\n"
 
+        hedge_section = ""
+        if tail_hedge_diagnostics is not None:
+            hedge_lines = (
+                "\n".join(f"• {item}" for item in tail_hedge_diagnostics)
+                if tail_hedge_diagnostics
+                else "• No active crash hedges"
+            )
+            hedge_section = f"\n🛡️ Black Swan Crash Hedge:\n{hedge_lines}\n"
+
         reason_header = (
             "\n🔍 WHY NO TRADES WERE TRIGGERED TODAY:\n"
             if trades_count == 0
@@ -527,7 +645,8 @@ class TradeNotifier:
             f"{crypto_section}\n\n"
             f"🎡 Multi-Asset Option Wheel:\n"
             f"{wheel_section}\n"
-            f"{spread_section}\n"
+            f"{spread_section}"
+            f"{hedge_section}\n"
             f"💰 Portfolio Financials:\n"
             f"• Total Cash:    ${cash:,.2f}\n"
             f"• Tradable Cash: ${tradable_cash:,.2f}\n"
