@@ -162,6 +162,22 @@ class LiquidityManager:
             logger.info("Approval request %s already pending. Skipping duplicate.", self.state.pending_approval.id)
             return False
 
+        # Determine which reserve asset to liquidate (prefer asset with open position)
+        chosen_reserve_sym = reserve_symbol
+        candidates = [reserve_symbol, "FBND" if reserve_symbol == "SGOV" else "SGOV"]
+        if hasattr(self.trading_client, "get_open_position"):
+            for sym in candidates:
+                try:
+                    pos = self.trading_client.get_open_position(sym)
+                    if pos and hasattr(pos, "market_value"):
+                        mv = float(pos.market_value)
+                        if mv > 50.0:
+                            chosen_reserve_sym = sym
+                            break
+                except Exception:
+                    pass
+
+        reserve_symbol = chosen_reserve_sym
         est_reserve_price = 100.50 if reserve_symbol == "SGOV" else 44.50
         est_shares = round(needed_cash / est_reserve_price, 2)
         ttl_hours = getattr(self.config, "APPROVAL_TTL_HOURS", 4.0)

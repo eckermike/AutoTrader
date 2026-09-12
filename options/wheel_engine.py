@@ -61,12 +61,14 @@ class WheelEngine:
         tax_engine: TaxEngine,
         notifier: TradeNotifier,
         symbol: Optional[str] = None,
+        liquidity_manager: Optional[Any] = None,
     ):
         self.config = config
         self.client = options_client
         self.tax_engine = tax_engine
         self.notifier = notifier
         self.symbol = (symbol or config.WHEEL_SYMBOL).upper()
+        self.liquidity_manager = liquidity_manager
 
         # Local tracking state
         self.cost_basis: Optional[float] = None
@@ -197,12 +199,21 @@ class WheelEngine:
 
                 # Hard Capital Gate check
                 if req_collateral > tradable_cash:
+                    needed_capital = req_collateral - tradable_cash
                     logger.warning(
                         "Capital Gate Rejection: Required collateral $%0.2f exceeds Tradable Cash $%0.2f for %s. Skipping CSP.",
                         req_collateral,
                         tradable_cash,
                         self.symbol,
                     )
+                    if self.liquidity_manager and hasattr(self.liquidity_manager, "request_liquidation_for_opportunity"):
+                        self.liquidity_manager.request_liquidation_for_opportunity(
+                            needed_cash=round(needed_capital, 2),
+                            target_symbol=self.symbol,
+                            opportunity_type=f"Option Wheel Cash-Secured Put (${contract.strike_price:0.2f}P)",
+                            current_price=stock_price,
+                            reserve_symbol="SGOV",
+                        )
                 else:
                     collateral_locked = req_collateral
                     order_tif = getattr(self.config, "WHEEL_TIME_IN_FORCE", "DAY")
@@ -519,11 +530,13 @@ class WheelPortfolioManager:
         tax_engine: TaxEngine,
         notifier: TradeNotifier,
         symbols: Optional[List[str]] = None,
+        liquidity_manager: Optional[Any] = None,
     ):
         self.config = config
         self.client = options_client
         self.tax_engine = tax_engine
         self.notifier = notifier
+        self.liquidity_manager = liquidity_manager
         target_symbols = symbols or config.WHEEL_SYMBOLS or [config.WHEEL_SYMBOL]
         self.symbols = [s.upper() for s in target_symbols]
         self.engines: Dict[str, WheelEngine] = {
@@ -533,6 +546,7 @@ class WheelPortfolioManager:
                 tax_engine=tax_engine,
                 notifier=notifier,
                 symbol=sym,
+                liquidity_manager=liquidity_manager,
             )
             for sym in self.symbols
         }

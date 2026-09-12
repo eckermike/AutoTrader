@@ -75,12 +75,14 @@ class SpreadEngine:
         tax_engine: TaxEngine,
         notifier: TradeNotifier,
         symbol: str = "SPY",
+        liquidity_manager: Optional[Any] = None,
     ):
         self.config = config
         self.client = options_client
         self.tax_engine = tax_engine
         self.notifier = notifier
         self.symbol = symbol.upper()
+        self.liquidity_manager = liquidity_manager
 
         # Active position tracking
         self.active_spread: Optional[SpreadPosition] = None
@@ -295,11 +297,20 @@ class SpreadEngine:
         # 2. Check TaxEngine Hard Capital Gate
         tradable_cash = self.tax_engine.get_tradable_cash(100000.0)
         if collateral_needed > tradable_cash:
+            needed_capital = collateral_needed - tradable_cash
             logger.warning(
                 "Capital Gate: Collateral ($%0.2f) exceeds tradable cash ($%0.2f)",
                 collateral_needed,
                 tradable_cash,
             )
+            if self.liquidity_manager and hasattr(self.liquidity_manager, "request_liquidation_for_opportunity"):
+                self.liquidity_manager.request_liquidation_for_opportunity(
+                    needed_cash=round(needed_capital, 2),
+                    target_symbol=self.symbol,
+                    opportunity_type=f"Defined-Risk Spread Collateral ({self.symbol})",
+                    current_price=current_price,
+                    reserve_symbol="SGOV",
+                )
             return {"status": "CAPITAL_GATE_REJECTED"}
 
         # 3. Select optimal contract pair
@@ -406,11 +417,13 @@ class SpreadPortfolioManager:
         options_client: AlpacaOptionsClient,
         tax_engine: TaxEngine,
         notifier: TradeNotifier,
+        liquidity_manager: Optional[Any] = None,
     ):
         self.config = config
         self.client = options_client
         self.tax_engine = tax_engine
         self.notifier = notifier
+        self.liquidity_manager = liquidity_manager
         self.state_file = config.SPREAD_STATE_FILE
 
         # Initialize per-symbol engines
@@ -426,6 +439,7 @@ class SpreadPortfolioManager:
                 tax_engine=tax_engine,
                 notifier=notifier,
                 symbol=sym,
+                liquidity_manager=liquidity_manager,
             )
             for sym in symbols
         }

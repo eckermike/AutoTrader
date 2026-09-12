@@ -88,19 +88,13 @@ class TradingDaemon:
             macos_banner=self.config.ALERT_MACOS_BANNER,
         )
 
-        # 5. Initialize Multi-Asset Option Wheel Portfolio Engine
+        # 5. Initialize Options Broker Client
         self.options_client = AlpacaOptionsClient(
             api_key=self.config.ALPACA_API_KEY,
             secret_key=self.config.ALPACA_SECRET_KEY,
             paper=self.config.ALPACA_PAPER,
             base_url=self.config.ALPACA_BASE_URL,
             mock_mode=self.dry_run,
-        )
-        self.wheel_engine = WheelPortfolioManager(
-            config=self.config,
-            options_client=self.options_client,
-            tax_engine=self.tax_engine,
-            notifier=self.notifier,
         )
 
         # 6. Initialize Autonomous Liquidity & Cash Yield Manager
@@ -115,12 +109,22 @@ class TradingDaemon:
             tax_engine=self.tax_engine,
         )
 
-        # 7. Initialize Defined-Risk Option Spreads Engine (SPY, QQQ, IWM)
+        # 7. Initialize Multi-Asset Option Wheel Portfolio Engine
+        self.wheel_engine = WheelPortfolioManager(
+            config=self.config,
+            options_client=self.options_client,
+            tax_engine=self.tax_engine,
+            notifier=self.notifier,
+            liquidity_manager=self.liquidity_manager,
+        )
+
+        # 8. Initialize Defined-Risk Option Spreads Engine (SPY, QQQ, IWM)
         self.spread_engine = SpreadPortfolioManager(
             config=self.config,
             options_client=self.options_client,
             tax_engine=self.tax_engine,
             notifier=self.notifier,
+            liquidity_manager=self.liquidity_manager,
         )
 
 
@@ -370,11 +374,20 @@ class TradingDaemon:
                 target_order_size = round(target_order_size, 2)
 
                 if target_order_size < 10.0:
+                    needed_cap = self.config.ORDER_SIZE_USD - remaining_cash
                     logger.info(
                         "Insufficient remaining tradable cash ($%s) for %s BUY. Skipping.",
                         f"{remaining_cash:,.2f}",
                         symbol,
                     )
+                    if hasattr(self, "liquidity_manager") and self.liquidity_manager:
+                        self.liquidity_manager.request_liquidation_for_opportunity(
+                            needed_cash=round(max(needed_cap, self.config.ORDER_SIZE_USD), 2),
+                            target_symbol=symbol,
+                            opportunity_type="Crypto Tri-Factor Breakout BUY",
+                            current_price=current_price,
+                            reserve_symbol="SGOV",
+                        )
                     continue
 
                 try:
@@ -422,6 +435,14 @@ class TradingDaemon:
 
                 except InsufficientTradableCashError as e:
                     logger.error("Order Blocked by Tax Escrow Engine for %s: %s", symbol, e)
+                    if hasattr(self, "liquidity_manager") and self.liquidity_manager:
+                        self.liquidity_manager.request_liquidation_for_opportunity(
+                            needed_cash=round(target_order_size, 2),
+                            target_symbol=symbol,
+                            opportunity_type="Crypto Tri-Factor Breakout BUY",
+                            current_price=current_price,
+                            reserve_symbol="SGOV",
+                        )
                 except Exception as e:
                     logger.exception("Failed to execute BUY order for %s: %s", symbol, e)
 

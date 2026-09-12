@@ -298,3 +298,64 @@ def test_liquidity_manager_dividend_auto_escrow(mock_config, mock_notifier, mock
     assert tax_engine.current_reserve == 25.50
     assert tax_engine.state.trade_count == 1
 
+
+def test_wheel_capital_shortage_triggers_liquidation_request(mock_config, mock_notifier, tmp_path):
+    """Verifies that when Wheel needs collateral exceeding cash, it dispatches an SGOV liquidation request."""
+    from options.options_client import AlpacaOptionsClient
+    from options.wheel_engine import WheelEngine
+    from tax_engine import TaxEngine
+
+    tax_engine = TaxEngine(filepath=tmp_path / "tax_res.json", tax_rate=0.30)
+    options_client = AlpacaOptionsClient("MOCK", "MOCK", paper=True, mock_mode=True)
+    mock_liq = MagicMock(spec=LiquidityManager)
+
+    engine = WheelEngine(
+        config=mock_config,
+        options_client=options_client,
+        tax_engine=tax_engine,
+        notifier=mock_notifier,
+        symbol="INTC",
+        liquidity_manager=mock_liq,
+    )
+
+    # Step with 0 cash available
+    engine.step(total_cash=0.0, available_tradable_cash=0.0)
+
+    # Verify liquidation request dispatched to user's phone
+    mock_liq.request_liquidation_for_opportunity.assert_called_once()
+    kwargs = mock_liq.request_liquidation_for_opportunity.call_args[1]
+    assert kwargs["target_symbol"] == "INTC"
+    assert kwargs["needed_cash"] > 0
+    assert "Option Wheel" in kwargs["opportunity_type"]
+
+
+def test_spread_capital_shortage_triggers_liquidation_request(mock_config, mock_notifier, tmp_path):
+    """Verifies that when Defined-Risk Spreads need collateral exceeding cash, it dispatches an SGOV liquidation request."""
+    from options.options_client import AlpacaOptionsClient
+    from options.spread_engine import SpreadEngine
+    from tax_engine import TaxEngine
+
+    tax_engine = TaxEngine(filepath=tmp_path / "tax_res.json", tax_rate=0.30)
+    options_client = AlpacaOptionsClient("MOCK", "MOCK", paper=True, mock_mode=True)
+    mock_liq = MagicMock(spec=LiquidityManager)
+
+    engine = SpreadEngine(
+        config=mock_config,
+        options_client=options_client,
+        tax_engine=tax_engine,
+        notifier=mock_notifier,
+        symbol="SPY",
+        liquidity_manager=mock_liq,
+    )
+
+    # Mock tax_engine returning $0 tradable cash
+    with patch.object(tax_engine, "get_tradable_cash", return_value=0.0):
+        engine.step(current_spread_collateral=0.0)
+
+    mock_liq.request_liquidation_for_opportunity.assert_called_once()
+    kwargs = mock_liq.request_liquidation_for_opportunity.call_args[1]
+    assert kwargs["target_symbol"] == "SPY"
+    assert kwargs["needed_cash"] == 500.0  # $5.00 * 100
+    assert "Defined-Risk Spread" in kwargs["opportunity_type"]
+
+
