@@ -658,7 +658,24 @@ class TradingDaemon:
         else:
             wheel_diag.append("Option Wheel strategy disabled.")
 
-        # 3. Dispatch Daily Recap Alert
+        # 3. Gather Defined-Risk Option Spreads diagnostics
+        spread_diag: List[str] = []
+        if getattr(self.config, "SPREAD_ENABLED", True) and hasattr(self, "spread_engine"):
+            for sym, engine in self.spread_engine.engines.items():
+                if engine.active_spread and engine.active_spread.status == "ACTIVE":
+                    sp = engine.active_spread
+                    spread_diag.append(
+                        f"{sym}: Active Bull Put ({sp.short_strike:.0f}P/{sp.long_strike:.0f}P, exp {sp.expiration_date}). "
+                        f"PnL: {sp.unrealized_pnl:+,.2f} ({sp.progress_to_target * 100:.0f}% towards 50% target)."
+                    )
+                elif engine.pending_order_id:
+                    spread_diag.append(f"{sym}: Limit order pending in order book.")
+                else:
+                    spread_diag.append(f"{sym}: Idle / Staging next high-probability setup.")
+        else:
+            spread_diag.append("Defined-Risk Spreads strategy disabled.")
+
+        # 4. Dispatch Daily Recap Alert
         logger.info(
             "Dispatching End-of-Day Briefing for %s (Trades Today: %d)...",
             today_str,
@@ -672,6 +689,7 @@ class TradingDaemon:
             cash=account_cash,
             tradable_cash=tradable_cash,
             tax_reserve=self.tax_engine.current_reserve,
+            spread_diagnostics=spread_diag,
         )
 
         self.last_daily_recap_date = today_str

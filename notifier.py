@@ -389,6 +389,88 @@ class TradeNotifier:
         )
         self.send_imessage(message)
 
+    def notify_spread_open(
+        self,
+        underlying: str,
+        short_strike: float,
+        long_strike: float,
+        expiration: str,
+        dte: int,
+        net_credit: float,
+        collateral_locked: float,
+        max_profit: float,
+        target_exit_profit: float,
+    ) -> None:
+        """Alerts when a Defined-Risk Bull Put Credit Spread is opened."""
+        message = (
+            f"🎯 [SPREAD: BULL PUT OPENED]\n"
+            f"Underlying: {underlying}\n"
+            f"Strikes: ${short_strike:.2f}P (Short) / ${long_strike:.2f}P (Long)\n"
+            f"Expiration: {expiration} ({dte} DTE)\n"
+            f"💰 Net Credit Collected: +${max_profit:,.2f} (+${net_credit:.2f}/share)\n"
+            f"🔒 Collateral Locked: ${collateral_locked:,.2f}\n"
+            f"🎯 50% Profit Exit Target: +${target_exit_profit:,.2f}\n"
+            f"🛑 Stop-Loss Multiplier: 2.5x credit"
+        )
+        self.send_ntfy(
+            message=message,
+            title=f"SPREAD OPEN: {underlying} ${short_strike:.0f}P/${long_strike:.0f}P (+${max_profit:,.0f})",
+            priority="high",
+            tags="shield,dart,moneybag",
+        )
+        self.send_macos_banner(
+            title=f"Bull Put Spread Opened: {underlying}",
+            subtitle=f"${short_strike:.0f}P/${long_strike:.0f}P (+${max_profit:,.2f})",
+            body=f"Collateral: ${collateral_locked:,.2f} | 50% Target: +${target_exit_profit:,.2f}",
+        )
+        self.send_imessage(message)
+
+    def notify_spread_close(
+        self,
+        underlying: str,
+        short_strike: float,
+        long_strike: float,
+        reason: str,
+        realized_pnl: float,
+        tax_allocated: float,
+        tax_reserve_after: float,
+    ) -> None:
+        """Alerts when a Defined-Risk Spread is closed (50% profit target, stop loss, or expiration defense)."""
+        sign = "+" if realized_pnl >= 0 else "-"
+        abs_pnl = abs(realized_pnl)
+        is_win = realized_pnl >= 0
+        emoji = "🎯" if is_win else "🛑"
+        priority = "high" if is_win else "urgent"
+        tags = "dart,tada,money_with_wings" if is_win else "rotating_light,shield"
+
+        tax_line = (
+            f"🏛 Tax Escrow (30% Allocated): +${tax_allocated:,.2f}"
+            if is_win
+            else "🏛 Tax Credit Applied to Reserve"
+        )
+
+        message = (
+            f"{emoji} [SPREAD: POSITION CLOSED]\n"
+            f"Underlying: {underlying} (${short_strike:.2f}P/${long_strike:.2f}P)\n"
+            f"Exit Reason: {reason}\n"
+            f"💵 Realized PnL: {sign}${abs_pnl:,.2f}\n"
+            f"{tax_line}\n"
+            f"🏦 Tax Reserve Balance: ${tax_reserve_after:,.2f}\n"
+            f"🔓 Collateral Unlocked & Returned to Tradable Cash!"
+        )
+        self.send_ntfy(
+            message=message,
+            title=f"SPREAD CLOSED: {underlying} ({sign}${abs_pnl:,.2f})",
+            priority=priority,
+            tags=tags,
+        )
+        self.send_macos_banner(
+            title=f"Spread Closed: {underlying}",
+            subtitle=f"Reason: {reason} | PnL: {sign}${abs_pnl:,.2f}",
+            body=f"Tax Reserve: ${tax_reserve_after:,.2f}",
+        )
+        self.send_imessage(message)
+
     def notify_daily_recap(
         self,
         date_str: str,
@@ -398,11 +480,12 @@ class TradeNotifier:
         cash: float,
         tradable_cash: float,
         tax_reserve: float,
+        spread_diagnostics: Optional[list[str]] = None,
     ) -> None:
         """
         Sends an automated end-of-day daily briefing.
         If trades_count == 0, provides a clear diagnostic breakdown explaining
-        why no trades were triggered across both Crypto and Option Wheel strategies.
+        why no trades were triggered across all active trading strategies.
         """
         status_line = (
             f"⚡ Today's Trades: {trades_count} executed"
@@ -421,6 +504,15 @@ class TradeNotifier:
             else "• No active wheel orders"
         )
 
+        spread_section = ""
+        if spread_diagnostics is not None:
+            spread_lines = (
+                "\n".join(f"• {item}" for item in spread_diagnostics)
+                if spread_diagnostics
+                else "• No active spread orders"
+            )
+            spread_section = f"\n🎯 Defined-Risk Option Spreads:\n{spread_lines}\n"
+
         reason_header = (
             "\n🔍 WHY NO TRADES WERE TRIGGERED TODAY:\n"
             if trades_count == 0
@@ -434,7 +526,8 @@ class TradeNotifier:
             f"🪙 Crypto Momentum Scanner:\n"
             f"{crypto_section}\n\n"
             f"🎡 Multi-Asset Option Wheel:\n"
-            f"{wheel_section}\n\n"
+            f"{wheel_section}\n"
+            f"{spread_section}\n"
             f"💰 Portfolio Financials:\n"
             f"• Total Cash:    ${cash:,.2f}\n"
             f"• Tradable Cash: ${tradable_cash:,.2f}\n"

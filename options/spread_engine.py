@@ -262,12 +262,25 @@ class SpreadEngine:
         )
 
         # Push notification
-        sign = "+" if realized_pnl >= 0 else "-"
-        abs_pnl = abs(realized_pnl)
-        self.notifier.notify(
-            f"🎯 [SPREAD] {self.symbol} Closed ({reason})! PnL: {sign}${abs_pnl:.2f}. "
-            f"Tax Reserve Balance: ${self.tax_engine.tax_reserve:.2f}"
-        )
+        tax_rate = getattr(self.config, "TAX_RATE", 0.30)
+        tax_allocated = (realized_pnl * tax_rate) if realized_pnl > 0 else 0.0
+        if hasattr(self.notifier, "notify_spread_close"):
+            self.notifier.notify_spread_close(
+                underlying=self.symbol,
+                short_strike=spread.short_strike,
+                long_strike=spread.long_strike,
+                reason=reason,
+                realized_pnl=realized_pnl,
+                tax_allocated=tax_allocated,
+                tax_reserve_after=self.tax_engine.tax_reserve,
+            )
+        else:
+            sign = "+" if realized_pnl >= 0 else "-"
+            abs_pnl = abs(realized_pnl)
+            self.notifier.notify(
+                f"🎯 [SPREAD] {self.symbol} Closed ({reason})! PnL: {sign}${abs_pnl:.2f}. "
+                f"Tax Reserve Balance: ${self.tax_engine.tax_reserve:.2f}"
+            )
 
         closed_spread = self.active_spread
         self.active_spread = None
@@ -372,13 +385,27 @@ class SpreadEngine:
 
         self.active_spread = spread_pos
 
-        self.notifier.notify(
-            f"⚡ [SPREAD] New Bull Put Spread Opened on {self.symbol}!\n"
-            f"• Strikes: ${short_contract.strike_price:0.2f}P / ${long_contract.strike_price:0.2f}P\n"
-            f"• Net Credit: +${credit:.2f}/sh (+${max_profit:.2f} total)\n"
-            f"• Collateral Locked: ${collateral_needed:.2f}\n"
-            f"• 50% Profit Exit Target: +${max_profit * 0.50:.2f}"
-        )
+        target_profit = round(max_profit * self.config.SPREAD_PROFIT_TARGET_PCT, 2)
+        if hasattr(self.notifier, "notify_spread_open"):
+            self.notifier.notify_spread_open(
+                underlying=self.symbol,
+                short_strike=short_contract.strike_price,
+                long_strike=long_contract.strike_price,
+                expiration=short_contract.expiration_date,
+                dte=short_contract.days_to_expiration,
+                net_credit=credit,
+                collateral_locked=collateral_needed,
+                max_profit=max_profit,
+                target_exit_profit=target_profit,
+            )
+        else:
+            self.notifier.notify(
+                f"⚡ [SPREAD] New Bull Put Spread Opened on {self.symbol}!\n"
+                f"• Strikes: ${short_contract.strike_price:0.2f}P / ${long_contract.strike_price:0.2f}P\n"
+                f"• Net Credit: +${credit:.2f}/sh (+${max_profit:.2f} total)\n"
+                f"• Collateral Locked: ${collateral_needed:.2f}\n"
+                f"• 50% Profit Exit Target: +${max_profit * 0.50:.2f}"
+            )
 
         return {
             "status": "OPENED",

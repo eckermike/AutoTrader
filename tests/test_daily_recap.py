@@ -33,6 +33,10 @@ def test_notifier_formatting_daily_recap_zero_trades():
                 "INTC: Short Put active (INTC261002P00089000). Waiting for 50% profit decay.",
                 "F: Limit order pending in order book (F261002P00013500).",
             ],
+            spread_diagnostics=[
+                "SPY: Active Bull Put (530P/525P, exp 2026-10-16). PnL: +$25.00 (50% towards 50% target).",
+                "QQQ: Idle / Staging next high-probability setup.",
+            ],
             cash=100277.49,
             tradable_cash=100162.64,
             tax_reserve=114.85,
@@ -48,6 +52,8 @@ def test_notifier_formatting_daily_recap_zero_trades():
         assert "AVAX/USD: Active position" in msg
         assert "BTC/USD: Peak score +0.160" in msg
         assert "INTC: Short Put active" in msg
+        assert "Defined-Risk Option Spreads" in msg
+        assert "SPY: Active Bull Put" in msg
         assert "Total Cash:    $100,277.49" in msg
         assert "Tradable Cash: $100,162.64" in msg
         assert "Tax Escrow:    $114.85" in msg

@@ -70,3 +70,46 @@ def test_notifier_disabled():
     notifier = TradeNotifier(recipient="test@icloud.com", enabled=False)
     # When disabled, should return False immediately
     assert notifier.send_imessage("Test message") is False
+
+
+def test_notifier_spread_open_and_close():
+    notifier = TradeNotifier(recipient="test@icloud.com", ntfy_topic="test_topic", enabled=True, macos_banner=False)
+
+    with patch.object(notifier, "send_imessage", return_value=True) as mock_imsg, \
+         patch.object(notifier, "send_ntfy", return_value=True) as mock_ntfy:
+
+        # Test Spread Open Alert
+        notifier.notify_spread_open(
+            underlying="SPY",
+            short_strike=530.0,
+            long_strike=525.0,
+            expiration="2026-10-16",
+            dte=34,
+            net_credit=0.85,
+            collateral_locked=500.0,
+            max_profit=85.0,
+            target_exit_profit=42.50,
+        )
+        assert mock_ntfy.called
+        msg = mock_ntfy.call_args[1]["message"]
+        assert "SPREAD: BULL PUT OPENED" in msg
+        assert "SPY" in msg
+        assert "$530.00P" in msg
+        assert "+$85.00" in msg
+
+        # Test Spread Close Alert (Profit Target)
+        notifier.notify_spread_close(
+            underlying="SPY",
+            short_strike=530.0,
+            long_strike=525.0,
+            reason="PROFIT_TARGET_50_PCT",
+            realized_pnl=42.50,
+            tax_allocated=12.75,
+            tax_reserve_after=127.50,
+        )
+        close_msg = mock_ntfy.call_args[1]["message"]
+        assert "SPREAD: POSITION CLOSED" in close_msg
+        assert "+$42.50" in close_msg
+        assert "PROFIT_TARGET_50_PCT" in close_msg
+        assert "Tax Escrow (30% Allocated): +$12.75" in close_msg
+        assert "Tax Reserve Balance: $127.50" in close_msg
