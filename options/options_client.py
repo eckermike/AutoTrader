@@ -20,6 +20,7 @@ try:
         GetOptionContractsRequest,
         ClosePositionRequest,
         GetOrdersRequest,
+        OptionLegRequest,
     )
     from alpaca.trading.enums import (
         OrderSide,
@@ -28,6 +29,8 @@ try:
         PositionIntent,
         ExerciseStyle,
         QueryOrderStatus,
+        OrderClass,
+        OrderType,
     )
     from alpaca.data.historical.stock import StockHistoricalDataClient
     from alpaca.data.requests import StockLatestQuoteRequest, StockLatestTradeRequest
@@ -35,6 +38,9 @@ try:
     from alpaca.data.requests import OptionLatestQuoteRequest
 except ImportError:
     TradingClient = None
+    OptionLegRequest = None
+    OrderClass = None
+    OrderType = None
 
 logger = logging.getLogger("options.client")
 
@@ -137,6 +143,17 @@ class AlpacaOptionsClient:
                 secret_key=secret_key,
             )
 
+    def is_market_open(self) -> bool:
+        """Checks if the US equity options market is currently open via Alpaca clock."""
+        if self.mock_mode:
+            return True
+        try:
+            clock = self.trading_client.get_clock()
+            return bool(getattr(clock, "is_open", True))
+        except Exception as e:
+            logger.debug("Failed to query market clock: %s", e)
+            return True
+
     def get_stock_price(self, symbol: str = "INTC") -> float:
         """Fetches the latest equity price for the underlying asset."""
         sym = symbol.upper()
@@ -148,6 +165,9 @@ class AlpacaOptionsClient:
                 "HOOD": 22.00,
                 "PLTR": 32.00,
                 "XLF": 44.00,
+                "SPY": 560.00,
+                "QQQ": 485.00,
+                "IWM": 220.00,
             }
             return mock_prices.get(sym, 21.50)
 
@@ -238,10 +258,24 @@ class AlpacaOptionsClient:
             dte = 33
             if sym == "INTC":
                 strikes = [19.0, 19.5, 20.0, 20.5, 21.0, 21.5, 22.0, 22.5, 23.0]
+            elif sym in ["SPY", "QQQ", "IWM"]:
+                step = 5.0
+                base_rounded = round(base_price / step) * step
+                strikes = [round(base_rounded + i * step, 1) for i in range(-10, 6)]
             else:
                 strikes = sorted(set([round(base_price * m, 1) for m in [0.88, 0.90, 0.92, 0.95, 0.98, 1.00, 1.02, 1.05, 1.08]]))
             for strike in strikes:
-                prem = max(0.20, round(abs(strike - base_price) * 0.4 + 0.35, 2))
+                if sym in ["SPY", "QQQ", "IWM"]:
+                    diff = strike - base_price
+                    if contract_type == "put":
+                        # OTM put has strike < base_price
+                        dist_pct = (base_price - strike) / base_price
+                        prem = max(0.20, round(6.0 * max(0.05, (1.0 - dist_pct * 12)), 2))
+                    else:
+                        dist_pct = (strike - base_price) / base_price
+                        prem = max(0.20, round(6.0 * max(0.05, (1.0 - dist_pct * 12)), 2))
+                else:
+                    prem = max(0.20, round(abs(strike - base_price) * 0.4 + 0.35, 2))
                 contracts.append(
                     OptionContractInfo(
                         symbol=f"{underlying}261009{'P' if contract_type == 'put' else 'C'}{int(strike * 1000):08d}",
@@ -507,4 +541,221 @@ class AlpacaOptionsClient:
             "side": side_upper,
             "position_intent": intent_upper,
             "status": str(order_res.status),
+        }
+
+    def get_spread_quote(self, short_symbol: str, long_symbol: str) -> Optional[Dict[str, float]]:
+        """
+        Fetches live bid, ask, and mid prices for both legs of a spread and calculates
+        net credit to enter and net debit to close.
+        """
+        if self.mock_mode:
+            return {
+                "short_bid": 1.45,
+                "short_ask": 1.55,
+                "long_bid": 0.55,
+                "long_ask": 0.65,
+                "entry_credit": 0.80,  # short_bid - long_ask
+                "close_debit": 1.00,   # short_ask - long_bid
+                "mid_credit": 0.90,    # short_mid - long_mid
+            }
+
+        short_q = self.get_option_quote(short_symbol)
+        long_q = self.get_option_quote(long_symbol)
+
+        if not short_q or not long_q:
+            return None
+
+        short_bid = short_q.get("bid_price", 0.0)
+        short_ask = short_q.get("ask_price", 0.0)
+        long_bid = long_q.get("bid_price", 0.0)
+        long_ask = long_q.get("ask_price", 0.0)
+
+        short_mid = short_q.get("mid_price", 0.0)
+        long_mid = long_q.get("mid_price", 0.0)
+
+        entry_credit = max(0.0, round(short_bid - long_ask, 2))
+        close_debit = max(0.0, round(short_ask - long_bid, 2))
+        mid_credit = max(0.0, round(short_mid - long_mid, 2))
+
+        return {
+            "short_bid": short_bid,
+            "short_ask": short_ask,
+            "long_bid": long_bid,
+            "long_ask": long_ask,
+            "entry_credit": entry_credit,
+            "close_debit": close_debit,
+            "mid_credit": mid_credit,
+        }
+
+    def submit_mleg_spread_order(
+        self,
+        short_symbol: str,
+        long_symbol: str,
+        qty: int = 1,
+        limit_credit: Optional[float] = None,
+        time_in_force: str = "DAY",
+    ) -> Dict[str, Any]:
+        """
+        Submits a multi-leg credit spread order (OrderClass.MLEG).
+        Leg 1: Short Put (SELL_TO_OPEN)
+        Leg 2: Long Put (BUY_TO_OPEN)
+        In Alpaca MLEG, a credit limit order is specified as a negative limit_price.
+        """
+        client_order_id = f"mleg_{uuid.uuid4().hex[:10]}"
+        tif_upper = time_in_force.upper()
+        alpaca_tif = TimeInForce.DAY if tif_upper == "DAY" else TimeInForce.GTC
+
+        if self.mock_mode:
+            fill_credit = limit_credit if limit_credit is not None else 0.90
+            logger.info("MOCK MLEG Spread Order: Sell %s / Buy %s x %d (Credit: $%0.2f)", short_symbol, long_symbol, qty, fill_credit)
+            return {
+                "id": f"mock_mleg_{uuid.uuid4().hex[:8]}",
+                "client_order_id": client_order_id,
+                "short_symbol": short_symbol,
+                "long_symbol": long_symbol,
+                "qty": qty,
+                "credit": fill_credit,
+                "status": "FILLED",
+                "order_class": "mleg",
+            }
+
+        legs = [
+            OptionLegRequest(
+                symbol=short_symbol,
+                ratio_qty=1.0,
+                side=OrderSide.SELL,
+                position_intent=PositionIntent.SELL_TO_OPEN,
+            ),
+            OptionLegRequest(
+                symbol=long_symbol,
+                ratio_qty=1.0,
+                side=OrderSide.BUY,
+                position_intent=PositionIntent.BUY_TO_OPEN,
+            ),
+        ]
+
+        if limit_credit is not None:
+            # Negative limit price in Alpaca represents net credit received
+            alpaca_limit_price = -round(abs(limit_credit), 2)
+            order_req = LimitOrderRequest(
+                qty=qty,
+                order_class=OrderClass.MLEG,
+                legs=legs,
+                time_in_force=alpaca_tif,
+                limit_price=alpaca_limit_price,
+                client_order_id=client_order_id,
+            )
+        else:
+            order_req = MarketOrderRequest(
+                qty=qty,
+                order_class=OrderClass.MLEG,
+                legs=legs,
+                time_in_force=alpaca_tif,
+                client_order_id=client_order_id,
+            )
+
+        order_res = self.trading_client.submit_order(order_data=order_req)
+        logger.info(
+            "Alpaca MLEG Credit Spread Submitted: Short %s / Long %s x %d (ID: %s, Credit: $%s)",
+            short_symbol,
+            long_symbol,
+            qty,
+            order_res.id,
+            limit_credit,
+        )
+
+        return {
+            "id": str(order_res.id),
+            "client_order_id": str(order_res.client_order_id),
+            "short_symbol": short_symbol,
+            "long_symbol": long_symbol,
+            "qty": int(order_res.qty) if order_res.qty else qty,
+            "credit": limit_credit,
+            "status": str(order_res.status),
+            "order_class": "mleg",
+        }
+
+    def close_mleg_spread_order(
+        self,
+        short_symbol: str,
+        long_symbol: str,
+        qty: int = 1,
+        limit_debit: Optional[float] = None,
+        time_in_force: str = "DAY",
+    ) -> Dict[str, Any]:
+        """
+        Submits an MLEG closing order to Buy-to-Close Short Put and Sell-to-Close Long Put.
+        In Alpaca MLEG, debit price is specified as a positive limit_price.
+        """
+        client_order_id = f"mleg_close_{uuid.uuid4().hex[:10]}"
+        tif_upper = time_in_force.upper()
+        alpaca_tif = TimeInForce.DAY if tif_upper == "DAY" else TimeInForce.GTC
+
+        if self.mock_mode:
+            fill_debit = limit_debit if limit_debit is not None else 0.45
+            logger.info("MOCK MLEG Close Spread: Buy %s / Sell %s x %d (Debit: $%0.2f)", short_symbol, long_symbol, qty, fill_debit)
+            return {
+                "id": f"mock_mleg_close_{uuid.uuid4().hex[:8]}",
+                "client_order_id": client_order_id,
+                "short_symbol": short_symbol,
+                "long_symbol": long_symbol,
+                "qty": qty,
+                "debit": fill_debit,
+                "status": "FILLED",
+                "order_class": "mleg",
+            }
+
+        legs = [
+            OptionLegRequest(
+                symbol=short_symbol,
+                ratio_qty=1.0,
+                side=OrderSide.BUY,
+                position_intent=PositionIntent.BUY_TO_CLOSE,
+            ),
+            OptionLegRequest(
+                symbol=long_symbol,
+                ratio_qty=1.0,
+                side=OrderSide.SELL,
+                position_intent=PositionIntent.SELL_TO_CLOSE,
+            ),
+        ]
+
+        if limit_debit is not None:
+            alpaca_limit_price = round(abs(limit_debit), 2)
+            order_req = LimitOrderRequest(
+                qty=qty,
+                order_class=OrderClass.MLEG,
+                legs=legs,
+                time_in_force=alpaca_tif,
+                limit_price=alpaca_limit_price,
+                client_order_id=client_order_id,
+            )
+        else:
+            order_req = MarketOrderRequest(
+                qty=qty,
+                order_class=OrderClass.MLEG,
+                legs=legs,
+                time_in_force=alpaca_tif,
+                client_order_id=client_order_id,
+            )
+
+        order_res = self.trading_client.submit_order(order_data=order_req)
+        logger.info(
+            "Alpaca MLEG Close Spread Submitted: Buy %s / Sell %s x %d (ID: %s, Debit: $%s)",
+            short_symbol,
+            long_symbol,
+            qty,
+            order_res.id,
+            limit_debit,
+        )
+
+        return {
+            "id": str(order_res.id),
+            "client_order_id": str(order_res.client_order_id),
+            "short_symbol": short_symbol,
+            "long_symbol": long_symbol,
+            "qty": int(order_res.qty) if order_res.qty else qty,
+            "debit": limit_debit,
+            "status": str(order_res.status),
+            "order_class": "mleg",
         }

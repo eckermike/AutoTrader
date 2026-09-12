@@ -27,6 +27,7 @@ from factors.technical import TechnicalFactor
 from factors.volume_regime import VolumeRegimeFactor
 from notifier import TradeNotifier
 from options.options_client import AlpacaOptionsClient
+from options.spread_engine import SpreadPortfolioManager
 from options.wheel_engine import WheelEngine, WheelPortfolioManager
 from tax_engine import InsufficientTradableCashError, TaxEngine
 
@@ -112,6 +113,14 @@ class TradingDaemon:
             trading_client=trading_client,
             notifier=self.notifier,
             tax_engine=self.tax_engine,
+        )
+
+        # 7. Initialize Defined-Risk Option Spreads Engine (SPY, QQQ, IWM)
+        self.spread_engine = SpreadPortfolioManager(
+            config=self.config,
+            options_client=self.options_client,
+            tax_engine=self.tax_engine,
+            notifier=self.notifier,
         )
 
 
@@ -519,6 +528,18 @@ class TradingDaemon:
                 self.liquidity_manager.step()
             except Exception as e:
                 logger.exception("Error executing Liquidity Manager cycle: %s", e)
+
+        # --- Strategy 5: Defined-Risk Option Spreads (SPY, QQQ, IWM) ---
+        if getattr(self.config, "SPREAD_ENABLED", True) and hasattr(self, "spread_engine"):
+            try:
+                is_mkt_open = (
+                    self.options_client.is_market_open()
+                    if hasattr(self.options_client, "is_market_open")
+                    else True
+                )
+                self.spread_engine.step_all(is_market_open=is_mkt_open)
+            except Exception as e:
+                logger.exception("Error executing Defined-Risk Spreads cycle: %s", e)
 
 
     def check_and_dispatch_daily_recap(

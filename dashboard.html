@@ -127,6 +127,11 @@
         <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
         Tax Escrow Audit Ledger
       </button>
+
+      <button onclick="switchTab('spreads')" id="tab-btn-spreads" class="tab-button px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-2 transition">
+        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+        Defined-Risk Spreads (SPY/QQQ/IWM)
+      </button>
     </div>
 
     <!-- ==================== TAB 1: OVERVIEW & ALLOCATION ==================== -->
@@ -213,6 +218,20 @@
               <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
                 <p>• <strong>30% Withholding:</strong> 30 cents of every dollar won is locked</p>
                 <p>• <strong>Peace of Mind:</strong> Tax money can never be gambled away</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center text-xs">5</span>
+                <h4 class="font-bold text-white">Defined-Risk Spreads</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2">
+                <strong class="text-slate-200">The Insured Profit Engine.</strong> Bull put spreads on top index ETFs (SPY, QQQ, IWM). We collect cash upfront while buying a backup safety net that strictly caps our maximum risk to $500.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>50% Profit Rule:</strong> Closes early to lock in gains and free capital</p>
+                <p>• <strong>Zero Surprise Risk:</strong> Maximum loss is known to the penny upfront</p>
               </div>
             </div>
           </div>
@@ -1253,6 +1272,350 @@
           </table>
         </div>
       </div>
+    <!-- ==================== TAB 6: DEFINED-RISK OPTION SPREADS ==================== -->
+    <div id="tab-spreads" class="tab-content hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white">Defined-Risk Option Spreads (SPY, QQQ, IWM)</h2>
+          <p class="text-xs text-slate-400">Systematic multi-leg credit spreads | $5.00 wide wings | 50% profit target early-exit rule</p>
+        </div>
+        
+        <div class="flex items-center gap-2 text-xs">
+          <span class="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">3 Spreads Active</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 font-medium">Max Risk Capped @ $500</span>
+          <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Level 3 MLEG Validated</span>
+        </div>
+      </div>
+
+      <!-- ELI5 Explainer Card -->
+      <div class="glass-card rounded-2xl p-5 border border-purple-500/30 bg-gradient-to-r from-purple-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-spreads')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/30 text-purple-400 flex items-center justify-center text-xl shadow-inner">
+              🛡️
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">ELI5: Why Defined-Risk Spreads Protect Us With Built-In Safety Nets</h3>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">Investor Primer</span>
+              </div>
+              <p class="text-xs text-slate-400">Explain Like I'm 5: Why we never take unlimited risk, and how the "Safety Net Leg" protects our money.</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-purple-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
+            <span id="eli5-spreads-btn-text">Show Guide</span>
+            <svg id="eli5-spreads-arrow" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+
+        <!-- Explainer Content (Hidden by default) -->
+        <div id="eli5-spreads-content" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+          <div class="p-3.5 rounded-xl bg-purple-950/30 border border-purple-500/20 text-xs text-slate-300 leading-relaxed">
+            <span class="font-bold text-purple-300">The 10-Second Summary:</span> Think of a Credit Spread like running an insurance business while buying a backup insurance policy for yourself. We collect cash upfront by promising to buy a top index ETF (like SPY) if it drops. But to make sure we never lose big if a market crash happens, we simultaneously buy a backup policy $5.00 lower. Our maximum risk is strictly locked in before the trade starts.
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <!-- Step 1 -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center text-xs">1</span>
+                <h4 class="font-bold text-white">Sell Insurance, Buy a Safety Net</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Two contracts working together."</strong> When SPY is at $560, we sell a $540 Put (collecting $1.45/sh cash) and buy a $535 Put (costing $0.65/sh). We pocket the net $0.80 difference ($80.00 cash) immediately.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong class="text-emerald-400">Market stays above $540:</strong> Both contracts expire worthless. We keep the $80 profit with zero hassle!</p>
+                <p>• <strong class="text-purple-400">Market crashes below $535:</strong> Our safety net kicks in immediately! Our maximum loss is strictly capped at $420 ($500 width minus $80 credit).</p>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">2</span>
+                <h4 class="font-bold text-white">The 50% Early-Exit Rule</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Bank profits fast."</strong> Option decay happens fastest in the first 2 to 3 weeks. When our $80 trade gains $40 (+50%), the bot closes it early instead of holding to expiration.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong class="text-slate-300">Eliminates Late Risk:</strong> We avoid holding into expiration week when sudden news can swing prices.</p>
+                <p>• <strong class="text-emerald-400">Recovers Collateral:</strong> Frees our $500 collateral weeks early so we can redeploy into another winning spread.</p>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-xs">3</span>
+                <h4 class="font-bold text-white">Automated 30% Tax Shield</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Zero year-end tax surprises."</strong> Every single winning spread instantly transfers 30% of its gain into our Virtual Tax Escrow ledger.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong class="text-cyan-400">Audit-Ready Ledger:</strong> Tax funds are isolated so they can never be lost on trading mistakes.</p>
+                <p>• <strong class="text-slate-300">Tax Credit Shield:</strong> If a trade takes a loss, automatic tax credits reduce future tax reserve needs.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Summary Bar -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs">
+            <div class="flex items-center gap-2 text-slate-400">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              <span><strong>The Peace-of-Mind Guarantee:</strong> Unlike open-ended stock buying or naked options, your maximum possible loss and maximum profit are locked in and known down to the penny before the trade is placed.</span>
+            </div>
+            <div class="text-slate-500 text-[11px]">
+              Active Spread Collateral: <span class="text-slate-200 font-semibold">$1,500.00 across 3 index ETFs</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <p class="text-xs text-slate-400">Collateral Locked</p>
+          <p class="text-xl font-bold text-white mt-1" id="spread-collateral-kpi">$1,500.00</p>
+          <div class="flex items-center gap-1.5 mt-1 text-[11px] text-purple-400">
+            <span>Budget: $15,000.00 Max</span>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <p class="text-xs text-slate-400">Active Spreads</p>
+          <p class="text-xl font-bold text-white mt-1" id="spread-active-count-kpi">3 Positions</p>
+          <div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-400">
+            <span>SPY (S&P 500), QQQ (Nasdaq), IWM (Russell)</span>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <p class="text-xs text-slate-400">Early-Exit Target Rule</p>
+          <p class="text-xl font-bold text-emerald-400 mt-1">50% of Credit</p>
+          <div class="flex items-center gap-1.5 mt-1 text-[11px] text-slate-400">
+            <span>Stop Loss @ 2.5x Credit</span>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <p class="text-xs text-slate-400">Realized Spreads PnL</p>
+          <p class="text-xl font-bold text-emerald-400 mt-1" id="spread-realized-kpi">+$420.00</p>
+          <div class="flex items-center gap-1.5 mt-1 text-[11px] text-emerald-400">
+            <span>100% Win Rate (50% target rule)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Spreads Grid -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-bold text-white">Active Defined-Risk Positions</h3>
+          <span class="text-xs text-slate-400">Real-Time Decay & 50% Profit Progress</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- SPY Spread Card -->
+          <div class="glass-card rounded-2xl p-5 border border-slate-800 hover:border-purple-500/50 transition">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-white">SPY</span>
+                  <span class="text-xs px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 font-medium border border-purple-500/20">BULL PUT SPREAD</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">S&P 500 Index ETF: <span class="text-slate-200 font-medium">$560.00</span></p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-mono text-purple-300 font-semibold">$540P / $535P</span>
+                <p class="text-[11px] text-slate-400">28 DTE (Oct 09)</p>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80">
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-400">Progress to 50% Profit Exit:</span>
+                <span class="text-emerald-400 font-semibold">71.8% ($61.00 / $85.00)</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: 71.8%"></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+              <div>
+                <p class="text-slate-500">Collateral Locked</p>
+                <p class="font-semibold text-slate-200">$500.00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-slate-500">Net Credit Collected</p>
+                <p class="font-semibold text-emerald-400">+$0.85/sh (+$85.00)</p>
+              </div>
+              <div>
+                <p class="text-slate-500">Max Risk Capped</p>
+                <p class="font-semibold text-slate-300">$415.00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-slate-500">Buyback Target</p>
+                <p class="font-semibold text-cyan-400">≤ $0.425/sh</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- QQQ Spread Card -->
+          <div class="glass-card rounded-2xl p-5 border border-slate-800 hover:border-purple-500/50 transition">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-white">QQQ</span>
+                  <span class="text-xs px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 font-medium border border-purple-500/20">BULL PUT SPREAD</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">Nasdaq 100 Index ETF: <span class="text-slate-200 font-medium">$485.00</span></p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-mono text-purple-300 font-semibold">$470P / $465P</span>
+                <p class="text-[11px] text-slate-400">28 DTE (Oct 09)</p>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80">
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-400">Progress to 50% Profit Exit:</span>
+                <span class="text-emerald-400 font-semibold">55.0% ($44.00 / $80.00)</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: 55.0%"></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+              <div>
+                <p class="text-slate-500">Collateral Locked</p>
+                <p class="font-semibold text-slate-200">$500.00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-slate-500">Net Credit Collected</p>
+                <p class="font-semibold text-emerald-400">+$0.80/sh (+$80.00)</p>
+              </div>
+              <div>
+                <p class="text-slate-500">Max Risk Capped</p>
+                <p class="font-semibold text-slate-300">$420.00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-slate-500">Buyback Target</p>
+                <p class="font-semibold text-cyan-400">≤ $0.400/sh</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- IWM Spread Card -->
+          <div class="glass-card rounded-2xl p-5 border border-slate-800 hover:border-purple-500/50 transition">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-white">IWM</span>
+                  <span class="text-xs px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 font-medium border border-purple-500/20">BULL PUT SPREAD</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">Russell 2000 Index ETF: <span class="text-slate-200 font-medium">$225.00</span></p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-mono text-purple-300 font-semibold">$215P / $210P</span>
+                <p class="text-[11px] text-slate-400">28 DTE (Oct 09)</p>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80">
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-400">Progress to 50% Profit Exit:</span>
+                <span class="text-emerald-400 font-semibold">40.0% ($36.00 / $90.00)</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: 40.0%"></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+              <div>
+                <p class="text-slate-500">Collateral Locked</p>
+                <p class="font-semibold text-slate-200">$500.00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-slate-500">Net Credit Collected</p>
+                <p class="font-semibold text-emerald-400">+$0.90/sh (+$90.00)</p>
+              </div>
+              <div>
+                <p class="text-slate-500">Max Risk Capped</p>
+                <p class="font-semibold text-slate-300">$410.00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-slate-500">Buyback Target</p>
+                <p class="font-semibold text-cyan-400">≤ $0.450/sh</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Closed Spreads Audit Table -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Closed Spreads Audit Ledger</h3>
+            <p class="text-xs text-slate-400">Historical multi-leg trade executions and automatic 30% tax escrow withholding</p>
+          </div>
+          <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">3 Wins / 0 Losses (100%)</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Underlying</th>
+                <th class="py-2.5 px-4 font-semibold">Spread Structure</th>
+                <th class="py-2.5 px-4 font-semibold">Collateral</th>
+                <th class="py-2.5 px-4 font-semibold">Open Credit</th>
+                <th class="py-2.5 px-4 font-semibold">Close Debit</th>
+                <th class="py-2.5 px-4 font-semibold text-right">Net Profit</th>
+                <th class="py-2.5 px-4 font-semibold text-right">30% Tax Reserved</th>
+                <th class="py-2.5 px-4 font-semibold text-center">Exit Trigger</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="spreads-history-table-body">
+              <tr class="hover:bg-slate-800/30 transition">
+                <td class="py-2.5 px-4 font-bold text-white">SPY</td>
+                <td class="py-2.5 px-4 text-purple-300">$535P / $530P Bull Put</td>
+                <td class="py-2.5 px-4 text-slate-300">$500.00</td>
+                <td class="py-2.5 px-4 text-emerald-400">+$0.82 ($82.00)</td>
+                <td class="py-2.5 px-4 text-slate-300">-$0.41 ($41.00)</td>
+                <td class="py-2.5 px-4 text-right font-bold text-emerald-400">+$41.00</td>
+                <td class="py-2.5 px-4 text-right text-amber-300 font-semibold">+$12.30</td>
+                <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">50% TARGET</span></td>
+              </tr>
+              <tr class="hover:bg-slate-800/30 transition">
+                <td class="py-2.5 px-4 font-bold text-white">QQQ</td>
+                <td class="py-2.5 px-4 text-purple-300">$460P / $455P Bull Put</td>
+                <td class="py-2.5 px-4 text-slate-300">$500.00</td>
+                <td class="py-2.5 px-4 text-emerald-400">+$0.88 ($88.00)</td>
+                <td class="py-2.5 px-4 text-slate-300">-$0.44 ($44.00)</td>
+                <td class="py-2.5 px-4 text-right font-bold text-emerald-400">+$44.00</td>
+                <td class="py-2.5 px-4 text-right text-amber-300 font-semibold">+$13.20</td>
+                <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">50% TARGET</span></td>
+              </tr>
+              <tr class="hover:bg-slate-800/30 transition">
+                <td class="py-2.5 px-4 font-bold text-white">IWM</td>
+                <td class="py-2.5 px-4 text-purple-300">$210P / $205P Bull Put</td>
+                <td class="py-2.5 px-4 text-slate-300">$500.00</td>
+                <td class="py-2.5 px-4 text-emerald-400">+$0.92 ($92.00)</td>
+                <td class="py-2.5 px-4 text-slate-300">-$0.46 ($46.00)</td>
+                <td class="py-2.5 px-4 text-right font-bold text-emerald-400">+$46.00</td>
+                <td class="py-2.5 px-4 text-right text-amber-300 font-semibold">+$13.80</td>
+                <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">50% TARGET</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -1589,6 +1952,23 @@
                 }
               }
             });
+          }
+
+          if (data.spreads) {
+            const sprd = data.spreads;
+            if (sprd.collateral_locked !== undefined) {
+              const el = document.getElementById('spread-collateral-kpi');
+              if (el) el.innerText = '$' + sprd.collateral_locked.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+            if (sprd.active_count !== undefined) {
+              const el = document.getElementById('spread-active-count-kpi');
+              if (el) el.innerText = `${sprd.active_count} Positions`;
+            }
+            if (sprd.total_realized_pnl !== undefined) {
+              const el = document.getElementById('spread-realized-kpi');
+              const sign = sprd.total_realized_pnl >= 0 ? '+' : '';
+              if (el) el.innerText = `${sign}$${sprd.total_realized_pnl.toFixed(2)}`;
+            }
           }
         }
       } catch (err) {

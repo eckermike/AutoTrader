@@ -271,6 +271,76 @@ class BotConfig(BaseSettings):
         description="Time-in-force for option orders ('DAY' or 'GTC')",
     )
 
+    # --- Defined-Risk Credit Spreads Strategy ---
+    SPREAD_ENABLED: bool = Field(
+        default=True,
+        description="Whether to run the Defined-Risk Credit Spreads engine",
+    )
+    SPREAD_SYMBOLS: Union[List[str], str] = Field(
+        default=["SPY", "QQQ", "IWM"],
+        description="List of underlying symbols for credit spreads (SPY, QQQ, IWM)",
+    )
+    SPREAD_TARGET_DTE_MIN: int = Field(
+        default=21,
+        ge=7,
+        le=90,
+        description="Minimum days to expiration for credit spread contracts",
+    )
+    SPREAD_TARGET_DTE_MAX: int = Field(
+        default=45,
+        ge=14,
+        le=120,
+        description="Maximum days to expiration for credit spread contracts",
+    )
+    SPREAD_WIDTH_USD: float = Field(
+        default=5.0,
+        gt=0.0,
+        le=25.0,
+        description="Strike price width between short and long put legs in USD",
+    )
+    SPREAD_TARGET_DELTA: float = Field(
+        default=0.20,
+        ge=0.05,
+        le=0.45,
+        description="Target delta for short put strike (0.20 = ~80% probability OTM)",
+    )
+    SPREAD_MIN_CREDIT_USD: float = Field(
+        default=0.50,
+        ge=0.10,
+        description="Minimum net credit required to open a credit spread in USD",
+    )
+    SPREAD_PROFIT_TARGET_PCT: float = Field(
+        default=0.50,
+        ge=0.20,
+        le=0.90,
+        description="Profit target percentage to Buy-to-Close spread early (0.50 = 50% max profit)",
+    )
+    SPREAD_STOP_LOSS_RATIO: float = Field(
+        default=2.50,
+        ge=1.0,
+        le=5.0,
+        description="Stop-loss multiplier relative to initial credit collected (2.50x)",
+    )
+    SPREAD_MAX_CAPITAL_USD: float = Field(
+        default=15000.0,
+        gt=0.0,
+        description="Maximum cumulative collateral allocated across all open credit spreads",
+    )
+    SPREAD_ORDER_QTY: int = Field(
+        default=1,
+        ge=1,
+        le=10,
+        description="Number of spread contracts traded per order (1 contract = $500 collateral on $5 width)",
+    )
+    SPREAD_STATE_FILE: str = Field(
+        default="spreads_state.json",
+        description="Path to persistent JSON state file for open credit spreads",
+    )
+    SPREAD_TIME_IN_FORCE: str = Field(
+        default="DAY",
+        description="Time-in-force for credit spread orders ('DAY' or 'GTC')",
+    )
+
     @field_validator("TARGET_SYMBOLS", mode="after")
     @classmethod
     def parse_target_symbols(cls, v: Any) -> List[str]:
@@ -300,6 +370,16 @@ class BotConfig(BaseSettings):
         elif isinstance(v, (list, tuple)):
             return [str(s).strip().upper() for s in v if str(s).strip()]
         return ["SGOV", "FBND"]
+
+    @field_validator("SPREAD_SYMBOLS", mode="after")
+    @classmethod
+    def parse_spread_symbols(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            symbols = [s.strip().upper() for s in v.split(",") if s.strip()]
+            return symbols if symbols else ["SPY", "QQQ", "IWM"]
+        elif isinstance(v, (list, tuple)):
+            return [str(s).strip().upper() for s in v if str(s).strip()]
+        return ["SPY", "QQQ", "IWM"]
 
 
     # --- Strict Paper Trading Enforcement ---

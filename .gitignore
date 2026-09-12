@@ -17,6 +17,7 @@ mcp_config.json
 .agents/
 tax_reserve.json
 liquidity_state.json
+spreads_state.json
 
 
 # Log files

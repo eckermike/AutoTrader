@@ -132,6 +132,19 @@ class TradeNotifier:
             logger.debug("Desktop banner notification failed: %s", e)
             return False
 
+    def notify(self, message: str, title: str = "AutoTrader Alert") -> None:
+        """Dispatches a generic notification to all configured notification channels."""
+        if not self.enabled:
+            return
+        logger.info("Trade Alert [%s]:\n%s", title, message)
+        self.send_ntfy(message=message, title=title)
+        self.send_imessage(message)
+        if self.macos_banner:
+            lines = message.strip().split("\n")
+            sub = lines[0] if lines else ""
+            body = "\n".join(lines[1:]) if len(lines) > 1 else sub
+            self.send_macos_banner(title=title, subtitle=sub, body=body)
+
     def notify_buy(
         self,
         symbol: str,

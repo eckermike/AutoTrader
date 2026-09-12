@@ -22,6 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DASHBOARD_HTML = BASE_DIR / "dashboard.html"
 TAX_RESERVE_FILE = BASE_DIR / "tax_reserve.json"
 LIQUIDITY_STATE_FILE = BASE_DIR / "liquidity_state.json"
+SPREAD_STATE_FILE = BASE_DIR / "spreads_state.json"
 
 
 AUTOTRADER_LOG_FILE = BASE_DIR / "autotrader.log"
@@ -160,6 +161,35 @@ class DashboardHandler(SimpleHTTPRequestHandler):
                     }
             except Exception as e:
                 logger.warning("Could not read liquidity_state.json: %s", e)
+
+        data["spreads"] = {
+            "active_spreads": [],
+            "closed_spreads": [],
+            "active_count": 0,
+            "collateral_locked": 0.0,
+            "closed_count": 0,
+        }
+        if SPREAD_STATE_FILE.exists():
+            try:
+                with open(SPREAD_STATE_FILE, "r", encoding="utf-8") as f:
+                    sprd_data = json.load(f)
+                    active_list = sprd_data.get("active_spreads", [])
+                    closed_list = sprd_data.get("closed_spreads", [])
+                    collateral = sum(item.get("collateral_locked", 500.0) for item in active_list)
+                    realized_pnl = sum(item.get("realized_pnl", 0.0) for item in closed_list)
+                    unrealized_pnl = sum(item.get("unrealized_pnl", 0.0) for item in active_list)
+                    data["spreads"] = {
+                        "active_spreads": active_list,
+                        "closed_spreads": closed_list,
+                        "active_count": len(active_list),
+                        "collateral_locked": round(collateral, 2),
+                        "closed_count": len(closed_list),
+                        "total_realized_pnl": round(realized_pnl, 2),
+                        "total_unrealized_pnl": round(unrealized_pnl, 2),
+                        "updated_at": sprd_data.get("updated_at"),
+                    }
+            except Exception as e:
+                logger.warning("Could not read spreads_state.json: %s", e)
 
         payload = json.dumps(data, indent=2).encode("utf-8")
         self.send_response(200)

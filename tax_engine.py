@@ -113,6 +113,21 @@ class TaxEngine:
         """Current virtual tax escrow reserve in USD."""
         return round(self.state.tax_reserve, 2)
 
+    @property
+    def tax_reserve(self) -> float:
+        """Alias for current_reserve for strategy engine convenience."""
+        return self.current_reserve
+
+    @property
+    def total_realized_profit(self) -> float:
+        """Cumulative realized profit across all trades in USD."""
+        return round(self.state.total_realized_profit, 2)
+
+    @property
+    def total_realized_loss(self) -> float:
+        """Cumulative realized loss across all trades in USD."""
+        return round(self.state.total_realized_loss, 2)
+
     def calculate_tradable_cash(self, alpaca_cash_balance: float) -> float:
         """
         Hard capital gate calculation:
@@ -121,6 +136,10 @@ class TaxEngine:
         """
         tradable = max(0.0, alpaca_cash_balance - self.state.tax_reserve)
         return round(tradable, 2)
+
+    def get_tradable_cash(self, alpaca_cash_balance: float) -> float:
+        """Convenience alias for calculate_tradable_cash."""
+        return self.calculate_tradable_cash(alpaca_cash_balance)
 
     def validate_order_budget(self, alpaca_cash_balance: float, order_cost: float) -> float:
         """
@@ -272,6 +291,74 @@ class TaxEngine:
             entry_price=open_premium / (contracts * 100) if contracts > 0 else 0.0,
             exit_price=close_cost / (contracts * 100) if contracts > 0 else 0.0,
         )
+
+    def record_trade_result(
+        self,
+        trade_id: str,
+        symbol: str,
+        side: str,
+        gross_pnl: float,
+        fee: float = 0.0,
+    ) -> TradeRecord:
+        """
+        Directly records a closed trade outcome by gross PnL.
+        Automatically applies 30% tax escrow allocation on net profits or
+        applies tax credits on losses (floored at $0.00).
+        """
+        tax_allocated = 0.0
+        tax_credit = 0.0
+
+        if gross_pnl > 0:
+            tax_allocated = gross_pnl * self.tax_rate
+            self.state.tax_reserve += tax_allocated
+            self.state.total_realized_profit += gross_pnl
+            self.state.total_tax_allocated += tax_allocated
+            logger.info(
+                "Profitable trade recorded [%s]: (+${:,.2f}). Allocated ${:,.2f} ({:.0%}) to tax reserve. New Reserve: ${:,.2f}",
+                symbol,
+                gross_pnl,
+                tax_allocated,
+                self.tax_rate,
+                self.state.tax_reserve,
+            )
+        elif gross_pnl < 0:
+            loss_magnitude = abs(gross_pnl)
+            potential_credit = loss_magnitude * self.tax_rate
+            actual_credit = min(self.state.tax_reserve, potential_credit)
+            self.state.tax_reserve = max(0.0, self.state.tax_reserve - potential_credit)
+            self.state.total_realized_loss += loss_magnitude
+            self.state.total_tax_credits += actual_credit
+            tax_credit = actual_credit
+            logger.info(
+                "Losing trade recorded [%s]: (-${:,.2f}). Applied ${:,.2f} tax credit against reserve. New Reserve: ${:,.2f}",
+                symbol,
+                loss_magnitude,
+                actual_credit,
+                self.state.tax_reserve,
+            )
+        else:
+            logger.info("Breakeven trade recorded [%s] ($0.00 PnL). No tax reserve adjustments.", symbol)
+
+        self.state.tax_reserve = round(self.state.tax_reserve, 4)
+        self.state.trade_count += 1
+
+        record = TradeRecord(
+            id=trade_id or str(uuid.uuid4())[:8],
+            symbol=symbol,
+            side=side,
+            qty=1.0,
+            entry_price=round(gross_pnl, 2) if gross_pnl > 0 else 0.0,
+            exit_price=0.0,
+            fee=fee,
+            gross_pnl=round(gross_pnl, 2),
+            tax_allocated=round(tax_allocated, 2),
+            tax_credit=round(tax_credit, 2),
+            reserve_after=round(self.state.tax_reserve, 2),
+        )
+
+        self.state.trade_history.append(record)
+        self._save_state()
+        return record
 
     def record_dividend(
 
