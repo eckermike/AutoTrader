@@ -25,6 +25,7 @@ LIQUIDITY_STATE_FILE = BASE_DIR / "liquidity_state.json"
 SPREAD_STATE_FILE = BASE_DIR / "spreads_state.json"
 HEDGE_STATE_FILE = BASE_DIR / "tail_hedge_state.json"
 DIP_STATE_FILE = BASE_DIR / "dip_buyer_state.json"
+MACRO_STATE_FILE = BASE_DIR / "macro_rotation_state.json"
 
 
 AUTOTRADER_LOG_FILE = BASE_DIR / "autotrader.log"
@@ -271,6 +272,44 @@ class DashboardHandler(SimpleHTTPRequestHandler):
                     }
             except Exception as e:
                 logger.warning("Could not read dip_buyer_state.json: %s", e)
+
+        data["macro_rotation"] = {
+            "enabled": True,
+            "regime": "STANDBY",
+            "max_capital_usd": 5000.0,
+            "capital_deployed_usd": 0.0,
+            "active_positions_count": 0,
+            "active_positions": [],
+            "closed_trades_count": 0,
+            "closed_trades": [],
+            "total_realized_pnl": 0.0,
+            "total_tax_escrow": 0.0,
+            "leaderboard": [],
+            "last_rebalance_time": None,
+        }
+        if MACRO_STATE_FILE.exists():
+            try:
+                with open(MACRO_STATE_FILE, "r", encoding="utf-8") as f:
+                    macro_data = json.load(f)
+                    active_pos = list(macro_data.get("active_positions", {}).values())
+                    closed_tr = macro_data.get("closed_trades", [])
+                    deployed = sum(p.get("cost_basis", 0.0) for p in active_pos)
+                    data["macro_rotation"] = {
+                        "enabled": True,
+                        "regime": macro_data.get("current_regime", "STANDBY"),
+                        "max_capital_usd": 5000.0,
+                        "capital_deployed_usd": round(deployed, 2),
+                        "active_positions_count": len(active_pos),
+                        "active_positions": active_pos,
+                        "closed_trades_count": len(closed_tr),
+                        "closed_trades": closed_tr[-10:],
+                        "total_realized_pnl": round(macro_data.get("total_realized_pnl", 0.0), 2),
+                        "total_tax_escrow": round(macro_data.get("total_tax_escrow", 0.0), 2),
+                        "leaderboard": list(macro_data.get("last_leaderboard", {}).values()),
+                        "last_rebalance_time": macro_data.get("last_rebalance_time"),
+                    }
+            except Exception as e:
+                logger.warning("Could not read macro_rotation_state.json: %s", e)
 
         payload = json.dumps(data, indent=2).encode("utf-8")
         self.send_response(200)

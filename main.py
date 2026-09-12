@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional
 from config import BotConfig, get_config
 from execution.alpaca_client import AlpacaPaperClient, PositionInfo
 from execution.dip_buyer_engine import DipBuyerEngine
+from execution.macro_rotation_engine import MacroRotationEngine
 from execution.liquidity_manager import LiquidityManager
 from factors.sentiment import create_sentiment_analyzer
 
@@ -140,6 +141,15 @@ class TradingDaemon:
 
         # 10. Initialize Equity Mean-Reversion Dip Buyer Engine
         self.dip_buyer_engine = DipBuyerEngine(
+            config=self.config,
+            options_client=self.options_client,
+            tax_engine=self.tax_engine,
+            notifier=self.notifier,
+            liquidity_manager=self.liquidity_manager,
+        )
+
+        # 11. Initialize Macro Dual-Momentum / Sector Rotation Engine
+        self.macro_rotation_engine = MacroRotationEngine(
             config=self.config,
             options_client=self.options_client,
             tax_engine=self.tax_engine,
@@ -606,6 +616,18 @@ class TradingDaemon:
             except Exception as e:
                 logger.exception("Error executing Equity Dip Buyer cycle: %s", e)
 
+        # --- Strategy 8: Macro Dual-Momentum / Sector Rotation (QQQ, SPY, GLD, VNQ, SGOV) ---
+        if getattr(self.config, "MACRO_ENABLED", True) and hasattr(self, "macro_rotation_engine"):
+            try:
+                is_mkt_open = (
+                    self.options_client.is_market_open()
+                    if hasattr(self.options_client, "is_market_open")
+                    else True
+                )
+                self.macro_rotation_engine.step(is_market_open=is_mkt_open)
+            except Exception as e:
+                logger.exception("Error executing Macro Dual-Momentum cycle: %s", e)
+
 
     def check_and_dispatch_daily_recap(
         self,
@@ -751,7 +773,14 @@ class TradingDaemon:
         else:
             dip_diag.append("Equity Dip Buyer disabled.")
 
-        # 6. Dispatch Daily Recap Alert
+        # 6. Gather Macro Dual-Momentum Sector Rotation diagnostics
+        macro_diag: List[str] = []
+        if getattr(self.config, "MACRO_ENABLED", True) and hasattr(self, "macro_rotation_engine"):
+            macro_diag = self.macro_rotation_engine.get_diagnostics()
+        else:
+            macro_diag.append("Macro Dual-Momentum strategy disabled.")
+
+        # 7. Dispatch Daily Recap Alert
         logger.info(
             "Dispatching End-of-Day Briefing for %s (Trades Today: %d)...",
             today_str,
@@ -768,6 +797,7 @@ class TradingDaemon:
             spread_diagnostics=spread_diag,
             tail_hedge_diagnostics=tail_hedge_diag,
             dip_diagnostics=dip_diag,
+            macro_diagnostics=macro_diag,
         )
 
         self.last_daily_recap_date = today_str

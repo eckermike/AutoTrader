@@ -142,6 +142,11 @@
         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
         Blue-Chip Dip Buyer (RSI)
       </button>
+
+      <button onclick="switchTab('macro')" id="tab-btn-macro" class="tab-button px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-2 transition">
+        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Macro Dual Momentum (Asset Rotation)
+      </button>
     </div>
 
     <!-- ==================== TAB 1: OVERVIEW & ALLOCATION ==================== -->
@@ -270,6 +275,20 @@
               <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
                 <p>• <strong>Disciplined Profit Exit:</strong> Closes at +5% gain or RSI rebound &gt;= 50</p>
                 <p>• <strong>Strict Downside Floor:</strong> -5% hard stop-loss prevents catching falling knives</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-xs">8</span>
+                <h4 class="font-bold text-white">Macro Dual-Momentum (Sector Rotation)</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2">
+                <strong class="text-slate-200">The Global Asset Navigator.</strong> Dynamically rotates into the top 2 momentum leaders across QQQ, SPY, GLD, and VNQ when bull trends persist.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>Safe Haven Flight:</strong> 100% rotation into SGOV (5.05% APY) during bear regimes</p>
+                <p>• <strong>Trailing Defense:</strong> -7.0% trailing stop protects profits against macro reversals</p>
               </div>
             </div>
           </div>
@@ -2184,6 +2203,306 @@
 
     </div>
 
+    <!-- ==================== TAB 9: MACRO DUAL MOMENTUM (SECTOR ROTATION) ==================== -->
+    <div id="tab-macro" class="tab-content hidden space-y-6">
+
+      <!-- Header Banner with Status Badges -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h2 class="text-lg font-bold text-white">Macro Dual-Momentum (QQQ, SPY, GLD, VNQ, SGOV)</h2>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-medium">Gary Antonacci Dual-Momentum</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Cross-sectional relative momentum ranking + 200-day SMA trend filtering with 100% Treasury safe-haven flight during bear regimes</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-3 py-1 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700 flex items-center gap-1.5 font-medium" id="macro-regime-badge">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            Regime: RISK-ON (Growth Leaders)
+          </span>
+          <span class="text-xs px-3 py-1 rounded-xl bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-medium">
+            $5,000 Total Strategy Cap
+          </span>
+        </div>
+      </div>
+
+      <!-- ELI5 Explainer Card for Macro Rotation (Hidden by default) -->
+      <div class="glass-card rounded-2xl p-5 border border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-macro-rotation')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-xl shadow-inner">
+              🧭
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">ELI5: How Macro Dual-Momentum Protects &amp; Grows Wealth</h3>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Investor Primer</span>
+              </div>
+              <p class="text-xs text-slate-400">Explain Like I'm 5: Why we never predict markets, but rather surf the fastest rising wave and retreat to safe-haven islands when storms hit.</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-cyan-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
+            <span id="eli5-macro-rotation-btn-text">Show Guide</span>
+            <svg id="eli5-macro-rotation-arrow" class="w-3.5 h-3.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+
+        <!-- Explainer Content (Hidden by default) -->
+        <div id="eli5-macro-rotation-content" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+          <div class="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-xs text-slate-300 leading-relaxed">
+            <span class="font-bold text-cyan-300">The 10-Second Summary:</span> Imagine four Olympic sprinters (US Tech, S&amp;P 500, Gold, Real Estate). Every month, our bot checks who is running the fastest. It puts our money behind the top 2 sprinters. But if an earthquake hits the stadium and everyone is stumbling backward, the bot pulls 100% of our money off the track and sits safely in a vault earning 5.05% interest in US Treasury Bills (SGOV) until the ground is solid again.
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="flex items-center gap-2 mb-1.5 text-cyan-400 font-bold">
+                <span>1.</span> Relative Momentum (The Fast Lane)
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                We calculate 60-day and 120-day returns across major asset classes. Capital flows systematically to whichever asset class is demonstrating the strongest institutional velocity.
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="flex items-center gap-2 mb-1.5 text-emerald-400 font-bold">
+                <span>2.</span> Absolute Trend Filter (The Guardrail)
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                Even the fastest runner must be above its 200-day moving average and outperforming cash yield. If the whole market is in a bear market downtrend, we refuse to buy risky assets.
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="flex items-center gap-2 mb-1.5 text-indigo-400 font-bold">
+                <span>3.</span> 100% Treasury Flight &amp; Trailing Stop
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                During market panics, capital rotates into SGOV risk-free Treasuries to collect 5.05% APY with zero downside risk. A -7% trailing stop locks in gains if a leading trend suddenly reverses.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Top KPI Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <!-- Capital Allocated -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Capital Allocated</span>
+            <span class="text-xs p-1 rounded-md bg-cyan-500/10 text-cyan-400">Cap $5k</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white" id="macro-capital-kpi">$0</span>
+            <span class="text-xs text-slate-400">/ $5,000</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Portfolio Utilization:</span>
+            <span class="text-slate-200 font-medium" id="macro-utilization-kpi">0.0%</span>
+          </div>
+        </div>
+
+        <!-- Regime Status -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current Regime</span>
+            <span class="text-xs p-1 rounded-md bg-cyan-500/10 text-cyan-400">Trend</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-xl font-black text-white" id="macro-regime-kpi">STANDBY</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Active Tranches:</span>
+            <span class="text-slate-200 font-medium" id="macro-active-count-kpi">0</span>
+          </div>
+        </div>
+
+        <!-- Realized PnL -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Harvested Realized PnL</span>
+            <span class="text-xs p-1 rounded-md bg-emerald-500/10 text-emerald-400">Cash PnL</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-emerald-400" id="macro-pnl-kpi">+$0.00</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Rotations Closed:</span>
+            <span class="text-slate-200 font-medium" id="macro-closed-count-kpi">0</span>
+          </div>
+        </div>
+
+        <!-- 30% Tax Reserve -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">30% Tax Escrow</span>
+            <span class="text-xs p-1 rounded-md bg-amber-500/10 text-amber-400">Reserve</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-amber-400" id="macro-tax-kpi">$0.00</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Auto-Segregated:</span>
+            <span class="text-slate-200 font-medium">30% Gains</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Macro Allocations Table -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Active Macro Allocations</h3>
+            <p class="text-xs text-slate-400">Real-time valuation, -7% trailing stop protection, and regime tracking</p>
+          </div>
+          <span class="text-xs font-semibold text-cyan-400" id="macro-active-badge">0 Active Allocations</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Symbol</th>
+                <th class="py-2.5 px-4 font-semibold">Asset Class</th>
+                <th class="py-2.5 px-4 font-semibold">Shares</th>
+                <th class="py-2.5 px-4 font-semibold">Entry Price</th>
+                <th class="py-2.5 px-4 font-semibold">Current Price</th>
+                <th class="py-2.5 px-4 font-semibold">Cost Basis</th>
+                <th class="py-2.5 px-4 font-semibold">Market Value</th>
+                <th class="py-2.5 px-4 font-semibold text-rose-400">Trailing Stop (-7%)</th>
+                <th class="py-2.5 px-4 font-semibold text-right">Unrealized PnL</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="macro-active-table-body">
+              <tr class="text-slate-500 text-center py-4">
+                <td colspan="9" class="py-4 font-sans">No active macro allocations open. Standing by for next rebalance cycle.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Asset Class Momentum Leaderboard Matrix -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Asset Class Momentum Leaderboard Matrix</h3>
+            <p class="text-xs text-slate-400">Multi-timeframe relative momentum ranking (60d/120d) and 200-day SMA absolute trend verification</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-400">Ranked by Blended Score</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Rank</th>
+                <th class="py-2.5 px-4 font-semibold">Symbol</th>
+                <th class="py-2.5 px-4 font-semibold">Asset Class</th>
+                <th class="py-2.5 px-4 font-semibold">Current Price</th>
+                <th class="py-2.5 px-4 font-semibold">60d Return</th>
+                <th class="py-2.5 px-4 font-semibold">120d Return</th>
+                <th class="py-2.5 px-4 font-semibold text-cyan-400">Blended Momentum</th>
+                <th class="py-2.5 px-4 font-semibold">200-Day SMA</th>
+                <th class="py-2.5 px-4 font-semibold text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="macro-leaderboard-table-body">
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-bold text-cyan-400">#1</td>
+                <td class="py-2.5 px-4 font-sans font-bold text-white">QQQ</td>
+                <td class="py-2.5 px-4 text-slate-300 font-sans">Tech / Growth Equities</td>
+                <td class="py-2.5 px-4 text-slate-300">$485.00</td>
+                <td class="py-2.5 px-4 text-emerald-400 font-semibold">+8.4%</td>
+                <td class="py-2.5 px-4 text-emerald-400 font-semibold">+14.2%</td>
+                <td class="py-2.5 px-4 text-cyan-300 font-bold">+10.7%</td>
+                <td class="py-2.5 px-4 text-slate-400">$455.00 <span class="text-emerald-400 text-[10px]">&gt;SMA</span></td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">TOP MOMENTUM</span></td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-bold text-cyan-400">#2</td>
+                <td class="py-2.5 px-4 font-sans font-bold text-white">GLD</td>
+                <td class="py-2.5 px-4 text-slate-300 font-sans">Real Assets / Gold</td>
+                <td class="py-2.5 px-4 text-slate-300">$235.00</td>
+                <td class="py-2.5 px-4 text-emerald-400 font-semibold">+6.1%</td>
+                <td class="py-2.5 px-4 text-emerald-400 font-semibold">+11.5%</td>
+                <td class="py-2.5 px-4 text-cyan-300 font-bold">+8.3%</td>
+                <td class="py-2.5 px-4 text-slate-400">$220.00 <span class="text-emerald-400 text-[10px]">&gt;SMA</span></td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">TOP MOMENTUM</span></td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-bold text-slate-500">#3</td>
+                <td class="py-2.5 px-4 font-sans font-bold text-white">SPY</td>
+                <td class="py-2.5 px-4 text-slate-300 font-sans">Broad US Equities</td>
+                <td class="py-2.5 px-4 text-slate-300">$560.00</td>
+                <td class="py-2.5 px-4 text-emerald-400 font-semibold">+4.5%</td>
+                <td class="py-2.5 px-4 text-emerald-400 font-semibold">+9.2%</td>
+                <td class="py-2.5 px-4 text-slate-300 font-bold">+6.4%</td>
+                <td class="py-2.5 px-4 text-slate-400">$530.00 <span class="text-emerald-400 text-[10px]">&gt;SMA</span></td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span></td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-bold text-slate-500">#4</td>
+                <td class="py-2.5 px-4 font-sans font-bold text-white">VNQ</td>
+                <td class="py-2.5 px-4 text-slate-300 font-sans">Real Estate / Yield</td>
+                <td class="py-2.5 px-4 text-slate-300">$88.00</td>
+                <td class="py-2.5 px-4 text-slate-400 font-semibold">+1.2%</td>
+                <td class="py-2.5 px-4 text-slate-400 font-semibold">+3.0%</td>
+                <td class="py-2.5 px-4 text-slate-300 font-bold">+1.9%</td>
+                <td class="py-2.5 px-4 text-slate-400">$86.50 <span class="text-emerald-400 text-[10px]">&gt;SMA</span></td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span></td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition bg-slate-900/60">
+                <td class="py-2.5 px-4 font-bold text-amber-400">—</td>
+                <td class="py-2.5 px-4 font-sans font-bold text-amber-300">SGOV</td>
+                <td class="py-2.5 px-4 text-slate-300 font-sans">Ultra-Short Treasury (Safe Haven)</td>
+                <td class="py-2.5 px-4 text-slate-300">$100.50</td>
+                <td class="py-2.5 px-4 text-slate-300 font-semibold">+1.25%</td>
+                <td class="py-2.5 px-4 text-slate-300 font-semibold">+2.50%</td>
+                <td class="py-2.5 px-4 text-amber-300 font-bold">+1.75%</td>
+                <td class="py-2.5 px-4 text-slate-400">$100.20 <span class="text-emerald-400 text-[10px]">&gt;SMA</span></td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px]">SAFE HAVEN</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Closed Rotations Audit History Ledger -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Closed Rotations Audit History Ledger</h3>
+            <p class="text-xs text-slate-400">Historical asset rotations, profit harvests, and 30% automatic tax escrow allocations</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-400" id="macro-closed-count-badge">0 Closed Rotations</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Symbol</th>
+                <th class="py-2.5 px-4 font-semibold">Shares</th>
+                <th class="py-2.5 px-4 font-semibold">Entry Price</th>
+                <th class="py-2.5 px-4 font-semibold">Exit Price</th>
+                <th class="py-2.5 px-4 font-semibold">Hold Time</th>
+                <th class="py-2.5 px-4 font-semibold text-right">Realized PnL</th>
+                <th class="py-2.5 px-4 font-semibold text-right">30% Tax Escrow</th>
+                <th class="py-2.5 px-4 font-semibold text-center">Exit Reason</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="macro-history-table-body">
+              <tr class="text-slate-500 text-center py-4">
+                <td colspan="8" class="py-4 font-sans">No closed macro rotations yet. Capital deployed according to relative momentum.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- Contract Details Modal -->
@@ -2711,7 +3030,135 @@
               }).join('');
             }
           }
-        }
+
+          // Render Strategy 8: Macro Dual-Momentum Telemetry
+          if (data.macro_rotation) {
+            const macro = data.macro_rotation;
+            const capEl = document.getElementById('macro-capital-kpi');
+            if (capEl) capEl.innerText = `$${(macro.capital_deployed_usd || 0).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+            const utilEl = document.getElementById('macro-utilization-kpi');
+            if (utilEl) {
+              const util = (macro.max_capital_usd > 0) ? ((macro.capital_deployed_usd || 0) / macro.max_capital_usd * 100) : 0;
+              utilEl.innerText = `${util.toFixed(1)}%`;
+            }
+            const regEl = document.getElementById('macro-regime-kpi');
+            if (regEl) {
+              const isRiskOn = macro.regime === 'RISK_ON';
+              regEl.innerText = isRiskOn ? 'RISK-ON' : (macro.regime === 'RISK_OFF' ? 'RISK-OFF' : 'STANDBY');
+              regEl.className = isRiskOn ? 'text-xl font-black text-emerald-400' : 'text-xl font-black text-amber-400';
+            }
+            const regBadge = document.getElementById('macro-regime-badge');
+            if (regBadge) {
+              const isRiskOn = macro.regime === 'RISK_ON';
+              regBadge.innerHTML = `
+                <span class="w-2 h-2 rounded-full ${isRiskOn ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse"></span>
+                Regime: ${isRiskOn ? 'RISK-ON (Growth Leaders)' : 'RISK-OFF (Safe Haven SGOV)'}
+              `;
+            }
+            const activeCountEl = document.getElementById('macro-active-count-kpi');
+            if (activeCountEl) activeCountEl.innerText = macro.active_positions_count || 0;
+            const activeBadge = document.getElementById('macro-active-badge');
+            if (activeBadge) activeBadge.innerText = `${macro.active_positions_count || 0} Active Allocations`;
+
+            const pnlEl = document.getElementById('macro-pnl-kpi');
+            if (pnlEl) {
+              const pnl = macro.total_realized_pnl || 0;
+              pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
+              pnlEl.className = `text-2xl font-black ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+            }
+            const closedCountEl = document.getElementById('macro-closed-count-kpi');
+            if (closedCountEl) closedCountEl.innerText = macro.closed_trades_count || 0;
+            const closedBadge = document.getElementById('macro-closed-count-badge');
+            if (closedBadge) closedBadge.innerText = `${macro.closed_trades_count || 0} Closed Rotations`;
+
+            const taxEl = document.getElementById('macro-tax-kpi');
+            if (taxEl) taxEl.innerText = `$${(macro.total_tax_escrow || 0).toFixed(2)}`;
+
+            // Render Active Allocations Table
+            const activeTable = document.getElementById('macro-active-table-body');
+            if (activeTable && macro.active_positions && macro.active_positions.length > 0) {
+              activeTable.innerHTML = macro.active_positions.map(p => {
+                const pnlSign = (p.unrealized_pnl || 0) >= 0 ? '+' : '';
+                const pnlColor = (p.unrealized_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                return `
+                  <tr class="hover:bg-slate-800/40 transition">
+                    <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol}</td>
+                    <td class="py-2.5 px-4 text-slate-300 font-sans">${p.asset_class || 'Global Asset'}</td>
+                    <td class="py-2.5 px-4 text-slate-300">${(p.shares || 0).toFixed(4)}</td>
+                    <td class="py-2.5 px-4 text-slate-400">$${(p.entry_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-200 font-semibold">$${(p.current_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-400">$${(p.cost_basis || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-300 font-medium">$${(p.market_value || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-rose-400 font-medium">$${(p.trailing_stop_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(p.unrealized_pnl || 0).toFixed(2)} (${pnlSign}${(p.unrealized_pnl_pct || 0).toFixed(1)}%)</td>
+                  </tr>
+                `;
+              }).join('');
+            }
+
+            // Render Leaderboard Matrix
+            const lbTable = document.getElementById('macro-leaderboard-table-body');
+            if (lbTable && macro.leaderboard && macro.leaderboard.length > 0) {
+              const sortedLb = [...macro.leaderboard].sort((a, b) => (b.blended_score || 0) - (a.blended_score || 0));
+              lbTable.innerHTML = sortedLb.map((item, idx) => {
+                const rankText = item.symbol === 'SGOV' ? '—' : `#${item.rank || idx + 1}`;
+                const rankColor = (item.rank === 1 || item.rank === 2) ? 'text-cyan-400 font-bold' : 'text-slate-500 font-bold';
+                const ret60Sign = (item.return_60d || 0) >= 0 ? '+' : '';
+                const ret60Color = (item.return_60d || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                const ret120Sign = (item.return_120d || 0) >= 0 ? '+' : '';
+                const ret120Color = (item.return_120d || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                const blendSign = (item.blended_score || 0) >= 0 ? '+' : '';
+                const blendColor = (item.blended_score || 0) >= 0 ? 'text-cyan-300 font-bold' : 'text-slate-400 font-bold';
+                const smaBadge = item.is_above_sma200 
+                  ? '<span class="text-emerald-400 text-[10px]">&gt;SMA</span>' 
+                  : '<span class="text-rose-400 text-[10px]">&lt;SMA</span>';
+                const statusBadge = item.is_selected
+                  ? (item.symbol === 'SGOV' 
+                    ? '<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px]">SAFE HAVEN</span>' 
+                    : '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">TOP MOMENTUM</span>')
+                  : (!item.is_above_sma200
+                    ? '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px]">BELOW TREND</span>'
+                    : '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span>');
+                return `
+                  <tr class="hover:bg-slate-800/40 transition ${item.symbol === 'SGOV' ? 'bg-slate-900/60' : ''}">
+                    <td class="py-2.5 px-4 ${rankColor}">${rankText}</td>
+                    <td class="py-2.5 px-4 font-sans font-bold text-white">${item.symbol}</td>
+                    <td class="py-2.5 px-4 text-slate-300 font-sans">${item.asset_class || 'Global Asset'}</td>
+                    <td class="py-2.5 px-4 text-slate-300">$${(item.current_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 ${ret60Color} font-semibold">${ret60Sign}${(item.return_60d || 0).toFixed(1)}%</td>
+                    <td class="py-2.5 px-4 ${ret120Color} font-semibold">${ret120Sign}${(item.return_120d || 0).toFixed(1)}%</td>
+                    <td class="py-2.5 px-4 ${blendColor}">${blendSign}${(item.blended_score || 0).toFixed(1)}%</td>
+                    <td class="py-2.5 px-4 text-slate-400">$${(item.sma_200 || 0).toFixed(2)} ${smaBadge}</td>
+                    <td class="py-2.5 px-4 text-center font-sans">${statusBadge}</td>
+                  </tr>
+                `;
+              }).join('');
+            }
+
+            // Render Closed Rotations History Table
+            const historyTable = document.getElementById('macro-history-table-body');
+            if (historyTable && macro.closed_trades && macro.closed_trades.length > 0) {
+              historyTable.innerHTML = macro.closed_trades.map(t => {
+                const isGain = (t.realized_pnl || 0) >= 0;
+                const pnlSign = isGain ? '+' : '';
+                const pnlColor = isGain ? 'text-emerald-400' : 'text-rose-400';
+                return `
+                  <tr class="hover:bg-slate-800/40 transition">
+                    <td class="py-2.5 px-4 font-sans font-bold text-white">${t.symbol}</td>
+                    <td class="py-2.5 px-4 text-slate-300">${(t.qty || 0).toFixed(4)}</td>
+                    <td class="py-2.5 px-4 text-slate-400">$${(t.entry_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-300">$${(t.exit_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-400">${t.holding_days || 0}d</td>
+                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(t.realized_pnl || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-right text-amber-400">$${(t.tax_escrow || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-center font-sans">
+                      <span class="px-2 py-0.5 rounded text-[10px] ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${t.exit_reason || 'ROTATION'}</span>
+                    </td>
+                  </tr>
+                `;
+              }).join('');
+            }
+          }
       } catch (err) {
         console.debug("Live sync notice:", err);
       } finally {

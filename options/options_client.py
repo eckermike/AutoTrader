@@ -184,6 +184,9 @@ class AlpacaOptionsClient:
                 "GOOGL": 165.00,
                 "AMZN": 185.00,
                 "NVDA": 115.00,
+                "GLD": 235.00,
+                "VNQ": 88.00,
+                "SGOV": 100.50,
             }
             return mock_prices.get(sym, 21.50)
 
@@ -234,6 +237,9 @@ class AlpacaOptionsClient:
             "GOOGL": 165.00,
             "AMZN": 185.00,
             "NVDA": 115.00,
+            "GLD": 235.00,
+            "VNQ": 88.00,
+            "SGOV": 100.50,
         }
         fallback = default_fallbacks.get(sym, 21.50)
         logger.warning("Using fallback price $%0.2f for %s", fallback, sym)

@@ -461,6 +461,86 @@ class BotConfig(BaseSettings):
         description="Time-in-force for equity dip orders ('DAY' or 'GTC')",
     )
 
+    # --- Strategy 4: Macro Dual-Momentum / Sector Rotation ---
+    MACRO_ENABLED: bool = Field(
+        default=True,
+        description="Enable Macro Dual-Momentum / Sector Rotation strategy",
+    )
+    MACRO_SYMBOLS: List[str] = Field(
+        default_factory=lambda: ["QQQ", "SPY", "GLD", "VNQ", "SGOV"],
+        description="Universe of global asset class ETFs evaluated for relative momentum",
+    )
+    MACRO_SAFE_HAVEN: str = Field(
+        default="SGOV",
+        description="Risk-free safe haven asset used during market crashes / bear regimes",
+    )
+    MACRO_MAX_CAPITAL_USD: float = Field(
+        default=5000.0,
+        ge=500.0,
+        le=50000.0,
+        description="Maximum cumulative capital allocated to macro rotation portfolio",
+    )
+    MACRO_TOP_N_ASSETS: int = Field(
+        default=2,
+        ge=1,
+        le=5,
+        description="Number of top momentum assets to hold simultaneously in Risk-On mode",
+    )
+    MACRO_TRANCHE_SIZE_USD: float = Field(
+        default=2500.0,
+        ge=250.0,
+        le=25000.0,
+        description="Target dollar allocation per asset tranche",
+    )
+    MACRO_LOOKBACK_SHORT_DAYS: int = Field(
+        default=60,
+        ge=10,
+        le=120,
+        description="Short-term momentum lookback window in calendar days (~3 months)",
+    )
+    MACRO_LOOKBACK_LONG_DAYS: int = Field(
+        default=120,
+        ge=30,
+        le=250,
+        description="Long-term momentum lookback window in calendar days (~6 months)",
+    )
+    MACRO_SMA_PERIOD: int = Field(
+        default=200,
+        ge=50,
+        le=300,
+        description="Simple Moving Average period used as absolute trend filter",
+    )
+    MACRO_TRAILING_STOP_PCT: float = Field(
+        default=0.07,
+        ge=0.02,
+        le=0.20,
+        description="Trailing stop-loss percentage (-7.0%) to defend against severe trend reversals",
+    )
+    MACRO_REBALANCE_CADENCE_DAYS: int = Field(
+        default=30,
+        ge=7,
+        le=90,
+        description="Minimum days between routine monthly rebalance reviews",
+    )
+    MACRO_STATE_FILE: str = Field(
+        default="macro_rotation_state.json",
+        description="Persistent JSON state file for macro dual-momentum portfolio",
+    )
+    MACRO_TIME_IN_FORCE: str = Field(
+        default="DAY",
+        description="Time-in-force for macro rotation equity orders ('DAY' or 'GTC')",
+    )
+
+    @field_validator("MACRO_SYMBOLS", mode="after")
+    @classmethod
+    def parse_macro_symbols(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            symbols = [s.strip().upper() for s in v.split(",") if s.strip()]
+            return symbols if symbols else ["QQQ", "SPY", "GLD", "VNQ", "SGOV"]
+        elif isinstance(v, (list, tuple)):
+            return [str(s).strip().upper() for s in v if str(s).strip()]
+        return ["QQQ", "SPY", "GLD", "VNQ", "SGOV"]
+
     @field_validator("DIP_SYMBOLS", mode="after")
     @classmethod
     def parse_dip_symbols(cls, v: Any) -> List[str]:

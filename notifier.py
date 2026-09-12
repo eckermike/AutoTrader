@@ -657,6 +657,83 @@ class TradeNotifier:
         )
         self.send_imessage(message)
 
+    def notify_macro_rotation_open(
+        self,
+        symbol: str,
+        shares: float,
+        price: float,
+        notional: float,
+        regime: str,
+        momentum_rank: int,
+    ) -> None:
+        """Alerts when a Macro Dual-Momentum asset allocation is executed."""
+        regime_label = "🟢 RISK-ON (Growth Leaders)" if regime == "RISK_ON" else "🟡 RISK-OFF (Safe Haven)"
+        message = (
+            f"🧭 [MACRO DUAL-MOMENTUM: ASSET ALLOCATED]\n"
+            f"Symbol: {symbol} (Rank #{momentum_rank})\n"
+            f"Regime: {regime_label}\n"
+            f"Action: BUY {shares:.4f} shares @ ${price:,.2f} (${notional:,.2f} total)\n"
+            f"Absolute Trend: Confirmed above 200-day SMA and outperforming cash.\n"
+            f"Downside Defense: Trailing stop engaged at -7.0%.\n"
+            f"Capital strictly gated and hedged across global asset classes."
+        )
+        self.send_ntfy(
+            message=message,
+            title=f"🧭 MACRO ALLOCATION: {symbol} Rank #{momentum_rank} (${notional:,.0f})",
+            priority="high",
+            tags="compass,globe_with_meridians,chart_with_upwards_trend",
+        )
+        self.send_macos_banner(
+            title=f"Macro Allocation: {symbol}",
+            subtitle=f"{shares:.2f} shs @ ${price:.2f} (${notional:,.0f})",
+            body=f"Regime: {regime} | Rank #{momentum_rank} | Stop -7%",
+        )
+        self.send_imessage(message)
+
+    def notify_macro_rotation_close(
+        self,
+        symbol: str,
+        shares: float,
+        entry_price: float,
+        exit_price: float,
+        pnl: float,
+        pnl_pct: float,
+        exit_reason: str,
+        tax_escrow: float,
+    ) -> None:
+        """Alerts when a Macro Dual-Momentum position is rotated out or stopped."""
+        sign = "+" if pnl >= 0 else "-"
+        abs_pnl = abs(pnl)
+        reason_label = {
+            "REBALANCE_ROTATION": "🔄 Monthly Rebalance (Rotated into Higher Momentum)",
+            "TRAILING_STOP": "🛑 Trailing Stop Loss (-7% Peak Reversal)",
+            "TREND_BREAKDOWN": "⚠️ Trend Breakdown (Fell Below 200-Day SMA)",
+        }.get(exit_reason, exit_reason)
+
+        message = (
+            f"🧭 [MACRO DUAL-MOMENTUM: ROTATION EXIT]\n"
+            f"Symbol: {symbol}\n"
+            f"Action: SELL TO CLOSE ({shares:.4f} shares)\n"
+            f"Reason: {reason_label}\n"
+            f"Entry: ${entry_price:,.2f} | Exit: ${exit_price:,.2f}\n"
+            f"✨ Net PnL: {sign}${abs_pnl:,.2f} ({pnl_pct*100:+.2f}%)\n"
+            f"🏛 Tax Escrow (30% Withheld): ${tax_escrow:,.2f}\n"
+            f"Capital dynamically recycled into the next macro opportunity."
+        )
+        tag = "moneybag,recycle" if pnl >= 0 else "warning,shield"
+        self.send_ntfy(
+            message=message,
+            title=f"🧭 MACRO ROTATION: {symbol} {sign}${abs_pnl:,.2f} ({pnl_pct*100:+.1f}%)",
+            priority="high" if pnl >= 0 else "default",
+            tags=tag,
+        )
+        self.send_macos_banner(
+            title=f"Macro Rotated: {symbol} ({sign}${abs_pnl:,.2f})",
+            subtitle=f"{reason_label[:30]} ({pnl_pct*100:+.1f}%)",
+            body=f"Tax Escrow: ${tax_escrow:,.2f}",
+        )
+        self.send_imessage(message)
+
     def notify_daily_recap(
         self,
         date_str: str,
@@ -669,6 +746,7 @@ class TradeNotifier:
         spread_diagnostics: Optional[list[str]] = None,
         tail_hedge_diagnostics: Optional[list[str]] = None,
         dip_diagnostics: Optional[list[str]] = None,
+        macro_diagnostics: Optional[list[str]] = None,
     ) -> None:
         """
         Sends an automated end-of-day daily briefing.
@@ -719,6 +797,15 @@ class TradeNotifier:
             )
             dip_section = f"\n🎯 Equity Dip Buyer (RSI Mean-Reversion):\n{dip_lines}\n"
 
+        macro_section = ""
+        if macro_diagnostics is not None:
+            macro_lines = (
+                "\n".join(f"• {item}" for item in macro_diagnostics)
+                if macro_diagnostics
+                else "• No active macro allocations"
+            )
+            macro_section = f"\n🧭 Macro Dual Momentum (Sector Rotation):\n{macro_lines}\n"
+
         reason_header = (
             "\n🔍 WHY NO TRADES WERE TRIGGERED TODAY:\n"
             if trades_count == 0
@@ -735,7 +822,8 @@ class TradeNotifier:
             f"{wheel_section}\n"
             f"{spread_section}"
             f"{hedge_section}"
-            f"{dip_section}\n"
+            f"{dip_section}"
+            f"{macro_section}\n"
             f"💰 Portfolio Financials:\n"
             f"• Total Cash:    ${cash:,.2f}\n"
             f"• Tradable Cash: ${tradable_cash:,.2f}\n"
