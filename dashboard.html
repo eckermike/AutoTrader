@@ -131,7 +131,94 @@
 
     <!-- ==================== TAB 1: OVERVIEW & ALLOCATION ==================== -->
     <div id="tab-overview" class="tab-content block space-y-6">
-      
+
+      <!-- ELI5 Explainer Card for Overview -->
+      <div class="glass-card rounded-2xl p-5 border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-overview')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-xl shadow-inner">
+              🏛️
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">ELI5: The 4-Pillar Portfolio Architecture</h3>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Fund Structure Primer</span>
+              </div>
+              <p class="text-xs text-slate-400">Explain Like I'm 5: How our 4 engines work together to generate cash flow, eliminate cash drag, and protect capital.</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-indigo-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
+            <span id="eli5-overview-btn-text">Show Guide</span>
+            <svg id="eli5-overview-arrow" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+
+        <!-- Explainer Content (Hidden by default) -->
+        <div id="eli5-overview-content" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+          <div class="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-xs text-slate-300 leading-relaxed">
+            <span class="font-bold text-indigo-300">The 10-Second Summary:</span> Think of AutoTrader like an institutional endowment fund. Instead of letting $100,000 sit idle in cash earning zero, we deploy every dollar into synchronized layers: collecting option rents, earning risk-free Treasury yield, riding crypto momentum breakouts, and auto-locking 30% for taxes.
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-indigo-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs">1</span>
+                <h4 class="font-bold text-white">Option Wheel (45.2%)</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2">
+                <strong class="text-slate-200">The Cash Flow Engine.</strong> Sells cash-secured puts on 6 blue chips (`INTC`, `F`, `SOFI`, etc.) to collect upfront premiums and compound via theta decay.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400">
+                • Target: <strong>12%–18% annualized</strong><br/>
+                • Collateral: <strong>$45,200 locked</strong>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-xs">2</span>
+                <h4 class="font-bold text-white">Bond Barbell (40.0%)</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2">
+                <strong class="text-slate-200">The Risk-Free Anchor.</strong> $20k in `SGOV` (3-mo T-bills) + $20k in `FBND` (Total Bond ETF) earning guaranteed passive cash yield.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400">
+                • Blended Yield: <strong>~5.05% APY</strong><br/>
+                • Monthly Income: <strong>~$168.33/mo</strong>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">3</span>
+                <h4 class="font-bold text-white">Crypto Alpha (~14.8%)</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2">
+                <strong class="text-slate-200">The Momentum Scanner.</strong> Takes $500 tactical trades on high-conviction breakout setups guarded by 5% trailing stop-losses.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400">
+                • Decision: <strong>Technical + Volume + AI</strong><br/>
+                • Max Loss: <strong>$25/trade capped</strong>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-xs">4</span>
+                <h4 class="font-bold text-white">Virtual Tax Escrow</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2">
+                <strong class="text-slate-200">The Wealth Vault.</strong> Locks 30% of every dollar of net profit & dividend into escrow before it can ever be risked or re-traded.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400">
+                • Withholding: <strong>30% flat rate</strong><br/>
+                • Status: <strong>Fully pre-funded</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Capital Allocation Progress Bar -->
       <div class="glass-card rounded-2xl p-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
@@ -240,7 +327,7 @@
 
       <!-- ELI5 Explainer Card -->
       <div class="glass-card rounded-2xl p-5 border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
-        <div class="flex items-center justify-between cursor-pointer" onclick="toggleEli5()">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-wheel')">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-xl shadow-inner">
               💡
@@ -254,13 +341,13 @@
             </div>
           </div>
           <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-indigo-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
-            <span id="eli5-toggle-btn-text">Hide Guide</span>
-            <svg id="eli5-arrow" class="w-4 h-4 transition-transform duration-300 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            <span id="eli5-wheel-btn-text">Show Guide</span>
+            <svg id="eli5-wheel-arrow" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </button>
         </div>
 
-        <!-- Explainer Content (Open by default) -->
-        <div id="eli5-content" class="mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+        <!-- Explainer Content (Hidden by default) -->
+        <div id="eli5-wheel-content" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-4">
           <div class="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-xs text-slate-300 leading-relaxed">
             <span class="font-bold text-indigo-300">The 10-Second Summary:</span> Think of the Wheel like getting paid cash up-front to set a limit order on high-quality blue-chip stocks you already want to own at a discount. We never gamble on directional lottery tickets — our bot acts like an insurance company, collecting upfront premiums from the market and letting time work in our favor.
           </div>
@@ -557,6 +644,89 @@
         </div>
       </div>
 
+      <!-- ELI5 Explainer Card for Crypto -->
+      <div class="glass-card rounded-2xl p-5 border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-crypto')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl shadow-inner">
+              ⚡
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">ELI5: How The Tri-Factor Momentum Engine Trades Crypto</h3>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Algorithmic Primer</span>
+              </div>
+              <p class="text-xs text-slate-400">Explain Like I'm 5: Why we never guess market direction and only buy when 3 institutional signals agree.</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-emerald-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
+            <span id="eli5-crypto-btn-text">Show Guide</span>
+            <svg id="eli5-crypto-arrow" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+
+        <!-- Explainer Content (Hidden by default) -->
+        <div id="eli5-crypto-content" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+          <div class="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-xs text-slate-300 leading-relaxed">
+            <span class="font-bold text-emerald-300">The 10-Second Summary:</span> Crypto is too wild to trade based on gut feel or social media hype. Our bot uses a rigorous 3-pillar gate. An order is submitted ONLY when price trend, volume surge, and local AI sentiment all agree with high conviction (Composite Score &ge; +0.60).
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">1</span>
+                <h4 class="font-bold text-white">Technical Trend (40%)</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Confirm the wave."</strong> Uses Fast EMA (9) crossing above Slow EMA (21) and RSI (14) momentum to verify that real upward price velocity is underway.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400">
+                • Filters out choppy sideways noise<br/>
+                • Only enters when trend direction is clear
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-xs">2</span>
+                <h4 class="font-bold text-white">Volume Regime (30%)</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Follow the big money."</strong> Compares 24-hour volume to the 20-day baseline average. Low-volume pumps are ignored; only institutional volume surges pass.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400">
+                • Prevents entering low-liquidity traps<br/>
+                • Ensures liquidity exists for immediate exits
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center text-xs">3</span>
+                <h4 class="font-bold text-white">Ollama Local AI (30%)</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Read market narrative."</strong> Runs `qwen2.5:7b` locally on your Mac GPU to evaluate live market context and score news sentiment from -1.0 to +1.0.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400">
+                • 100% private, zero API cloud costs<br/>
+                • Sub-3 second neural evaluation per asset
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs">
+            <div class="flex items-center gap-2 text-slate-400">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+              <span><strong>5.0% Trailing Stop Shield:</strong> The millisecond an order fills, a trailing stop locks on. As price climbs, the exit price rises with it, locking in gains.</span>
+            </div>
+            <div class="text-slate-500 text-[11px]">
+              Trade Allocation: <span class="text-slate-200 font-semibold">$500.00 max per position</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Active Position Highlight -->
       <div class="glass-card rounded-2xl p-6 border-l-4 border-l-emerald-500 bg-gradient-to-r from-emerald-950/20 to-transparent">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -675,6 +845,89 @@
         <p class="text-xs text-slate-400">$40,000 Parked Capital Generating Institutional Cash Flow</p>
       </div>
 
+      <!-- ELI5 Explainer Card for Liquidity & Bond Barbell -->
+      <div class="glass-card rounded-2xl p-5 border border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-liquidity')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-xl shadow-inner">
+              🛡️
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">ELI5: Why We Park $40,000 In A Treasury & Bond Barbell</h3>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Yield Primer</span>
+              </div>
+              <p class="text-xs text-slate-400">Explain Like I'm 5: How we earn ~$168/mo passive cash flow while keeping collateral instantly ready for options.</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-cyan-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
+            <span id="eli5-liquidity-btn-text">Show Guide</span>
+            <svg id="eli5-liquidity-arrow" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+
+        <!-- Explainer Content (Hidden by default) -->
+        <div id="eli5-liquidity-content" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+          <div class="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-xs text-slate-300 leading-relaxed">
+            <span class="font-bold text-cyan-300">The 10-Second Summary:</span> Idle cash left in a broker usually earns nothing ("cash drag"). Instead, AutoTrader allocates $40,000 (40% of fund) into a balanced Treasury Barbell. We capture ~5.05% annualized risk-free cash dividends while preserving margin collateral to support our options wheel!
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-xs">1</span>
+                <h4 class="font-bold text-white">SGOV Cash Anchor ($20k)</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"0-3 Month US Treasuries."</strong> Backed by the US government. Generates ~5.10% yield ($85/mo) with virtually zero price volatility.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>Primary Tier:</strong> Liquidated first if fresh cash is required</p>
+                <p>• <strong>Zero Duration:</strong> Immune to interest rate hikes</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-indigo-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-xs">2</span>
+                <h4 class="font-bold text-white">FBND Total Bond ($20k)</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Core Bond + Rate Cut Upside."</strong> Generates ~5.00% yield ($83/mo) across investment-grade corporate and government bonds.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>Duration Tailwind:</strong> Bond prices rise if Fed cuts rates</p>
+                <p>• <strong>Cash Distribution:</strong> Monthly payouts credited to account</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">3</span>
+                <h4 class="font-bold text-white">Two-Way Mobile Approval</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Human in the Loop."</strong> Autonomous execution stays within the $15k liquid buffer. Any bond liquidation triggers an instant mobile notification.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>4.0-Hr TTL:</strong> Auto-cancels if unanswered, preventing stale orders</p>
+                <p>• <strong>0.5% Slippage Gate:</strong> Aborts if market moved before tap</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs">
+            <div class="flex items-center gap-2 text-slate-400">
+              <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <span><strong>Total Risk-Free Passive Yield:</strong> ~$168.33/month (~$2,020.00/year) generated 24/7 without taking on equity risk.</span>
+            </div>
+            <div class="text-slate-500 text-[11px]">
+              Barbell Capital: <span class="text-slate-200 font-semibold">$40,000.00 (39.9% of fund)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- SGOV Card -->
         <div class="glass-card rounded-2xl p-6 border-t-4 border-t-cyan-500">
@@ -781,6 +1034,89 @@
             <span class="text-lg font-bold text-amber-400 ml-1.5" id="tab-tax-reserve-badge">$109.76</span>
           </div>
           <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold">30% Flat Escrow</span>
+        </div>
+      </div>
+
+      <!-- ELI5 Explainer Card for Virtual Tax Escrow -->
+      <div class="glass-card rounded-2xl p-5 border border-amber-500/30 bg-gradient-to-r from-amber-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-tax')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl shadow-inner">
+              ⚖️
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">ELI5: How The Virtual Tax Escrow Prevents Tax Season Shocks</h3>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Tax Governance Primer</span>
+              </div>
+              <p class="text-xs text-slate-400">Explain Like I'm 5: Why 30% of every winning trade is quarantined immediately, preventing unexpected tax liabilities.</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
+            <span id="eli5-tax-btn-text">Show Guide</span>
+            <svg id="eli5-tax-arrow" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+
+        <!-- Explainer Content (Hidden by default) -->
+        <div id="eli5-tax-content" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+          <div class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/20 text-xs text-slate-300 leading-relaxed">
+            <span class="font-bold text-amber-300">The 10-Second Summary:</span> The biggest mistake algorithmic traders make is re-investing 100% of their profits and getting caught off-guard by taxes in April. AutoTrader solves this by acting as its own virtual escrow officer: whenever a trade books a profit, 30% is segregated immediately and locked away from future trading collateral.
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-xs">1</span>
+                <h4 class="font-bold text-white">30% Flat Withholding</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Quarantine at settlement."</strong> When an option put expires or a crypto trade exits in the green, 30% of realized net profit is instantly moved to the reserve.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>Automated:</strong> Zero manual calculations required</p>
+                <p>• <strong>Timely:</strong> Segregated on trade close, not end of year</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-xs">2</span>
+                <h4 class="font-bold text-white">Capital Loss Netting</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Symmetrical tax credits."</strong> If a crypto trailing stop triggers at a loss, the system credits back 30% of the loss to your reserve, matching net tax obligations.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>Fair Balance:</strong> Prevents over-withholding on net losses</p>
+                <p>• <strong>IRS Aligned:</strong> Net gains = Gross gains minus losses</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">3</span>
+                <h4 class="font-bold text-white">Hard Capital Gate</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2.5">
+                <strong class="text-slate-200">"Physical lockbox."</strong> The reserve balance is hardcoded into `tax_reserve.json` and subtracted from active trading capital so the bot can NEVER risk tax money.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>Untouchable:</strong> Options & crypto cannot borrow escrow</p>
+                <p>• <strong>Auditable:</strong> Click any row below to see transaction proof</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs">
+            <div class="flex items-center gap-2 text-slate-400">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span><strong>Forensic Audit Trail:</strong> Every single realized gain and loss is permanently stamped with trade ID, timestamp, and running reserve balance.</span>
+            </div>
+            <div class="text-slate-500 text-[11px]">
+              Current Tax Reserve: <span class="text-amber-300 font-semibold">$109.76 Segregated</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1136,19 +1472,24 @@
       });
     }
 
-    function toggleEli5() {
-      const content = document.getElementById('eli5-content');
-      const arrow = document.getElementById('eli5-arrow');
-      const btnText = document.getElementById('eli5-toggle-btn-text');
+    function toggleGuide(guideId) {
+      const content = document.getElementById(guideId + '-content');
+      const arrow = document.getElementById(guideId + '-arrow');
+      const btnText = document.getElementById(guideId + '-btn-text');
+      if (!content) return;
       if (content.classList.contains('hidden')) {
         content.classList.remove('hidden');
-        arrow.classList.add('rotate-180');
+        if (arrow) arrow.classList.add('rotate-180');
         if (btnText) btnText.innerText = 'Hide Guide';
       } else {
         content.classList.add('hidden');
-        arrow.classList.remove('rotate-180');
+        if (arrow) arrow.classList.remove('rotate-180');
         if (btnText) btnText.innerText = 'Show Guide';
       }
+    }
+
+    function toggleEli5() {
+      toggleGuide('eli5-wheel');
     }
 
     // Live Feed Synchronization
