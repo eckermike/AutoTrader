@@ -19,6 +19,7 @@ tax_reserve.json
 liquidity_state.json
 spreads_state.json
 tail_hedge_state.json
+dip_buyer_state.json
 
 
 # Log files

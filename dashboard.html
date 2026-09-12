@@ -137,6 +137,11 @@
         <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
         Black Swan Crash Hedge (SPY)
       </button>
+
+      <button onclick="switchTab('dip')" id="tab-btn-dip" class="tab-button px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 flex items-center gap-2 transition">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        Blue-Chip Dip Buyer (RSI)
+      </button>
     </div>
 
     <!-- ==================== TAB 1: OVERVIEW & ALLOCATION ==================== -->
@@ -251,6 +256,20 @@
               <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
                 <p>• <strong>+250% Monetization:</strong> Sells automatically on market panic to bank cash</p>
                 <p>• <strong>Generational Dry Powder:</strong> Windfall buys blue chips at deep discounts</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">7</span>
+                <h4 class="font-bold text-white">Equity Mean-Reversion Dip Buyer</h4>
+              </div>
+              <p class="text-slate-400 leading-relaxed mb-2">
+                <strong class="text-slate-200">The Blue-Chip Bargain Hunter.</strong> Snipes premier mega-caps (AAPL, MSFT, GOOGL, AMZN, NVDA) when panic selling pushes daily RSI below 30 with the 200-day trend intact.
+              </p>
+              <div class="text-[11px] p-2.5 rounded-lg bg-slate-950/70 text-slate-400 space-y-1">
+                <p>• <strong>Disciplined Profit Exit:</strong> Closes at +5% gain or RSI rebound &gt;= 50</p>
+                <p>• <strong>Strict Downside Floor:</strong> -5% hard stop-loss prevents catching falling knives</p>
               </div>
             </div>
           </div>
@@ -1884,6 +1903,287 @@
       </div>
     </div>
 
+    <!-- ==================== TAB 8: BLUE-CHIP DIP BUYER (RSI MEAN-REVERSION) ==================== -->
+    <div id="tab-dip" class="tab-content hidden space-y-6">
+
+      <!-- Header Banner with Status Badges -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h2 class="text-lg font-bold text-white">Equity Mean-Reversion Dip Buyer (AAPL, MSFT, GOOGL, AMZN, NVDA)</h2>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">RSI(14) &lt; 30 Sniping</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Automated opportunistic entry on deeply oversold mega-cap equities with disciplined profit targets &amp; stop-loss defense</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-3 py-1 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700 flex items-center gap-1.5 font-medium">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Scanner Active
+          </span>
+          <span class="text-xs px-3 py-1 rounded-xl bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-medium">
+            $1,000 / Position Ceiling
+          </span>
+        </div>
+      </div>
+
+      <!-- ELI5 Explainer Card for Dip Buyer -->
+      <div class="glass-card rounded-2xl p-5 border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-slate-900/70 to-slate-900/90 shadow-xl">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleGuide('eli5-dip-buyer')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl shadow-inner">
+              🎯
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white tracking-wide">ELI5: How The Blue-Chip Mean-Reversion Engine Snipes Bargains</h3>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Investor Primer</span>
+              </div>
+              <p class="text-xs text-slate-400">Explain Like I'm 5: How our algorithmic dip buyer purchases high-quality companies during temporary panics and recycles profits.</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-emerald-300 border border-slate-700 flex items-center gap-1.5 font-medium transition">
+            <span id="eli5-dip-buyer-btn-text">Show Guide</span>
+            <svg id="eli5-dip-buyer-arrow" class="w-3.5 h-3.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+        </div>
+
+        <!-- Explainer Content (Hidden by default) -->
+        <div id="eli5-dip-buyer-content" class="hidden mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+          <div class="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-xs text-slate-300 leading-relaxed">
+            <span class="font-bold text-emerald-300">The 10-Second Summary:</span> Imagine walking into a luxury store where a brand-new $1,000 designer jacket is temporarily marked down to $700 just because of bad weather that morning. You buy it immediately, and three days later when the sun comes out, you resell it for $750 to make an effortless $50 profit. That is exactly what this engine does with America's strongest tech monopolies (Apple, Microsoft, Google, Amazon, Nvidia).
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="flex items-center gap-2 mb-1.5 text-emerald-400 font-bold">
+                <span>1.</span> The Oversold Trigger (RSI &lt; 30)
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                RSI (Relative Strength Index) measures panic on a 0 to 100 scale. When RSI drops below 30, it means sellers have exhausted themselves and a mathematical rubber-band snapback is imminent.
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="flex items-center gap-2 mb-1.5 text-cyan-400 font-bold">
+                <span>2.</span> The 200-Day Safety Filter
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                We only buy when the company's long-term 200-day trend is healthy. This ensures we are buying temporary dips in rock-solid businesses, never catching falling knives in failing companies.
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="flex items-center gap-2 mb-1.5 text-purple-400 font-bold">
+                <span>3.</span> Fast Profit Harvest &amp; Hard Floor
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                We don't get greedy. As soon as the stock rebounds +5% or RSI crosses back above 50, we sell immediately to lock in gains. If it drops -5%, our hard stop-loss kicks in instantly to protect capital.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Top KPI Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <!-- Active Snipes -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Dip Snipes</span>
+            <span class="text-xs p-1 rounded-md bg-emerald-500/10 text-emerald-400">Equities</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white" id="dip-active-count-kpi">0</span>
+            <span class="text-xs text-slate-400">positions open</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Universe:</span>
+            <span class="text-emerald-400 font-medium">5 Blue-Chips</span>
+          </div>
+        </div>
+
+        <!-- Capital Deployed vs Max -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Capital Deployed</span>
+            <span class="text-xs p-1 rounded-md bg-cyan-500/10 text-cyan-400">$5,000 Cap</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white" id="dip-deployed-kpi">$0.00</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Per-Trade Allocation:</span>
+            <span class="text-slate-200 font-medium" id="dip-order-size-kpi">$1,000 / trade</span>
+          </div>
+        </div>
+
+        <!-- Realized Dip PnL -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Realized Sniping PnL</span>
+            <span class="text-xs p-1 rounded-md bg-amber-500/10 text-amber-400">30% Tax Escrow</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white" id="dip-realized-kpi">$0.00</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Closed Trades:</span>
+            <span class="text-purple-400 font-medium" id="dip-closed-count-kpi">0 Trades</span>
+          </div>
+        </div>
+
+        <!-- Sniping Win Rate -->
+        <div class="glass-card rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sniping Win Rate</span>
+            <span class="text-xs p-1 rounded-md bg-emerald-500/10 text-emerald-400">+5% Target</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span class="text-2xl font-black text-white" id="dip-winrate-kpi">100.0%</span>
+          </div>
+          <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
+            <span>Downside Defense:</span>
+            <span class="text-rose-400 font-medium">-5.0% Stop-Loss</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Sniped Positions Card & Table -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Active Mean-Reversion Positions</h3>
+            <p class="text-xs text-slate-400">Live positions actively tracking toward +5% profit target or RSI >= 50 exit</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-400" id="dip-active-badge">0 Active Positions</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Symbol</th>
+                <th class="py-2.5 px-4 font-semibold">Shares</th>
+                <th class="py-2.5 px-4 font-semibold">Entry Price</th>
+                <th class="py-2.5 px-4 font-semibold">Current Price</th>
+                <th class="py-2.5 px-4 font-semibold">RSI(14)</th>
+                <th class="py-2.5 px-4 font-semibold">Progress to +5% Target</th>
+                <th class="py-2.5 px-4 font-semibold">Stop Loss (-5%)</th>
+                <th class="py-2.5 px-4 font-semibold text-right">Unrealized PnL</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="dip-active-table-body">
+              <tr class="text-slate-500 text-center py-4">
+                <td colspan="8" class="py-4 font-sans">No open dip positions. Scanner is monitoring blue chips for oversold RSI &lt; 30 dislocations.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Blue-Chip RSI Scanner Matrix -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Blue-Chip RSI Scanner Matrix</h3>
+            <p class="text-xs text-slate-400">Daily RSI(14) indicators and 200-day trend health across target universe</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">5 Monitored Tickers</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Symbol</th>
+                <th class="py-2.5 px-4 font-semibold">Share Price</th>
+                <th class="py-2.5 px-4 font-semibold">Daily RSI(14)</th>
+                <th class="py-2.5 px-4 font-semibold">50 SMA</th>
+                <th class="py-2.5 px-4 font-semibold">200 SMA (Trend)</th>
+                <th class="py-2.5 px-4 font-semibold text-center">Scanner Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="dip-scanner-table-body">
+              <tr>
+                <td class="py-2.5 px-4 font-sans font-bold text-white">AAPL</td>
+                <td class="py-2.5 px-4 text-slate-300">$225.00</td>
+                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">52.4</span></td>
+                <td class="py-2.5 px-4 text-slate-400">$221.80</td>
+                <td class="py-2.5 px-4 text-slate-400">$209.40</td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span></td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-4 font-sans font-bold text-white">MSFT</td>
+                <td class="py-2.5 px-4 text-slate-300">$420.00</td>
+                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">48.6</span></td>
+                <td class="py-2.5 px-4 text-slate-400">$428.10</td>
+                <td class="py-2.5 px-4 text-slate-400">$415.50</td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span></td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-4 font-sans font-bold text-white">GOOGL</td>
+                <td class="py-2.5 px-4 text-slate-300">$165.00</td>
+                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">45.2</span></td>
+                <td class="py-2.5 px-4 text-slate-400">$168.90</td>
+                <td class="py-2.5 px-4 text-slate-400">$161.20</td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span></td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-4 font-sans font-bold text-white">AMZN</td>
+                <td class="py-2.5 px-4 text-slate-300">$185.00</td>
+                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">51.0</span></td>
+                <td class="py-2.5 px-4 text-slate-400">$182.40</td>
+                <td class="py-2.5 px-4 text-slate-400">$176.80</td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span></td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-4 font-sans font-bold text-white">NVDA</td>
+                <td class="py-2.5 px-4 text-slate-300">$115.00</td>
+                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">44.8</span></td>
+                <td class="py-2.5 px-4 text-slate-400">$118.50</td>
+                <td class="py-2.5 px-4 text-slate-400">$108.20</td>
+                <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Closed Snipes Audit History Ledger -->
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Closed Snipes Audit History Ledger</h3>
+            <p class="text-xs text-slate-400">Historical dip exits, profit harvests, and 30% automatic tax escrow withholding</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-400" id="dip-closed-count-badge">0 Closed Snipes</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/40">
+              <tr>
+                <th class="py-2.5 px-4 font-semibold">Symbol</th>
+                <th class="py-2.5 px-4 font-semibold">Shares</th>
+                <th class="py-2.5 px-4 font-semibold">Entry Price</th>
+                <th class="py-2.5 px-4 font-semibold">Exit Price</th>
+                <th class="py-2.5 px-4 font-semibold">Hold Time</th>
+                <th class="py-2.5 px-4 font-semibold text-right">Realized PnL</th>
+                <th class="py-2.5 px-4 font-semibold text-right">30% Tax Escrow</th>
+                <th class="py-2.5 px-4 font-semibold text-center">Exit Reason</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="dip-history-table-body">
+              <tr class="text-slate-500 text-center py-4">
+                <td colspan="8" class="py-4 font-sans">No closed dip trades yet. Standing by for oversold entry opportunities.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- Contract Details Modal -->
@@ -2298,6 +2598,117 @@
             if (hdg.closed_count !== undefined) {
               const ccEl = document.getElementById('hedge-closed-count-badge');
               if (ccEl) ccEl.innerText = `${hdg.closed_count} Closed Hedges`;
+            }
+          }
+
+          if (data.dip_buyer) {
+            const dip = data.dip_buyer;
+            if (dip.active_positions_count !== undefined) {
+              const actEl = document.getElementById('dip-active-count-kpi');
+              if (actEl) actEl.innerText = dip.active_positions_count;
+              const bdgEl = document.getElementById('dip-active-badge');
+              if (bdgEl) bdgEl.innerText = `${dip.active_positions_count} Active Positions`;
+            }
+            if (dip.capital_deployed_usd !== undefined) {
+              const depEl = document.getElementById('dip-deployed-kpi');
+              if (depEl) depEl.innerText = `$${dip.capital_deployed_usd.toFixed(2)}`;
+            }
+            if (dip.total_realized_pnl !== undefined) {
+              const relEl = document.getElementById('dip-realized-kpi');
+              if (relEl) {
+                const sign = dip.total_realized_pnl >= 0 ? '+' : '';
+                relEl.innerText = `${sign}$${dip.total_realized_pnl.toFixed(2)}`;
+              }
+            }
+            if (dip.closed_trades_count !== undefined) {
+              const clEl = document.getElementById('dip-closed-count-kpi');
+              if (clEl) clEl.innerText = `${dip.closed_trades_count} Trades`;
+              const clBdg = document.getElementById('dip-closed-count-badge');
+              if (clBdg) clBdg.innerText = `${dip.closed_trades_count} Closed Snipes`;
+            }
+            if (dip.win_rate_pct !== undefined) {
+              const winEl = document.getElementById('dip-winrate-kpi');
+              if (winEl) winEl.innerText = `${dip.win_rate_pct.toFixed(1)}%`;
+            }
+
+            // Render Active Positions Table
+            const activeTable = document.getElementById('dip-active-table-body');
+            if (activeTable && dip.active_positions && dip.active_positions.length > 0) {
+              activeTable.innerHTML = dip.active_positions.map(p => {
+                const pnlSign = (p.unrealized_pnl || 0) >= 0 ? '+' : '';
+                const pnlColor = (p.unrealized_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                const prog = Math.min(100, Math.max(0, p.progress_pct || 0));
+                return `
+                  <tr class="hover:bg-slate-800/40 transition">
+                    <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol}</td>
+                    <td class="py-2.5 px-4 text-slate-300">${(p.qty || 0).toFixed(4)}</td>
+                    <td class="py-2.5 px-4 text-slate-300">$${(p.entry_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-200 font-semibold">$${(p.current_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-cyan-400">${(p.current_rsi || 30.0).toFixed(1)}</td>
+                    <td class="py-2.5 px-4">
+                      <div class="flex items-center gap-2">
+                        <div class="w-20 h-2 bg-slate-800 rounded-full overflow-hidden">
+                          <div class="h-full bg-emerald-500 rounded-full" style="width: ${prog}%"></div>
+                        </div>
+                        <span class="text-[10px] text-emerald-400">${prog.toFixed(0)}%</span>
+                      </div>
+                    </td>
+                    <td class="py-2.5 px-4 text-rose-400 font-medium">$${(p.stop_loss_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(p.unrealized_pnl || 0).toFixed(2)} (${pnlSign}${(p.unrealized_pnl_pct || 0).toFixed(1)}%)</td>
+                  </tr>
+                `;
+              }).join('');
+            }
+
+            // Render Scanner Matrix if updated
+            const scannerTable = document.getElementById('dip-scanner-table-body');
+            if (scannerTable && dip.scanner_matrix && Object.keys(dip.scanner_matrix).length > 0) {
+              const keys = Object.keys(dip.scanner_matrix);
+              scannerTable.innerHTML = keys.map(k => {
+                const item = dip.scanner_matrix[k];
+                const rsiVal = item.rsi || 50.0;
+                const rsiColor = rsiVal <= 30 ? 'text-emerald-400 font-bold' : (rsiVal >= 70 ? 'text-rose-400' : 'text-slate-300');
+                const sig = item.signal || 'WATCHLIST';
+                const sigBadge = sig === 'BUY' 
+                  ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">BUY (OVERSOLD)</span>'
+                  : (sig === 'HOLD'
+                    ? '<span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 font-bold text-[10px]">HOLDING</span>'
+                    : '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span>');
+                return `
+                  <tr class="hover:bg-slate-800/40 transition">
+                    <td class="py-2.5 px-4 font-sans font-bold text-white">${item.symbol || k}</td>
+                    <td class="py-2.5 px-4 text-slate-300">$${(item.current_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4"><span class="${rsiColor}">${rsiVal.toFixed(1)}</span></td>
+                    <td class="py-2.5 px-4 text-slate-400">$${(item.sma_50 || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-400">$${(item.sma_200 || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-center font-sans">${sigBadge}</td>
+                  </tr>
+                `;
+              }).join('');
+            }
+
+            // Render Closed Trades Ledger
+            const historyTable = document.getElementById('dip-history-table-body');
+            if (historyTable && dip.closed_trades && dip.closed_trades.length > 0) {
+              historyTable.innerHTML = dip.closed_trades.map(t => {
+                const isGain = (t.realized_pnl || 0) >= 0;
+                const pnlSign = isGain ? '+' : '';
+                const pnlColor = isGain ? 'text-emerald-400' : 'text-rose-400';
+                return `
+                  <tr class="hover:bg-slate-800/40 transition">
+                    <td class="py-2.5 px-4 font-sans font-bold text-white">${t.symbol}</td>
+                    <td class="py-2.5 px-4 text-slate-300">${(t.qty || 0).toFixed(4)}</td>
+                    <td class="py-2.5 px-4 text-slate-400">$${(t.entry_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-300">$${(t.exit_price || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-slate-400">${t.holding_days || 0}d</td>
+                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(t.realized_pnl || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-right text-amber-400">$${(t.tax_escrow || 0).toFixed(2)}</td>
+                    <td class="py-2.5 px-4 text-center font-sans">
+                      <span class="px-2 py-0.5 rounded text-[10px] ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${t.exit_reason || 'EXIT'}</span>
+                    </td>
+                  </tr>
+                `;
+              }).join('');
             }
           }
         }

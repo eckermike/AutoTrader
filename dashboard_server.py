@@ -24,6 +24,7 @@ TAX_RESERVE_FILE = BASE_DIR / "tax_reserve.json"
 LIQUIDITY_STATE_FILE = BASE_DIR / "liquidity_state.json"
 SPREAD_STATE_FILE = BASE_DIR / "spreads_state.json"
 HEDGE_STATE_FILE = BASE_DIR / "tail_hedge_state.json"
+DIP_STATE_FILE = BASE_DIR / "dip_buyer_state.json"
 
 
 AUTOTRADER_LOG_FILE = BASE_DIR / "autotrader.log"
@@ -231,6 +232,45 @@ class DashboardHandler(SimpleHTTPRequestHandler):
                     }
             except Exception as e:
                 logger.warning("Could not read tail_hedge_state.json: %s", e)
+
+        data["dip_buyer"] = {
+            "enabled": True,
+            "order_size_usd": 1000.0,
+            "max_capital_usd": 5000.0,
+            "capital_deployed_usd": 0.0,
+            "active_positions_count": 0,
+            "active_positions": [],
+            "closed_trades_count": 0,
+            "closed_trades": [],
+            "total_realized_pnl": 0.0,
+            "win_rate_pct": 0.0,
+            "scanner_matrix": {},
+        }
+        if DIP_STATE_FILE.exists():
+            try:
+                with open(DIP_STATE_FILE, "r", encoding="utf-8") as f:
+                    dip_data = json.load(f)
+                    active_positions = list(dip_data.get("active_positions", {}).values())
+                    closed_trades = dip_data.get("closed_trades", [])
+                    deployed = sum(p.get("cost_basis", 0.0) for p in active_positions)
+                    realized = sum(t.get("realized_pnl", 0.0) for t in closed_trades)
+                    wins = len([t for t in closed_trades if t.get("realized_pnl", 0.0) > 0])
+                    win_rate = (wins / len(closed_trades) * 100.0) if closed_trades else 0.0
+                    data["dip_buyer"] = {
+                        "enabled": True,
+                        "order_size_usd": 1000.0,
+                        "max_capital_usd": 5000.0,
+                        "capital_deployed_usd": round(deployed, 2),
+                        "active_positions_count": len(active_positions),
+                        "active_positions": active_positions,
+                        "closed_trades_count": len(closed_trades),
+                        "closed_trades": closed_trades[-10:],
+                        "total_realized_pnl": round(realized, 2),
+                        "win_rate_pct": round(win_rate, 1),
+                        "scanner_matrix": dip_data.get("last_scan", {}),
+                    }
+            except Exception as e:
+                logger.warning("Could not read dip_buyer_state.json: %s", e)
 
         payload = json.dumps(data, indent=2).encode("utf-8")
         self.send_response(200)

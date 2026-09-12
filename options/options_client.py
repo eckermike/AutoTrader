@@ -9,6 +9,8 @@ import logging
 import uuid
 from datetime import date, datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
+import numpy as np
+import pandas as pd
 from pydantic import BaseModel, Field
 
 # Alpaca SDK imports
@@ -33,7 +35,12 @@ try:
         OrderType,
     )
     from alpaca.data.historical.stock import StockHistoricalDataClient
-    from alpaca.data.requests import StockLatestQuoteRequest, StockLatestTradeRequest
+    from alpaca.data.requests import (
+        StockLatestQuoteRequest,
+        StockLatestTradeRequest,
+        StockBarsRequest,
+    )
+    from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
     from alpaca.data.historical.option import OptionHistoricalDataClient
     from alpaca.data.requests import OptionLatestQuoteRequest
 except ImportError:
@@ -41,6 +48,9 @@ except ImportError:
     OptionLegRequest = None
     OrderClass = None
     OrderType = None
+    StockBarsRequest = None
+    TimeFrame = None
+    TimeFrameUnit = None
 
 logger = logging.getLogger("options.client")
 
@@ -78,7 +88,7 @@ class StockPositionInfo(BaseModel):
     """Active underlying equity position."""
 
     symbol: str
-    qty: int
+    qty: float
     avg_entry_price: float
     current_price: float
     market_value: float
@@ -126,6 +136,7 @@ class AlpacaOptionsClient:
             self._mock_cash = 100000.00
             self._mock_stock_positions: Dict[str, StockPositionInfo] = {}
             self._mock_option_positions: Dict[str, OptionPositionInfo] = {}
+            self._mock_orders: List[Dict[str, Any]] = []
         else:
             logger.info("Connecting AlpacaOptionsClient to Alpaca Paper Trading (%s)", base_url)
             self.trading_client = TradingClient(
@@ -168,6 +179,11 @@ class AlpacaOptionsClient:
                 "SPY": 560.00,
                 "QQQ": 485.00,
                 "IWM": 220.00,
+                "AAPL": 225.00,
+                "MSFT": 420.00,
+                "GOOGL": 165.00,
+                "AMZN": 185.00,
+                "NVDA": 115.00,
             }
             return mock_prices.get(sym, 21.50)
 
@@ -210,6 +226,14 @@ class AlpacaOptionsClient:
             "HOOD": 122.06,
             "PLTR": 174.25,
             "XLF": 58.15,
+            "SPY": 560.00,
+            "QQQ": 485.00,
+            "IWM": 220.00,
+            "AAPL": 225.00,
+            "MSFT": 420.00,
+            "GOOGL": 165.00,
+            "AMZN": 185.00,
+            "NVDA": 115.00,
         }
         fallback = default_fallbacks.get(sym, 21.50)
         logger.warning("Using fallback price $%0.2f for %s", fallback, sym)
@@ -222,7 +246,7 @@ class AlpacaOptionsClient:
 
         try:
             pos = self.trading_client.get_open_position(symbol)
-            qty = int(float(pos.qty))
+            qty = float(pos.qty)
             if qty > 0:
                 return StockPositionInfo(
                     symbol=symbol,
@@ -775,4 +799,212 @@ class AlpacaOptionsClient:
             "debit": limit_debit,
             "status": str(order_res.status),
             "order_class": "mleg",
+        }
+
+    def get_stock_bars(
+        self,
+        symbol: str = "AAPL",
+        timeframe: Optional[Any] = None,
+        limit: int = 250,
+    ) -> pd.DataFrame:
+        """
+        Fetches historical daily/hourly bars for an equity symbol.
+        Returns pd.DataFrame with ['open', 'high', 'low', 'close', 'volume'].
+        """
+        sym = symbol.upper()
+        if timeframe is None and TimeFrame is not None:
+            timeframe = TimeFrame(1, TimeFrameUnit.Day)
+
+        if self.mock_mode:
+            return self._generate_synthetic_stock_bars(symbol=sym, limit=limit)
+
+        now = datetime.now(timezone.utc)
+        start_time = now - timedelta(days=int(limit * 1.6) + 30)
+
+        try:
+            if StockBarsRequest is not None and self.stock_data_client is not None:
+                req = StockBarsRequest(
+                    symbol_or_symbols=sym,
+                    timeframe=timeframe,
+                    start=start_time,
+                    end=now,
+                )
+                bars = self.stock_data_client.get_stock_bars(req)
+                df = bars.df
+                if df.empty:
+                    logger.warning("Empty stock bars returned by Alpaca for %s. Using synthetic fallback.", sym)
+                    return self._generate_synthetic_stock_bars(symbol=sym, limit=limit)
+
+                if isinstance(df.index, pd.MultiIndex):
+                    df = df.xs(sym, level=0)
+
+                df.columns = [c.lower() for c in df.columns]
+                return df.tail(limit)
+            else:
+                return self._generate_synthetic_stock_bars(symbol=sym, limit=limit)
+        except Exception as e:
+            logger.warning("Failed to fetch stock bars for %s: %s. Using synthetic fallback.", sym, e)
+            return self._generate_synthetic_stock_bars(symbol=sym, limit=limit)
+
+    def _generate_synthetic_stock_bars(
+        self, symbol: str = "AAPL", limit: int = 250, base_price: Optional[float] = None
+    ) -> pd.DataFrame:
+        """Generates realistic synthetic daily bars for offline testing and dry-run."""
+        base_p = base_price or self.get_stock_price(symbol)
+        seed = abs(hash(symbol)) % 100000
+        np.random.seed(seed)
+        returns = np.random.normal(0.0003, 0.015, limit)
+        prices = base_p * np.exp(np.cumsum(returns))
+        prices = prices * (base_p / prices[-1])
+
+        highs = prices * (1 + np.abs(np.random.normal(0.005, 0.003, limit)))
+        lows = prices * (1 - np.abs(np.random.normal(0.005, 0.003, limit)))
+        opens = np.roll(prices, 1)
+        opens[0] = base_p
+        volumes = np.random.uniform(1000000.0, 10000000.0, limit)
+
+        dates = [
+            datetime.now(timezone.utc) - timedelta(days=limit - i)
+            for i in range(limit)
+        ]
+
+        df = pd.DataFrame(
+            {
+                "open": opens,
+                "high": highs,
+                "low": lows,
+                "close": prices,
+                "volume": volumes,
+            },
+            index=pd.DatetimeIndex(dates),
+        )
+        return df
+
+    def submit_stock_order(
+        self,
+        symbol: str,
+        side: str,
+        notional: Optional[float] = None,
+        qty: Optional[float] = None,
+        limit_price: Optional[float] = None,
+        time_in_force: str = "DAY",
+        order_type: str = "MARKET",
+    ) -> Dict[str, Any]:
+        """
+        Submits an equity market or limit order with DAY or GTC time-in-force.
+        Accepts notional ($ USD) or qty (shares).
+        """
+        client_order_id = f"stk_{uuid.uuid4().hex[:10]}"
+        side_upper = side.upper()
+        tif_upper = time_in_force.upper()
+        sym = symbol.upper()
+
+        if self.mock_mode:
+            current_p = limit_price or self.get_stock_price(sym)
+            if notional is not None:
+                calc_qty = round(notional / current_p, 4) if current_p > 0 else 1.0
+                calc_notional = notional
+            else:
+                calc_qty = qty or 1.0
+                calc_notional = round(calc_qty * current_p, 2)
+
+            if side_upper == "BUY":
+                cur_pos = self._mock_stock_positions.get(sym)
+                if cur_pos:
+                    new_qty = cur_pos.qty + calc_qty
+                    new_avg = ((cur_pos.qty * cur_pos.avg_entry_price) + calc_notional) / new_qty
+                    self._mock_stock_positions[sym] = StockPositionInfo(
+                        symbol=sym,
+                        qty=new_qty,
+                        avg_entry_price=round(new_avg, 2),
+                        current_price=current_p,
+                        market_value=round(new_qty * current_p, 2),
+                    )
+                else:
+                    self._mock_stock_positions[sym] = StockPositionInfo(
+                        symbol=sym,
+                        qty=calc_qty,
+                        avg_entry_price=current_p,
+                        current_price=current_p,
+                        market_value=round(calc_qty * current_p, 2),
+                    )
+            elif side_upper == "SELL":
+                cur_pos = self._mock_stock_positions.get(sym)
+                if cur_pos:
+                    new_qty = cur_pos.qty - calc_qty
+                    if new_qty <= 0.0001:
+                        self._mock_stock_positions.pop(sym, None)
+                    else:
+                        self._mock_stock_positions[sym] = StockPositionInfo(
+                            symbol=sym,
+                            qty=new_qty,
+                            avg_entry_price=cur_pos.avg_entry_price,
+                            current_price=current_p,
+                            market_value=round(new_qty * current_p, 2),
+                        )
+
+            receipt = {
+                "id": f"mock_stk_{uuid.uuid4().hex[:8]}",
+                "client_order_id": client_order_id,
+                "symbol": sym,
+                "side": side_upper,
+                "order_type": order_type.upper(),
+                "qty": calc_qty,
+                "notional": calc_notional,
+                "limit_price": limit_price,
+                "status": "FILLED" if order_type.upper() == "MARKET" else "NEW",
+                "filled_avg_price": current_p,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            self._mock_orders.append(receipt)
+            return receipt
+
+        # Live Alpaca API order placement
+        alpaca_side = OrderSide.BUY if side_upper == "BUY" else OrderSide.SELL
+        tif = TimeInForce.DAY if tif_upper == "DAY" else TimeInForce.GTC
+
+        if order_type.upper() == "LIMIT":
+            if limit_price is None:
+                raise ValueError("Limit order requires limit_price.")
+            order_req = LimitOrderRequest(
+                symbol=sym,
+                qty=qty,
+                notional=notional,
+                limit_price=round(limit_price, 2),
+                side=alpaca_side,
+                time_in_force=tif,
+                client_order_id=client_order_id,
+            )
+        else:
+            order_req = MarketOrderRequest(
+                symbol=sym,
+                qty=qty,
+                notional=notional,
+                side=alpaca_side,
+                time_in_force=tif,
+                client_order_id=client_order_id,
+            )
+
+        order_res = self.trading_client.submit_order(order_data=order_req)
+        logger.info(
+            "Alpaca Stock Order Submitted: %s %s %s (ID: %s, Status: %s)",
+            side_upper,
+            f"${notional:.2f}" if notional else f"{qty} shares",
+            sym,
+            order_res.id,
+            getattr(order_res, "status", "NEW"),
+        )
+
+        return {
+            "id": str(getattr(order_res, "id", "")),
+            "client_order_id": str(getattr(order_res, "client_order_id", "")),
+            "symbol": sym,
+            "side": side_upper,
+            "order_type": order_type.upper(),
+            "qty": float(order_res.qty) if getattr(order_res, "qty", None) else qty,
+            "notional": float(order_res.notional) if getattr(order_res, "notional", None) else notional,
+            "limit_price": float(order_res.limit_price) if getattr(order_res, "limit_price", None) else limit_price,
+            "status": str(getattr(order_res, "status", "NEW")),
+            "filled_avg_price": float(order_res.filled_avg_price) if getattr(order_res, "filled_avg_price", None) else None,
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }

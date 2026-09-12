@@ -579,6 +579,84 @@ class TradeNotifier:
         )
         self.send_imessage(message)
 
+    def notify_dip_buy_open(
+        self,
+        symbol: str,
+        shares: float,
+        price: float,
+        notional: float,
+        rsi: float,
+        target_price: float,
+        stop_price: float,
+    ) -> None:
+        """Alerts when an Equity Mean-Reversion Dip Buy is executed."""
+        message = (
+            f"🎯 [EQUITY DIP SNIPER: BUY EXECUTED]\n"
+            f"Symbol: {symbol}\n"
+            f"Action: BUY {shares:.4f} shares @ ${price:,.2f} (${notional:,.2f} total)\n"
+            f"📉 Trigger RSI(14): {rsi:.1f} (Oversold Dislocation < 30.0)\n"
+            f"🎯 Profit Target (+5% / RSI >= 50): ${target_price:,.2f}\n"
+            f"🛑 Stop Loss Defense (-5%): ${stop_price:,.2f}\n"
+            f"Capital strictly gated and hedged against long-term trend."
+        )
+        self.send_ntfy(
+            message=message,
+            title=f"🎯 DIP BUY: {symbol} ${price:.2f} (RSI {rsi:.1f})",
+            priority="high",
+            tags="dart,chart_with_upwards_trend,moneybag",
+        )
+        self.send_macos_banner(
+            title=f"Dip Sniped: {symbol}",
+            subtitle=f"{shares:.2f} shs @ ${price:.2f} (${notional:,.0f})",
+            body=f"RSI: {rsi:.1f} | Target: ${target_price:.2f} | Stop: ${stop_price:.2f}",
+        )
+        self.send_imessage(message)
+
+    def notify_dip_buy_close(
+        self,
+        symbol: str,
+        shares: float,
+        entry_price: float,
+        exit_price: float,
+        pnl: float,
+        pnl_pct: float,
+        exit_reason: str,
+        tax_escrow: float,
+    ) -> None:
+        """Alerts when an Equity Mean-Reversion Dip Buy is closed."""
+        sign = "+" if pnl >= 0 else "-"
+        abs_pnl = abs(pnl)
+        reason_label = {
+            "PROFIT_TARGET": "🎯 Profit Target Hit (+5%)",
+            "RSI_REBOUND": "📈 RSI Rebounded (>= 50.0)",
+            "STOP_LOSS": "🛑 Stop-Loss Triggered (-5%)",
+            "TIME_STOP": "⏰ Time Stop (15 Days Stagnant)",
+        }.get(exit_reason, exit_reason)
+
+        message = (
+            f"🎯 [EQUITY DIP SNIPER: POSITION CLOSED]\n"
+            f"Symbol: {symbol}\n"
+            f"Action: SELL TO CLOSE ({shares:.4f} shares)\n"
+            f"Reason: {reason_label}\n"
+            f"Entry: ${entry_price:,.2f} | Exit: ${exit_price:,.2f}\n"
+            f"✨ Net PnL: {sign}${abs_pnl:,.2f} ({pnl_pct*100:+.2f}%)\n"
+            f"🏛 Tax Escrow (30% Withheld): ${tax_escrow:,.2f}\n"
+            f"Capital recycled back to liquid buying power."
+        )
+        tag = "moneybag,tada" if pnl >= 0 else "warning,shield"
+        self.send_ntfy(
+            message=message,
+            title=f"🎯 DIP EXIT: {symbol} {sign}${abs_pnl:,.2f} ({pnl_pct*100:+.1f}%)",
+            priority="high" if pnl >= 0 else "default",
+            tags=tag,
+        )
+        self.send_macos_banner(
+            title=f"Dip Closed: {symbol} ({sign}${abs_pnl:,.2f})",
+            subtitle=f"{reason_label} ({pnl_pct*100:+.1f}%)",
+            body=f"Tax Escrow: ${tax_escrow:,.2f}",
+        )
+        self.send_imessage(message)
+
     def notify_daily_recap(
         self,
         date_str: str,
@@ -590,6 +668,7 @@ class TradeNotifier:
         tax_reserve: float,
         spread_diagnostics: Optional[list[str]] = None,
         tail_hedge_diagnostics: Optional[list[str]] = None,
+        dip_diagnostics: Optional[list[str]] = None,
     ) -> None:
         """
         Sends an automated end-of-day daily briefing.
@@ -631,6 +710,15 @@ class TradeNotifier:
             )
             hedge_section = f"\n🛡️ Black Swan Crash Hedge:\n{hedge_lines}\n"
 
+        dip_section = ""
+        if dip_diagnostics is not None:
+            dip_lines = (
+                "\n".join(f"• {item}" for item in dip_diagnostics)
+                if dip_diagnostics
+                else "• No active dip positions"
+            )
+            dip_section = f"\n🎯 Equity Dip Buyer (RSI Mean-Reversion):\n{dip_lines}\n"
+
         reason_header = (
             "\n🔍 WHY NO TRADES WERE TRIGGERED TODAY:\n"
             if trades_count == 0
@@ -646,7 +734,8 @@ class TradeNotifier:
             f"🎡 Multi-Asset Option Wheel:\n"
             f"{wheel_section}\n"
             f"{spread_section}"
-            f"{hedge_section}\n"
+            f"{hedge_section}"
+            f"{dip_section}\n"
             f"💰 Portfolio Financials:\n"
             f"• Total Cash:    ${cash:,.2f}\n"
             f"• Tradable Cash: ${tradable_cash:,.2f}\n"

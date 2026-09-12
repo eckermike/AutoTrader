@@ -401,6 +401,76 @@ class BotConfig(BaseSettings):
         description="Time-in-force for hedge orders ('DAY' or 'GTC')",
     )
 
+    # --- Strategy 3: Mean-Reversion Equity Dip Buyer ---
+    DIP_ENABLED: bool = Field(
+        default=True,
+        description="Enable Mean-Reversion Dip Buyer strategy for blue-chip equities",
+    )
+    DIP_SYMBOLS: List[str] = Field(
+        default_factory=lambda: ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA"],
+        description="High-quality blue-chip tickers to scan for oversold mean-reversion",
+    )
+    DIP_ORDER_SIZE_USD: float = Field(
+        default=1000.0,
+        ge=100.0,
+        le=10000.0,
+        description="Target dollar allocation per dip purchase",
+    )
+    DIP_MAX_CAPITAL_USD: float = Field(
+        default=5000.0,
+        ge=500.0,
+        le=50000.0,
+        description="Maximum cumulative capital allocated to dip buyer positions",
+    )
+    DIP_RSI_THRESHOLD: float = Field(
+        default=30.0,
+        ge=10.0,
+        le=45.0,
+        description="RSI(14) threshold below which equity is considered oversold",
+    )
+    DIP_RSI_EXIT_THRESHOLD: float = Field(
+        default=50.0,
+        ge=40.0,
+        le=75.0,
+        description="RSI(14) rebound threshold to trigger mean-reversion profit exit",
+    )
+    DIP_PROFIT_TARGET_PCT: float = Field(
+        default=0.05,
+        ge=0.01,
+        le=0.25,
+        description="Take-profit percentage (+5.0%)",
+    )
+    DIP_STOP_LOSS_PCT: float = Field(
+        default=0.05,
+        ge=0.01,
+        le=0.20,
+        description="Maximum loss stop-loss percentage (-5.0%)",
+    )
+    DIP_TIME_STOP_DAYS: int = Field(
+        default=15,
+        ge=3,
+        le=60,
+        description="Maximum holding period in calendar days if target is not hit",
+    )
+    DIP_STATE_FILE: str = Field(
+        default="dip_buyer_state.json",
+        description="Persistent JSON state file for equity dip buyer",
+    )
+    DIP_TIME_IN_FORCE: str = Field(
+        default="DAY",
+        description="Time-in-force for equity dip orders ('DAY' or 'GTC')",
+    )
+
+    @field_validator("DIP_SYMBOLS", mode="after")
+    @classmethod
+    def parse_dip_symbols(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            symbols = [s.strip().upper() for s in v.split(",") if s.strip()]
+            return symbols if symbols else ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA"]
+        elif isinstance(v, (list, tuple)):
+            return [str(s).strip().upper() for s in v if str(s).strip()]
+        return ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA"]
+
     @field_validator("TARGET_SYMBOLS", mode="after")
     @classmethod
     def parse_target_symbols(cls, v: Any) -> List[str]:

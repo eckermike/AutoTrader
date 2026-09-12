@@ -20,6 +20,7 @@ from typing import Any, Dict, List, Optional
 
 from config import BotConfig, get_config
 from execution.alpaca_client import AlpacaPaperClient, PositionInfo
+from execution.dip_buyer_engine import DipBuyerEngine
 from execution.liquidity_manager import LiquidityManager
 from factors.sentiment import create_sentiment_analyzer
 
@@ -130,6 +131,15 @@ class TradingDaemon:
 
         # 9. Initialize Black Swan Tail-Risk Crash Hedge Engine (SPY)
         self.tail_hedge_engine = TailHedgeEngine(
+            config=self.config,
+            options_client=self.options_client,
+            tax_engine=self.tax_engine,
+            notifier=self.notifier,
+            liquidity_manager=self.liquidity_manager,
+        )
+
+        # 10. Initialize Equity Mean-Reversion Dip Buyer Engine
+        self.dip_buyer_engine = DipBuyerEngine(
             config=self.config,
             options_client=self.options_client,
             tax_engine=self.tax_engine,
@@ -584,6 +594,18 @@ class TradingDaemon:
             except Exception as e:
                 logger.exception("Error executing Black Swan Crash Hedge cycle: %s", e)
 
+        # --- Strategy 7: Equity Mean-Reversion Dip Buyer (AAPL, MSFT, GOOGL, AMZN, NVDA) ---
+        if getattr(self.config, "DIP_ENABLED", True) and hasattr(self, "dip_buyer_engine"):
+            try:
+                is_mkt_open = (
+                    self.options_client.is_market_open()
+                    if hasattr(self.options_client, "is_market_open")
+                    else True
+                )
+                self.dip_buyer_engine.step(is_market_open=is_mkt_open)
+            except Exception as e:
+                logger.exception("Error executing Equity Dip Buyer cycle: %s", e)
+
 
     def check_and_dispatch_daily_recap(
         self,
@@ -716,7 +738,20 @@ class TradingDaemon:
         else:
             tail_hedge_diag.append("Black Swan Crash Hedge disabled.")
 
-        # 5. Dispatch Daily Recap Alert
+        # 5. Gather Equity Mean-Reversion Dip Buyer diagnostics
+        dip_diag: List[str] = []
+        if getattr(self.config, "DIP_ENABLED", True) and hasattr(self, "dip_buyer_engine"):
+            diag = self.dip_buyer_engine.get_diagnostics()
+            if diag.get("active_positions_details"):
+                dip_diag.extend(diag["active_positions_details"])
+            elif diag.get("scanner_details"):
+                dip_diag.extend(diag["scanner_details"])
+            else:
+                dip_diag.append("Scanner active. No oversold conditions met today.")
+        else:
+            dip_diag.append("Equity Dip Buyer disabled.")
+
+        # 6. Dispatch Daily Recap Alert
         logger.info(
             "Dispatching End-of-Day Briefing for %s (Trades Today: %d)...",
             today_str,
@@ -732,6 +767,7 @@ class TradingDaemon:
             tax_reserve=self.tax_engine.current_reserve,
             spread_diagnostics=spread_diag,
             tail_hedge_diagnostics=tail_hedge_diag,
+            dip_diagnostics=dip_diag,
         )
 
         self.last_daily_recap_date = today_str
