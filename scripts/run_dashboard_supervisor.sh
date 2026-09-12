@@ -32,6 +32,16 @@ cleanup() {
 trap cleanup SIGINT SIGTERM SIGHUP
 
 start_server() {
+    # Kill any stale process listening on port 8080 if not our current child
+    STALE_PIDS=$(lsof -ti :8080 2>/dev/null || true)
+    for p in $STALE_PIDS; do
+        if [ -n "$p" ] && [ "$p" != "$SERVER_PID" ]; then
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] [SUPERVISOR] Cleaning up stale port 8080 process $p..."
+            kill -9 "$p" 2>/dev/null || true
+        fi
+    done
+    sleep 0.5
+
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [SUPERVISOR] Starting dashboard_server.py on port 8080..."
     "$DIR/.venv/bin/python" "$DIR/dashboard_server.py" >> "$LOG_SERVER" 2>&1 &
     SERVER_PID=$!
