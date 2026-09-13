@@ -4066,7 +4066,11 @@
       }
     }
 
+    let cancelBlurSubmit = false;
+    let isSendingChat = false;
+
     function closeChatDrawer() {
+      cancelBlurSubmit = true;
       const drawer = document.getElementById('ai-chat-drawer');
       const panel = document.getElementById('ai-chat-panel');
       if (drawer && panel) {
@@ -4076,6 +4080,7 @@
         drawer.classList.add('opacity-0', 'pointer-events-none');
         setTimeout(() => {
           drawer.classList.add('hidden');
+          cancelBlurSubmit = false;
         }, 300);
       }
     }
@@ -4097,6 +4102,7 @@
     }
 
     function sendQuickPrompt(promptText) {
+      cancelBlurSubmit = true;
       const input = document.getElementById('ai-chat-input');
       if (input) {
         input.value = promptText;
@@ -4106,12 +4112,14 @@
 
     async function handleChatSubmit(e) {
       if (e && e.preventDefault) e.preventDefault();
+      if (isSendingChat) return;
       const input = document.getElementById('ai-chat-input');
       const sendBtn = document.getElementById('ai-chat-send-btn');
       if (!input) return;
       const text = input.value.trim();
       if (!text) return;
 
+      isSendingChat = true;
       appendChatMessage('user', text);
       input.value = '';
       if (sendBtn) {
@@ -4136,11 +4144,48 @@
       } catch (err) {
         appendChatMessage('assistant', `⚠️ Connection error: ${err.message}. Please verify ECKAP server is running.`);
       } finally {
+        isSendingChat = false;
         if (sendBtn) {
           sendBtn.disabled = false;
           sendBtn.innerText = 'Send';
         }
       }
+    }
+
+    // Initialize iOS keyboard checkmark (✓) and Enter submission listeners
+    function initChatInputListeners() {
+      const input = document.getElementById('ai-chat-input');
+      if (!input || input.dataset.listenersBound === 'true') return;
+      input.dataset.listenersBound = 'true';
+
+      // Enter / Return key sends message
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleChatSubmit(e);
+        }
+      });
+
+      // iOS Checkmark (✓) / Done accessory bar handler:
+      // Tapping the checkmark on iOS/SwiftKey accessory bar blurs the input.
+      // If the user has typed text and did not cancel by tapping backdrop/close/chip, send immediately!
+      input.addEventListener('blur', () => {
+        setTimeout(() => {
+          if (cancelBlurSubmit) {
+            cancelBlurSubmit = false;
+            return;
+          }
+          if (input.value && input.value.trim().length > 0 && !isSendingChat) {
+            handleChatSubmit(new Event('submit'));
+          }
+        }, 80);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initChatInputListeners);
+    } else {
+      initChatInputListeners();
     }
   </script>
 
@@ -4153,7 +4198,7 @@
   <!-- Slide-Over AI Assistant Drawer -->
   <div id="ai-chat-drawer" class="fixed inset-0 z-50 pointer-events-none hidden transition-opacity duration-300 opacity-0">
     <!-- Backdrop -->
-    <div id="ai-chat-backdrop" onclick="closeChatDrawer()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="ai-chat-backdrop" onclick="closeChatDrawer()" onpointerdown="cancelBlurSubmit = true" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
     <!-- Drawer Panel -->
     <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col pointer-events-auto transform translate-x-full transition-transform duration-300" id="ai-chat-panel">
       <!-- Header -->
@@ -4165,10 +4210,10 @@
             <p class="text-[11px] text-slate-400">Context-aware portfolio intelligence</p>
           </div>
         </div>
-        <button onclick="closeChatDrawer()" class="text-slate-400 hover:text-white text-lg font-bold p-1">✕</button>
+        <button onclick="closeChatDrawer()" onpointerdown="cancelBlurSubmit = true" class="text-slate-400 hover:text-white text-lg font-bold p-1">✕</button>
       </div>
       <!-- Quick Prompt Chips -->
-      <div class="p-3 border-b border-slate-800 bg-slate-900/90 overflow-x-auto flex gap-2 text-[11px] no-scrollbar">
+      <div onpointerdown="cancelBlurSubmit = true" class="p-3 border-b border-slate-800 bg-slate-900/90 overflow-x-auto flex gap-2 text-[11px] no-scrollbar">
         <button onclick="sendQuickPrompt('What are our portfolio risks and how are they protected?')" class="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap border border-slate-700">🛡️ Risk & Safeguards</button>
         <button onclick="sendQuickPrompt('What is our tax escrow status?')" class="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap border border-slate-700">🏛️ Tax Escrow</button>
         <button onclick="sendQuickPrompt('How much tradable cash do we have?')" class="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap border border-slate-700">💰 Tradable Cash</button>
@@ -4178,14 +4223,23 @@
         <button onclick="sendQuickPrompt('How is our blue-chip dip buyer performing?')" class="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap border border-slate-700">🎯 Dip Buyer</button>
       </div>
       <!-- Chat Messages Container -->
-      <div id="ai-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs leading-relaxed">
+      <div id="ai-chat-messages" onpointerdown="cancelBlurSubmit = true" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs leading-relaxed">
         <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-200">
           👋 Hello! I am your <strong>ECKAP AI Portfolio Co-Pilot</strong>. I have real-time access to your cash, tax escrow, options collateral, and all 8 institutional strategy pillars. How can I assist the ECKAP Quant Fund today?
         </div>
       </div>
       <!-- Chat Input Form -->
       <form onsubmit="handleChatSubmit(event)" class="p-3 border-t border-slate-800 bg-slate-950 flex gap-2">
-        <input id="ai-chat-input" type="text" placeholder="Ask about fund performance, tax, strategies..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
+        <input 
+          id="ai-chat-input" 
+          type="text" 
+          enterkeyhint="send"
+          autocomplete="off"
+          autocorrect="on"
+          autocapitalize="sentences"
+          placeholder="Ask about fund performance, tax, strategies..." 
+          class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500" 
+        />
         <button type="submit" id="ai-chat-send-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1">
           Send
         </button>
