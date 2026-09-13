@@ -92,8 +92,8 @@
 
       <div class="glass-card rounded-2xl p-4 transition-all col-span-2 md:col-span-1">
         <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Active Deployments</p>
-        <p class="text-2xl font-bold text-indigo-400 mt-1.5 tracking-tight">13 Tickers</p>
-        <p class="text-xs text-slate-400 mt-2">6 Wheels • 6 Crypto • 2 Bonds</p>
+        <p id="kpi-deployments-count" class="text-2xl font-bold text-indigo-400 mt-1.5 tracking-tight">8 Strategies</p>
+        <p id="kpi-deployments-desc" class="text-xs text-slate-400 mt-2">18 Tickers • Wheels • Spreads • Hedge • Macro</p>
       </div>
     </div>
   </header>
@@ -350,83 +350,284 @@
         </div>
 
         <div class="w-full h-4 bg-slate-800 rounded-full overflow-hidden flex shadow-inner">
-          <div style="width: 39.87%" class="bg-cyan-500 hover:bg-cyan-400 transition-all cursor-pointer" title="Treasury & Bond Barbell: $40,000 (39.9%)"></div>
+          <div style="width: 39.88%" class="bg-cyan-500 hover:bg-cyan-400 transition-all cursor-pointer" title="Treasury & Bond Barbell: $40,000 (39.9%)"></div>
           <div style="width: 45.06%" class="bg-indigo-600 hover:bg-indigo-500 transition-all cursor-pointer" title="Option Wheel Collateral: $45,200 (45.1%)"></div>
-          <div style="width: 14.57%" class="bg-emerald-500 hover:bg-emerald-400 transition-all cursor-pointer" title="Liquid Cash Reserve: $14,608.83 (14.6%)"></div>
+          <div style="width: 1.50%" class="bg-purple-500 hover:bg-purple-400 transition-all cursor-pointer" title="Defined-Risk Spreads: $1,500 (1.5%)"></div>
+          <div style="width: 2.49%" class="bg-sky-400 hover:bg-sky-300 transition-all cursor-pointer" title="Macro Dual-Momentum: $2,500 (2.5%)"></div>
+          <div style="width: 0.55%" class="bg-rose-500 hover:bg-rose-400 transition-all cursor-pointer" title="Crash Hedge & Dip: $555 (0.6%)"></div>
           <div style="width: 0.50%" class="bg-amber-500 hover:bg-amber-400 transition-all cursor-pointer" title="Spot Crypto: $497.22 (0.5%)"></div>
+          <div style="width: 10.02%" class="bg-emerald-500 hover:bg-emerald-400 transition-all cursor-pointer" title="Liquid Cash Reserve: $10,053.83 (10.0%)"></div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-slate-800 text-xs">
-          <div class="flex items-center gap-2.5">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-6 pt-4 border-t border-slate-800 text-xs">
+          <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-md bg-cyan-500 shrink-0"></span>
             <div>
-              <p class="text-slate-400">Bond Barbell (Yield)</p>
-              <p class="font-bold text-slate-200 text-sm">$40,000.00 <span class="font-normal text-slate-400 text-xs">(39.9%)</span></p>
+              <p class="text-slate-400 text-[11px]">Bond Barbell</p>
+              <p class="font-bold text-slate-200 text-xs">$40,000.00 <span class="font-normal text-slate-400 text-[10px]">(39.9%)</span></p>
             </div>
           </div>
 
-          <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-md bg-indigo-600 shrink-0"></span>
             <div>
-              <p class="text-slate-400">Option CSP Collateral</p>
-              <p class="font-bold text-slate-200 text-sm">$45,200.00 <span class="font-normal text-slate-400 text-xs">(45.1%)</span></p>
+              <p class="text-slate-400 text-[11px]">Option Wheel</p>
+              <p class="font-bold text-slate-200 text-xs">$45,200.00 <span class="font-normal text-slate-400 text-[10px]">(45.1%)</span></p>
             </div>
           </div>
 
-          <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-md bg-purple-500 shrink-0"></span>
+            <div>
+              <p class="text-slate-400 text-[11px]">Defined Spreads</p>
+              <p class="font-bold text-slate-200 text-xs" id="alloc-spreads-val">$1,500.00 <span class="font-normal text-slate-400 text-[10px]">(1.5%)</span></p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-md bg-sky-400 shrink-0"></span>
+            <div>
+              <p class="text-slate-400 text-[11px]">Macro Momentum</p>
+              <p class="font-bold text-slate-200 text-xs" id="alloc-macro-val">$2,500.00 <span class="font-normal text-slate-400 text-[10px]">(2.5%)</span></p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-md bg-rose-500 shrink-0"></span>
+            <div>
+              <p class="text-slate-400 text-[11px]">Hedge / Crypto</p>
+              <p class="font-bold text-slate-200 text-xs">$1,052.22 <span class="font-normal text-slate-400 text-[10px]">(1.0%)</span></p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-md bg-emerald-500 shrink-0"></span>
             <div>
-              <p class="text-slate-400">Liquid Cash Buffer</p>
-              <p class="font-bold text-slate-200 text-sm">$14,608.83 <span class="font-normal text-slate-400 text-xs">(14.6%)</span></p>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2.5">
-            <span class="w-3 h-3 rounded-md bg-amber-500 shrink-0"></span>
-            <div>
-              <p class="text-slate-400">Spot Crypto (ETH)</p>
-              <p class="font-bold text-slate-200 text-sm">$497.22 <span class="font-normal text-slate-400 text-xs">(0.5%)</span></p>
+              <p class="text-slate-400 text-[11px]">Liquid Cash Buffer</p>
+              <p class="font-bold text-slate-200 text-xs">$10,053.83 <span class="font-normal text-slate-400 text-[10px]">(10.0%)</span></p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Institutional Strategy Pillars -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-cyan-500">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <h3 class="font-bold text-white">Cash Drag Elimination</h3>
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white">Institutional Strategy Pillars</h2>
+            <p class="text-xs text-slate-400">8 systematic algorithmic engines running simultaneously across derivatives, fixed income, equity mean-reversion, and arbitrage</p>
           </div>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Idle liquidity is never left at 0%. $40,000 is partitioned into an institutional 50/50 bond barbell ($20k SGOV + $20k FBND) generating ~5.05% annualized risk-free return while preserving margin buying power.
-          </p>
+          <span class="text-xs font-semibold px-3 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">8 Active Pillars</span>
         </div>
 
-        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-indigo-500">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <!-- Pillar 1: Cash Drag Elimination -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-cyan-500 flex flex-col justify-between hover:border-cyan-500/50 transition">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Pillar 1</span>
+                    <h3 class="font-bold text-white text-sm">Cash Drag Elimination</h3>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                Idle liquidity is partitioned into an institutional 50/50 bond barbell ($20k SGOV + $20k FBND) generating ~5.05% annualized risk-free yield while maintaining margin buying power.
+              </p>
             </div>
-            <h3 class="font-bold text-white">Triple Income Wheel</h3>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-cyan-300" id="overview-pillar-bond-badge">+$168.33 / mo Yield</span>
+              <button onclick="switchTab('liquidity')" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 font-medium transition">
+                Inspect ➔
+              </button>
+            </div>
           </div>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Simultaneously harvests option theta decay across 6 diversified equities (INTC, HOOD, PLTR, SOFI, F, XLF). Out-of-the-money puts are closed early at a strict 50% profit target to recycle collateral velocity.
-          </p>
-        </div>
 
-        <div class="glass-card rounded-2xl p-6 border-l-4 border-l-amber-500">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+          <!-- Pillar 2: Triple Income Wheel -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-indigo-500 flex flex-col justify-between hover:border-indigo-500/50 transition">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Pillar 2</span>
+                    <h3 class="font-bold text-white text-sm">Triple Income Wheel</h3>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                Harvests option theta decay across 6 equities (INTC, HOOD, PLTR, SOFI, F, XLF). Out-of-the-money puts are closed early at a strict 50% profit target to recycle collateral velocity.
+              </p>
             </div>
-            <h3 class="font-bold text-white">Autonomous Tax Escrow</h3>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-indigo-300" id="overview-pillar-wheel-badge">6 Tickers Active</span>
+              <button onclick="switchTab('wheel')" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 font-medium transition">
+                Inspect ➔
+              </button>
+            </div>
           </div>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Every trade settlement mathematically withholds 30% into an isolated virtual tax reserve file. Hard capital gates reject any order that infringes upon tax withholdings, guaranteeing zero year-end surprises.
-          </p>
+
+          <!-- Pillar 3: Autonomous Tax Escrow -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-amber-500 flex flex-col justify-between hover:border-amber-500/50 transition">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Pillar 3</span>
+                    <h3 class="font-bold text-white text-sm">Autonomous Tax Escrow</h3>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                Every trade settlement automatically withholds 30% into an isolated virtual tax reserve file. Hard capital gates reject any order that infringes on tax funds, guaranteeing zero year-end shocks.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-amber-300" id="overview-pillar-tax-badge">$109.76 Reserved</span>
+              <button onclick="switchTab('tax')" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 font-medium transition">
+                Inspect ➔
+              </button>
+            </div>
+          </div>
+
+          <!-- Pillar 4: Defined-Risk Spreads -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-purple-500 flex flex-col justify-between hover:border-purple-500/50 transition">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="p-2 rounded-lg bg-purple-500/10 text-purple-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Pillar 4</span>
+                    <h3 class="font-bold text-white text-sm">Defined-Risk Spreads</h3>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                Systematic multi-leg credit spreads across SPY, QQQ, and IWM. Built-in long safety net caps maximum loss to exactly $500/wing with automated 50% max profit early exit.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-purple-300" id="overview-pillar-spreads-badge">$1,500.00 Locked (3 Active)</span>
+              <button onclick="switchTab('spreads')" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 font-medium transition">
+                Inspect ➔
+              </button>
+            </div>
+          </div>
+
+          <!-- Pillar 5: Black Swan Crash Hedge -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-rose-500 flex flex-col justify-between hover:border-rose-500/50 transition">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="p-2 rounded-lg bg-rose-500/10 text-rose-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Pillar 5</span>
+                    <h3 class="font-bold text-white text-sm">Black Swan Crash Hedge</h3>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                Systematic portfolio catastrophe insurance. Deep OTM SPY Puts with strict $150/mo budget, automated +250% crash monetization exit, and 21 DTE theta salvage roll defense.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-rose-300" id="overview-pillar-hedge-badge">Shield Active ($55 Spent)</span>
+              <button onclick="switchTab('hedge')" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 font-medium transition">
+                Inspect ➔
+              </button>
+            </div>
+          </div>
+
+          <!-- Pillar 6: Blue-Chip Dip Buyer -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-emerald-500 flex flex-col justify-between hover:border-emerald-500/50 transition">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Pillar 6</span>
+                    <h3 class="font-bold text-white text-sm">Blue-Chip Dip Buyer</h3>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                Algorithmic mean-reversion sniping across 5 mega-caps (AAPL, MSFT, GOOGL, AMZN, NVDA). Buys oversold RSI &lt; 30 with 200 SMA trend filter, +5% profit harvest, and -5% hard stop.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-emerald-300" id="overview-pillar-dip-badge">Monitoring 5 Mega-Caps</span>
+              <button onclick="switchTab('dip')" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 font-medium transition">
+                Inspect ➔
+              </button>
+            </div>
+          </div>
+
+          <!-- Pillar 7: Macro Dual Momentum -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-cyan-400 flex flex-col justify-between hover:border-cyan-400/50 transition">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="p-2 rounded-lg bg-cyan-400/10 text-cyan-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Pillar 7</span>
+                    <h3 class="font-bold text-white text-sm">Macro Dual Momentum</h3>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                Systematic asset rotation across global equities, gold, and real estate. Allocates to top 2 momentum leaders when above 200 SMA; defaults to SGOV safe haven during downturns.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-cyan-300" id="overview-pillar-macro-badge">$2,500 Deployed (QQQ)</span>
+              <button onclick="switchTab('macro')" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 font-medium transition">
+                Inspect ➔
+              </button>
+            </div>
+          </div>
+
+          <!-- Pillar 8: Statistical Pairs Trading -->
+          <div class="glass-card rounded-2xl p-5 border-l-4 border-l-violet-500 flex flex-col justify-between hover:border-violet-500/50 transition">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="p-2 rounded-lg bg-violet-500/10 text-violet-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Pillar 8</span>
+                    <h3 class="font-bold text-white text-sm">Statistical Pairs Trading</h3>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                Market-neutral equity arbitrage exploiting pricing dislocations across cointegrated pairs (XOM/CVX, KO/PEP, GOOGL/MSFT). Enters at |z| &ge; 2.0 and exits on mean reversion.
+              </p>
+            </div>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-violet-300" id="overview-pillar-pairs-badge">Scanning 3 Pairs (Neutral)</span>
+              <button onclick="switchTab('pairs')" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 font-medium transition">
+                Inspect ➔
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1517,7 +1718,7 @@
           <span class="text-xs text-slate-400">Real-Time Decay & 50% Profit Progress</span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5" id="spreads-active-grid">
           <!-- SPY Spread Card -->
           <div class="glass-card rounded-2xl p-5 border border-slate-800 hover:border-purple-500/50 transition">
             <div class="flex items-start justify-between">
@@ -1529,18 +1730,18 @@
                 <p class="text-xs text-slate-400 mt-0.5">S&P 500 Index ETF: <span class="text-slate-200 font-medium">$560.00</span></p>
               </div>
               <div class="text-right">
-                <span class="text-xs font-mono text-purple-300 font-semibold">$540P / $535P</span>
-                <p class="text-[11px] text-slate-400">28 DTE (Oct 09)</p>
+                <span class="text-xs font-mono text-purple-300 font-semibold">$515P / $510P</span>
+                <p class="text-[11px] text-slate-400">27 DTE (2026-10-09)</p>
               </div>
             </div>
 
             <div class="mt-4 pt-3 border-t border-slate-800/80">
               <div class="flex justify-between text-xs mb-1.5">
                 <span class="text-slate-400">Progress to 50% Profit Exit:</span>
-                <span class="text-emerald-400 font-semibold">71.8% ($61.00 / $85.00)</span>
+                <span class="text-emerald-400 font-semibold">100.0% ($74.00 / $80.00)</span>
               </div>
               <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: 71.8%"></div>
+                <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: 100%"></div>
               </div>
             </div>
 
@@ -1551,15 +1752,15 @@
               </div>
               <div class="text-right">
                 <p class="text-slate-500">Net Credit Collected</p>
-                <p class="font-semibold text-emerald-400">+$0.85/sh (+$85.00)</p>
+                <p class="font-semibold text-emerald-400">+$0.80/sh (+$80.00)</p>
               </div>
               <div>
                 <p class="text-slate-500">Max Risk Capped</p>
-                <p class="font-semibold text-slate-300">$415.00</p>
+                <p class="font-semibold text-slate-300">$420.00</p>
               </div>
               <div class="text-right">
                 <p class="text-slate-500">Buyback Target</p>
-                <p class="font-semibold text-cyan-400">≤ $0.425/sh</p>
+                <p class="font-semibold text-cyan-400">≤ $0.400/sh</p>
               </div>
             </div>
           </div>
@@ -1575,18 +1776,18 @@
                 <p class="text-xs text-slate-400 mt-0.5">Nasdaq 100 Index ETF: <span class="text-slate-200 font-medium">$485.00</span></p>
               </div>
               <div class="text-right">
-                <span class="text-xs font-mono text-purple-300 font-semibold">$470P / $465P</span>
-                <p class="text-[11px] text-slate-400">28 DTE (Oct 09)</p>
+                <span class="text-xs font-mono text-purple-300 font-semibold">$440P / $435P</span>
+                <p class="text-[11px] text-slate-400">27 DTE (2026-10-09)</p>
               </div>
             </div>
 
             <div class="mt-4 pt-3 border-t border-slate-800/80">
               <div class="flex justify-between text-xs mb-1.5">
                 <span class="text-slate-400">Progress to 50% Profit Exit:</span>
-                <span class="text-emerald-400 font-semibold">55.0% ($44.00 / $80.00)</span>
+                <span class="text-emerald-400 font-semibold">100.0% ($40.00 / $80.00)</span>
               </div>
               <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: 55.0%"></div>
+                <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: 100%"></div>
               </div>
             </div>
 
@@ -1621,18 +1822,18 @@
                 <p class="text-xs text-slate-400 mt-0.5">Russell 2000 Index ETF: <span class="text-slate-200 font-medium">$225.00</span></p>
               </div>
               <div class="text-right">
-                <span class="text-xs font-mono text-purple-300 font-semibold">$215P / $210P</span>
-                <p class="text-[11px] text-slate-400">28 DTE (Oct 09)</p>
+                <span class="text-xs font-mono text-purple-300 font-semibold">$175P / $170P</span>
+                <p class="text-[11px] text-slate-400">27 DTE (2026-10-09)</p>
               </div>
             </div>
 
             <div class="mt-4 pt-3 border-t border-slate-800/80">
               <div class="flex justify-between text-xs mb-1.5">
                 <span class="text-slate-400">Progress to 50% Profit Exit:</span>
-                <span class="text-emerald-400 font-semibold">40.0% ($36.00 / $90.00)</span>
+                <span class="text-emerald-400 font-semibold">100.0% ($75.00 / $80.00)</span>
               </div>
               <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: 40.0%"></div>
+                <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: 100%"></div>
               </div>
             </div>
 
@@ -1643,15 +1844,15 @@
               </div>
               <div class="text-right">
                 <p class="text-slate-500">Net Credit Collected</p>
-                <p class="font-semibold text-emerald-400">+$0.90/sh (+$90.00)</p>
+                <p class="font-semibold text-emerald-400">+$0.80/sh (+$80.00)</p>
               </div>
               <div>
                 <p class="text-slate-500">Max Risk Capped</p>
-                <p class="font-semibold text-slate-300">$410.00</p>
+                <p class="font-semibold text-slate-300">$420.00</p>
               </div>
               <div class="text-right">
                 <p class="text-slate-500">Buyback Target</p>
-                <p class="font-semibold text-cyan-400">≤ $0.450/sh</p>
+                <p class="font-semibold text-cyan-400">≤ $0.400/sh</p>
               </div>
             </div>
           </div>
@@ -1820,11 +2021,11 @@
           </div>
           <div class="mt-2 flex items-baseline gap-2">
             <span class="text-2xl font-black text-white" id="hedge-budget-kpi">$150.00</span>
-            <span class="text-xs text-slate-400" id="hedge-spent-kpi">Spent: $0.00</span>
+            <span class="text-xs text-slate-400" id="hedge-spent-kpi">Spent: $55.00</span>
           </div>
           <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
             <span>Remaining Budget:</span>
-            <span class="text-emerald-400 font-medium" id="hedge-remaining-kpi">$150.00</span>
+            <span class="text-emerald-400 font-medium" id="hedge-remaining-kpi">$95.00</span>
           </div>
         </div>
 
@@ -1835,7 +2036,7 @@
             <span class="text-xs p-1 rounded-md bg-emerald-500/10 text-emerald-400">Active</span>
           </div>
           <div class="mt-2 flex items-baseline gap-2">
-            <span class="text-2xl font-black text-white" id="hedge-contract-kpi">SPY Put Shield</span>
+            <span class="text-2xl font-black text-white" id="hedge-contract-kpi">SPY $475 Put Shield</span>
           </div>
           <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
             <span>Underlying Index:</span>
@@ -1850,12 +2051,12 @@
             <span class="text-xs p-1 rounded-md bg-cyan-500/10 text-cyan-400">Live Quote</span>
           </div>
           <div class="mt-2 flex items-baseline gap-2">
-            <span class="text-2xl font-black text-white" id="hedge-value-kpi">$60.00</span>
+            <span class="text-2xl font-black text-white" id="hedge-value-kpi">$55.00</span>
             <span class="text-xs font-semibold text-emerald-400" id="hedge-pnl-kpi">+0.0%</span>
           </div>
           <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
             <span>Windfall Target:</span>
-            <span class="text-emerald-400 font-semibold" id="hedge-target-kpi">+250% ($210.00)</span>
+            <span class="text-emerald-400 font-semibold" id="hedge-target-kpi">+250% ($192.50)</span>
           </div>
         </div>
 
@@ -1890,14 +2091,14 @@
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-base font-bold text-white" id="hedge-active-symbol">SPY</span>
-                <span class="text-xs px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 font-mono" id="hedge-active-contract">SPY261120P00460000</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 font-mono" id="hedge-active-contract">SPY261009P00475000</span>
                 <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300">15% OTM PUT</span>
               </div>
-              <p class="text-xs text-slate-400 mt-1">Strike: <span class="text-slate-200 font-semibold" id="hedge-active-strike">$460.00 Put</span> | Exp: <span class="text-slate-200" id="hedge-active-exp">2026-11-20</span> (<span class="text-cyan-400 font-medium" id="hedge-active-dte">68 DTE</span>)</p>
+              <p class="text-xs text-slate-400 mt-1">Strike: <span class="text-slate-200 font-semibold" id="hedge-active-strike">$475.00 Put</span> | Exp: <span class="text-slate-200" id="hedge-active-exp">2026-10-27</span> (<span class="text-cyan-400 font-medium" id="hedge-active-dte">45 DTE</span>)</p>
             </div>
             <div class="text-right">
               <span class="text-sm font-bold text-emerald-400 font-mono" id="hedge-active-gain">+0.0% Gain</span>
-              <p class="text-[11px] text-slate-500">Monetization Trigger: <span class="text-emerald-300" id="hedge-active-trigger-price">$2.10/sh</span></p>
+              <p class="text-[11px] text-slate-500">Monetization Trigger: <span class="text-emerald-300" id="hedge-active-trigger-price">$1.93/sh</span></p>
             </div>
           </div>
 
@@ -1915,15 +2116,15 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3 border-t border-slate-800/80 text-xs">
             <div>
               <p class="text-slate-500">Entry Cost / Share</p>
-              <p class="font-semibold text-slate-200" id="hedge-active-entry-share">$0.60/sh</p>
+              <p class="font-semibold text-slate-200" id="hedge-active-entry-share">$0.55/sh</p>
             </div>
             <div>
               <p class="text-slate-500">Total Capital Spent</p>
-              <p class="font-semibold text-slate-200" id="hedge-active-total-cost">$60.00</p>
+              <p class="font-semibold text-slate-200" id="hedge-active-total-cost">$55.00</p>
             </div>
             <div>
               <p class="text-slate-500">Current Market Quote</p>
-              <p class="font-semibold text-cyan-400" id="hedge-active-quote">$0.60/sh ($60.00)</p>
+              <p class="font-semibold text-cyan-400" id="hedge-active-quote">$0.55/sh ($55.00)</p>
             </div>
             <div class="text-right">
               <p class="text-slate-500">Roll Defense Rule</p>
@@ -2169,42 +2370,42 @@
             <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="dip-scanner-table-body">
               <tr>
                 <td class="py-2.5 px-4 font-sans font-bold text-white">AAPL</td>
-                <td class="py-2.5 px-4 text-slate-300">$225.00</td>
-                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">52.4</span></td>
-                <td class="py-2.5 px-4 text-slate-400">$221.80</td>
-                <td class="py-2.5 px-4 text-slate-400">$209.40</td>
+                <td class="py-2.5 px-4 text-slate-300">$332.55</td>
+                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">60.6</span></td>
+                <td class="py-2.5 px-4 text-slate-400">$321.34</td>
+                <td class="py-2.5 px-4 text-slate-400">$346.01</td>
                 <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span></td>
               </tr>
               <tr>
                 <td class="py-2.5 px-4 font-sans font-bold text-white">MSFT</td>
-                <td class="py-2.5 px-4 text-slate-300">$420.00</td>
-                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">48.6</span></td>
-                <td class="py-2.5 px-4 text-slate-400">$428.10</td>
-                <td class="py-2.5 px-4 text-slate-400">$415.50</td>
+                <td class="py-2.5 px-4 text-slate-300">$495.66</td>
+                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">61.1</span></td>
+                <td class="py-2.5 px-4 text-slate-400">$475.66</td>
+                <td class="py-2.5 px-4 text-slate-400">$476.21</td>
                 <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span></td>
               </tr>
               <tr>
                 <td class="py-2.5 px-4 font-sans font-bold text-white">GOOGL</td>
-                <td class="py-2.5 px-4 text-slate-300">$165.00</td>
-                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">45.2</span></td>
-                <td class="py-2.5 px-4 text-slate-400">$168.90</td>
-                <td class="py-2.5 px-4 text-slate-400">$161.20</td>
+                <td class="py-2.5 px-4 text-slate-300">$342.00</td>
+                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">57.0</span></td>
+                <td class="py-2.5 px-4 text-slate-400">$327.32</td>
+                <td class="py-2.5 px-4 text-slate-400">$297.16</td>
                 <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span></td>
               </tr>
               <tr>
                 <td class="py-2.5 px-4 font-sans font-bold text-white">AMZN</td>
-                <td class="py-2.5 px-4 text-slate-300">$185.00</td>
-                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">51.0</span></td>
-                <td class="py-2.5 px-4 text-slate-400">$182.40</td>
-                <td class="py-2.5 px-4 text-slate-400">$176.80</td>
+                <td class="py-2.5 px-4 text-slate-300">$254.25</td>
+                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">59.7</span></td>
+                <td class="py-2.5 px-4 text-slate-400">$233.65</td>
+                <td class="py-2.5 px-4 text-slate-400">$205.75</td>
                 <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span></td>
               </tr>
               <tr>
                 <td class="py-2.5 px-4 font-sans font-bold text-white">NVDA</td>
-                <td class="py-2.5 px-4 text-slate-300">$115.00</td>
-                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">44.8</span></td>
-                <td class="py-2.5 px-4 text-slate-400">$118.50</td>
-                <td class="py-2.5 px-4 text-slate-400">$108.20</td>
+                <td class="py-2.5 px-4 text-slate-300">$218.17</td>
+                <td class="py-2.5 px-4"><span class="text-slate-300 font-semibold">68.4</span></td>
+                <td class="py-2.5 px-4 text-slate-400">$195.46</td>
+                <td class="py-2.5 px-4 text-slate-400">$203.69</td>
                 <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span></td>
               </tr>
             </tbody>
@@ -2337,12 +2538,12 @@
             <span class="text-xs p-1 rounded-md bg-cyan-500/10 text-cyan-400">Cap $5k</span>
           </div>
           <div class="mt-2 flex items-baseline gap-2">
-            <span class="text-2xl font-black text-white" id="macro-capital-kpi">$0</span>
+            <span class="text-2xl font-black text-white" id="macro-capital-kpi">$2,500</span>
             <span class="text-xs text-slate-400">/ $5,000</span>
           </div>
           <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
             <span>Portfolio Utilization:</span>
-            <span class="text-slate-200 font-medium" id="macro-utilization-kpi">0.0%</span>
+            <span class="text-slate-200 font-medium" id="macro-utilization-kpi">50.0%</span>
           </div>
         </div>
 
@@ -2353,11 +2554,11 @@
             <span class="text-xs p-1 rounded-md bg-cyan-500/10 text-cyan-400">Trend</span>
           </div>
           <div class="mt-2 flex items-baseline gap-2">
-            <span class="text-xl font-black text-white" id="macro-regime-kpi">STANDBY</span>
+            <span class="text-xl font-black text-amber-400" id="macro-regime-kpi">RISK-OFF</span>
           </div>
           <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
             <span>Active Tranches:</span>
-            <span class="text-slate-200 font-medium" id="macro-active-count-kpi">0</span>
+            <span class="text-slate-200 font-medium" id="macro-active-count-kpi">1</span>
           </div>
         </div>
 
@@ -2372,7 +2573,7 @@
           </div>
           <div class="mt-2 text-xs text-slate-400 flex items-center justify-between">
             <span>Rotations Closed:</span>
-            <span class="text-slate-200 font-medium" id="macro-closed-count-kpi">0</span>
+            <span class="text-slate-200 font-medium" id="macro-closed-count-kpi">8</span>
           </div>
         </div>
 
@@ -2399,7 +2600,7 @@
             <h3 class="text-sm font-bold text-white">Active Macro Allocations</h3>
             <p class="text-xs text-slate-400">Real-time valuation, -7% trailing stop protection, and regime tracking</p>
           </div>
-          <span class="text-xs font-semibold text-cyan-400" id="macro-active-badge">0 Active Allocations</span>
+          <span class="text-xs font-semibold text-cyan-400" id="macro-active-badge">1 Active Allocation (QQQ)</span>
         </div>
 
         <div class="overflow-x-auto">
@@ -2418,8 +2619,16 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="macro-active-table-body">
-              <tr class="text-slate-500 text-center py-4">
-                <td colspan="9" class="py-4 font-sans">No active macro allocations open. Standing by for next rebalance cycle.</td>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-4 font-sans font-bold text-white">QQQ</td>
+                <td class="py-2.5 px-4 text-slate-300 font-sans">Tech / Growth Equities</td>
+                <td class="py-2.5 px-4 text-slate-300">5.1546</td>
+                <td class="py-2.5 px-4 text-slate-400">$485.00</td>
+                <td class="py-2.5 px-4 text-slate-200 font-semibold">$485.00</td>
+                <td class="py-2.5 px-4 text-slate-400">$2,499.98</td>
+                <td class="py-2.5 px-4 text-slate-300 font-medium">$2,499.98</td>
+                <td class="py-2.5 px-4 text-rose-400 font-medium">$451.05</td>
+                <td class="py-2.5 px-4 text-right font-bold text-emerald-400">+$0.00 (+0.0%)</td>
               </tr>
             </tbody>
           </table>
@@ -2723,33 +2932,33 @@
             <tbody class="divide-y divide-slate-800/60 font-mono text-[11px]" id="pairs-scanner-table-body">
               <tr class="hover:bg-slate-800/40 transition">
                 <td class="py-2.5 px-4 font-sans font-bold text-white">XOM / CVX</td>
-                <td class="py-2.5 px-4 text-slate-300">$115.00</td>
-                <td class="py-2.5 px-4 text-slate-300">$150.00</td>
-                <td class="py-2.5 px-4 text-slate-200 font-semibold">0.7667</td>
-                <td class="py-2.5 px-4 text-slate-400">0.7667</td>
-                <td class="py-2.5 px-4 text-slate-400">0.0383</td>
+                <td class="py-2.5 px-4 text-slate-300">$164.62</td>
+                <td class="py-2.5 px-4 text-slate-300">$214.06</td>
+                <td class="py-2.5 px-4 text-slate-200 font-semibold">0.7690</td>
+                <td class="py-2.5 px-4 text-slate-400">0.7690</td>
+                <td class="py-2.5 px-4 text-slate-400">0.0385</td>
                 <td class="py-2.5 px-4 text-slate-300 font-bold">+0.00</td>
                 <td class="py-2.5 px-4 text-slate-400">NEUTRAL</td>
                 <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span></td>
               </tr>
               <tr class="hover:bg-slate-800/40 transition">
                 <td class="py-2.5 px-4 font-sans font-bold text-white">KO / PEP</td>
-                <td class="py-2.5 px-4 text-slate-300">$68.00</td>
-                <td class="py-2.5 px-4 text-slate-300">$172.00</td>
-                <td class="py-2.5 px-4 text-slate-200 font-semibold">0.3953</td>
-                <td class="py-2.5 px-4 text-slate-400">0.3953</td>
-                <td class="py-2.5 px-4 text-slate-400">0.0198</td>
+                <td class="py-2.5 px-4 text-slate-300">$88.26</td>
+                <td class="py-2.5 px-4 text-slate-300">$137.51</td>
+                <td class="py-2.5 px-4 text-slate-200 font-semibold">0.6418</td>
+                <td class="py-2.5 px-4 text-slate-400">0.6418</td>
+                <td class="py-2.5 px-4 text-slate-400">0.0321</td>
                 <td class="py-2.5 px-4 text-slate-300 font-bold">+0.00</td>
                 <td class="py-2.5 px-4 text-slate-400">NEUTRAL</td>
                 <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span></td>
               </tr>
               <tr class="hover:bg-slate-800/40 transition">
                 <td class="py-2.5 px-4 font-sans font-bold text-white">GOOGL / MSFT</td>
-                <td class="py-2.5 px-4 text-slate-300">$165.00</td>
-                <td class="py-2.5 px-4 text-slate-300">$420.00</td>
-                <td class="py-2.5 px-4 text-slate-200 font-semibold">0.3929</td>
-                <td class="py-2.5 px-4 text-slate-400">0.3929</td>
-                <td class="py-2.5 px-4 text-slate-400">0.0196</td>
+                <td class="py-2.5 px-4 text-slate-300">$342.00</td>
+                <td class="py-2.5 px-4 text-slate-300">$495.66</td>
+                <td class="py-2.5 px-4 text-slate-200 font-semibold">0.6900</td>
+                <td class="py-2.5 px-4 text-slate-400">0.6900</td>
+                <td class="py-2.5 px-4 text-slate-400">0.0345</td>
                 <td class="py-2.5 px-4 text-slate-300 font-bold">+0.00</td>
                 <td class="py-2.5 px-4 text-slate-400">NEUTRAL</td>
                 <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span></td>
@@ -3130,442 +3339,635 @@
             });
           }
 
-          if (data.spreads) {
-            const sprd = data.spreads;
-            if (sprd.collateral_locked !== undefined) {
-              const el = document.getElementById('spread-collateral-kpi');
-              if (el) el.innerText = '$' + sprd.collateral_locked.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            }
-            if (sprd.active_count !== undefined) {
-              const el = document.getElementById('spread-active-count-kpi');
-              if (el) el.innerText = `${sprd.active_count} Positions`;
-            }
-            if (sprd.total_realized_pnl !== undefined) {
-              const el = document.getElementById('spread-realized-kpi');
-              const sign = sprd.total_realized_pnl >= 0 ? '+' : '';
-              if (el) el.innerText = `${sign}$${sprd.total_realized_pnl.toFixed(2)}`;
-            }
-          }
+          // Strategy 5: Defined-Risk Option Spreads Telemetry
+          try {
+            if (data.spreads) {
+              const sprd = data.spreads;
+              if (sprd.collateral_locked !== undefined) {
+                const el = document.getElementById('spread-collateral-kpi');
+                if (el) el.innerText = '$' + sprd.collateral_locked.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+              }
+              if (sprd.active_count !== undefined) {
+                const el = document.getElementById('spread-active-count-kpi');
+                if (el) el.innerText = `${sprd.active_count} Positions`;
+              }
+              if (sprd.total_realized_pnl !== undefined) {
+                const el = document.getElementById('spread-realized-kpi');
+                const sign = sprd.total_realized_pnl >= 0 ? '+' : '';
+                if (el) el.innerText = `${sign}$${sprd.total_realized_pnl.toFixed(2)}`;
+              }
 
-          if (data.tail_hedge) {
-            const hdg = data.tail_hedge;
-            if (hdg.monthly_budget !== undefined) {
-              const bEl = document.getElementById('hedge-budget-kpi');
-              if (bEl) bEl.innerText = '$' + hdg.monthly_budget.toFixed(2);
-            }
-            if (hdg.monthly_spent !== undefined) {
-              const sEl = document.getElementById('hedge-spent-kpi');
-              if (sEl) sEl.innerText = `Spent: $${hdg.monthly_spent.toFixed(2)}`;
-            }
-            if (hdg.monthly_budget_remaining !== undefined) {
-              const rEl = document.getElementById('hedge-remaining-kpi');
-              if (rEl) rEl.innerText = `$${hdg.monthly_budget_remaining.toFixed(2)}`;
-            }
-            if (hdg.total_realized_pnl !== undefined) {
-              const relEl = document.getElementById('hedge-realized-kpi');
-              const sign = hdg.total_realized_pnl >= 0 ? '+' : '';
-              if (relEl) relEl.innerText = `${sign}$${hdg.total_realized_pnl.toFixed(2)}`;
-            }
-            if (hdg.monetized_count !== undefined) {
-              const mEl = document.getElementById('hedge-monetized-count-kpi');
-              if (mEl) mEl.innerText = `${hdg.monetized_count} Harvested`;
-            }
+              // Dynamic render of active spreads
+              const spreadsGrid = document.getElementById('spreads-active-grid');
+              if (spreadsGrid && sprd.active_spreads && sprd.active_spreads.length > 0) {
+                spreadsGrid.innerHTML = sprd.active_spreads.map(s => {
+                  const prog = Math.min(100, Math.max(0, (s.progress_to_target || 0) * 100));
+                  const targetBuyback = (s.entry_credit || 0) * 0.5;
+                  const pnlSign = (s.unrealized_pnl || 0) >= 0 ? '+' : '';
+                  return `
+                    <div class="glass-card rounded-2xl p-5 border border-slate-800 hover:border-purple-500/50 transition">
+                      <div class="flex items-start justify-between">
+                        <div>
+                          <div class="flex items-center gap-2">
+                            <span class="text-lg font-bold text-white">${s.underlying}</span>
+                            <span class="text-xs px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 font-medium border border-purple-500/20">BULL PUT SPREAD</span>
+                          </div>
+                          <p class="text-xs text-slate-400 mt-0.5">Strikes: <span class="text-slate-200 font-medium">$${s.short_strike}P / $${s.long_strike}P</span></p>
+                        </div>
+                        <div class="text-right">
+                          <span class="text-xs font-mono text-purple-300 font-semibold">$${s.short_strike}P / $${s.long_strike}P</span>
+                          <p class="text-[11px] text-slate-400">${s.days_to_expiration || 0} DTE (${s.expiration_date || ''})</p>
+                        </div>
+                      </div>
 
-            if (hdg.active_hedge) {
-              const ah = hdg.active_hedge;
-              const symEl = document.getElementById('hedge-active-symbol');
-              if (symEl) symEl.innerText = ah.underlying || 'SPY';
-              const cntEl = document.getElementById('hedge-active-contract');
-              if (cntEl) cntEl.innerText = ah.contract_symbol;
-              const stkEl = document.getElementById('hedge-active-strike');
-              if (stkEl) stkEl.innerText = `$${ah.strike_price.toFixed(2)} Put`;
-              const expEl = document.getElementById('hedge-active-exp');
-              if (expEl) expEl.innerText = ah.expiration_date;
-              const dteEl = document.getElementById('hedge-active-dte');
-              if (dteEl) dteEl.innerText = `${ah.days_to_expiration} DTE`;
-              const trigEl = document.getElementById('hedge-active-trigger-price');
-              if (trigEl) trigEl.innerText = `$${ah.target_monetization_price.toFixed(2)}/sh`;
-              const entShEl = document.getElementById('hedge-active-entry-share');
-              if (entShEl) entShEl.innerText = `$${ah.entry_price_per_share.toFixed(2)}/sh`;
-              const totCostEl = document.getElementById('hedge-active-total-cost');
-              if (totCostEl) totCostEl.innerText = `$${ah.entry_total_cost.toFixed(2)}`;
-              const valEl = document.getElementById('hedge-value-kpi');
-              if (valEl) valEl.innerText = `$${ah.current_market_value.toFixed(2)}`;
-              const pnlEl = document.getElementById('hedge-pnl-kpi');
-              if (pnlEl) pnlEl.innerText = `${ah.gain_pct >= 0 ? '+' : ''}${ah.gain_pct.toFixed(1)}%`;
-              const quoteEl = document.getElementById('hedge-active-quote');
-              if (quoteEl) quoteEl.innerText = `$${ah.current_price_per_share.toFixed(2)}/sh ($${ah.current_market_value.toFixed(2)})`;
-              const gainEl = document.getElementById('hedge-active-gain');
-              if (gainEl) gainEl.innerText = `${ah.gain_pct >= 0 ? '+' : ''}${ah.gain_pct.toFixed(1)}% Gain`;
+                      <div class="mt-4 pt-3 border-t border-slate-800/80">
+                        <div class="flex justify-between text-xs mb-1.5">
+                          <span class="text-slate-400">Progress to 50% Profit Exit:</span>
+                          <span class="text-emerald-400 font-semibold">${prog.toFixed(1)}% (${pnlSign}$${(s.unrealized_pnl || 0).toFixed(2)} / $${(s.max_profit || 0).toFixed(2)})</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                          <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: ${prog}%"></div>
+                        </div>
+                      </div>
 
-              const pct = Math.min(100, Math.max(0, (ah.progress_to_target || 0) * 100));
-              const progBar = document.getElementById('hedge-active-progress-bar');
-              if (progBar) progBar.style.width = pct.toFixed(1) + '%';
-              const progText = document.getElementById('hedge-active-progress-text');
-              if (progText) progText.innerText = `${pct.toFixed(1)}%`;
-            }
+                      <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+                        <div>
+                          <p class="text-slate-500">Collateral Locked</p>
+                          <p class="font-semibold text-slate-200">$${(s.collateral_locked || 500).toFixed(2)}</p>
+                        </div>
+                        <div class="text-right">
+                          <p class="text-slate-500">Net Credit Collected</p>
+                          <p class="font-semibold text-emerald-400">+$${(s.entry_credit || 0).toFixed(2)}/sh (+$${((s.entry_credit || 0) * 100).toFixed(2)})</p>
+                        </div>
+                        <div>
+                          <p class="text-slate-500">Max Risk Capped</p>
+                          <p class="font-semibold text-slate-300">$${(s.max_loss || 420).toFixed(2)}</p>
+                        </div>
+                        <div class="text-right">
+                          <p class="text-slate-500">Buyback Target</p>
+                          <p class="font-semibold text-cyan-400">≤ $${targetBuyback.toFixed(3)}/sh</p>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }).join('');
+              }
 
-            if (hdg.closed_count !== undefined) {
-              const ccEl = document.getElementById('hedge-closed-count-badge');
-              if (ccEl) ccEl.innerText = `${hdg.closed_count} Closed Hedges`;
-            }
-          }
-
-          if (data.dip_buyer) {
-            const dip = data.dip_buyer;
-            if (dip.active_positions_count !== undefined) {
-              const actEl = document.getElementById('dip-active-count-kpi');
-              if (actEl) actEl.innerText = dip.active_positions_count;
-              const bdgEl = document.getElementById('dip-active-badge');
-              if (bdgEl) bdgEl.innerText = `${dip.active_positions_count} Active Positions`;
-            }
-            if (dip.capital_deployed_usd !== undefined) {
-              const depEl = document.getElementById('dip-deployed-kpi');
-              if (depEl) depEl.innerText = `$${dip.capital_deployed_usd.toFixed(2)}`;
-            }
-            if (dip.total_realized_pnl !== undefined) {
-              const relEl = document.getElementById('dip-realized-kpi');
-              if (relEl) {
-                const sign = dip.total_realized_pnl >= 0 ? '+' : '';
-                relEl.innerText = `${sign}$${dip.total_realized_pnl.toFixed(2)}`;
+              // Dynamic render of closed spreads audit table if present
+              const historyTable = document.getElementById('spreads-history-table-body');
+              if (historyTable && sprd.closed_spreads && sprd.closed_spreads.length > 0) {
+                historyTable.innerHTML = sprd.closed_spreads.map(t => {
+                  const isGain = (t.realized_pnl || 0) >= 0;
+                  const pnlSign = isGain ? '+' : '';
+                  const pnlColor = isGain ? 'text-emerald-400' : 'text-rose-400';
+                  return `
+                    <tr class="hover:bg-slate-800/30 transition">
+                      <td class="py-2.5 px-4 font-bold text-white">${t.underlying}</td>
+                      <td class="py-2.5 px-4 text-purple-300">$${t.short_strike}P / $${t.long_strike}P Bull Put</td>
+                      <td class="py-2.5 px-4 text-slate-300">$${(t.collateral_locked || 500).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-emerald-400">+$${(t.entry_credit || 0).toFixed(2)} ($${((t.entry_credit || 0) * 100).toFixed(2)})</td>
+                      <td class="py-2.5 px-4 text-slate-300">-$${(t.close_debit || 0).toFixed(2)} ($${((t.close_debit || 0) * 100).toFixed(2)})</td>
+                      <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(t.realized_pnl || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-right text-amber-300 font-semibold">+$${(t.tax_escrow || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-center"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">${t.exit_reason || '50% TARGET'}</span></td>
+                    </tr>
+                  `;
+                }).join('');
               }
             }
-            if (dip.closed_trades_count !== undefined) {
-              const clEl = document.getElementById('dip-closed-count-kpi');
-              if (clEl) clEl.innerText = `${dip.closed_trades_count} Trades`;
-              const clBdg = document.getElementById('dip-closed-count-badge');
-              if (clBdg) clBdg.innerText = `${dip.closed_trades_count} Closed Snipes`;
-            }
-            if (dip.win_rate_pct !== undefined) {
-              const winEl = document.getElementById('dip-winrate-kpi');
-              if (winEl) winEl.innerText = `${dip.win_rate_pct.toFixed(1)}%`;
-            }
+          } catch (e) {
+            console.warn("Error updating spreads telemetry:", e);
+          }
 
-            // Render Active Positions Table
-            const activeTable = document.getElementById('dip-active-table-body');
-            if (activeTable && dip.active_positions && dip.active_positions.length > 0) {
-              activeTable.innerHTML = dip.active_positions.map(p => {
-                const pnlSign = (p.unrealized_pnl || 0) >= 0 ? '+' : '';
-                const pnlColor = (p.unrealized_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
-                const prog = Math.min(100, Math.max(0, p.progress_pct || 0));
-                return `
-                  <tr class="hover:bg-slate-800/40 transition">
-                    <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol}</td>
-                    <td class="py-2.5 px-4 text-slate-300">${(p.qty || 0).toFixed(4)}</td>
-                    <td class="py-2.5 px-4 text-slate-300">$${(p.entry_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-200 font-semibold">$${(p.current_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-cyan-400">${(p.current_rsi || 30.0).toFixed(1)}</td>
-                    <td class="py-2.5 px-4">
-                      <div class="flex items-center gap-2">
-                        <div class="w-20 h-2 bg-slate-800 rounded-full overflow-hidden">
-                          <div class="h-full bg-emerald-500 rounded-full" style="width: ${prog}%"></div>
+          // Strategy 6: Tail-Risk Crash Hedge Telemetry
+          try {
+            if (data.tail_hedge) {
+              const hdg = data.tail_hedge;
+              if (hdg.monthly_budget !== undefined) {
+                const bEl = document.getElementById('hedge-budget-kpi');
+                if (bEl) bEl.innerText = '$' + hdg.monthly_budget.toFixed(2);
+              }
+              if (hdg.monthly_spent !== undefined) {
+                const sEl = document.getElementById('hedge-spent-kpi');
+                if (sEl) sEl.innerText = `Spent: $${hdg.monthly_spent.toFixed(2)}`;
+              }
+              if (hdg.monthly_budget_remaining !== undefined) {
+                const rEl = document.getElementById('hedge-remaining-kpi');
+                if (rEl) rEl.innerText = `$${hdg.monthly_budget_remaining.toFixed(2)}`;
+              }
+              if (hdg.total_realized_pnl !== undefined) {
+                const relEl = document.getElementById('hedge-realized-kpi');
+                const sign = hdg.total_realized_pnl >= 0 ? '+' : '';
+                if (relEl) relEl.innerText = `${sign}$${hdg.total_realized_pnl.toFixed(2)}`;
+              }
+              if (hdg.monetized_count !== undefined) {
+                const mEl = document.getElementById('hedge-monetized-count-kpi');
+                if (mEl) mEl.innerText = `${hdg.monetized_count} Harvested`;
+              }
+
+              if (hdg.active_hedge) {
+                const ah = hdg.active_hedge;
+                const symEl = document.getElementById('hedge-active-symbol');
+                if (symEl) symEl.innerText = ah.underlying || 'SPY';
+                const cntEl = document.getElementById('hedge-active-contract');
+                if (cntEl) cntEl.innerText = ah.contract_symbol;
+                const stkEl = document.getElementById('hedge-active-strike');
+                if (stkEl) stkEl.innerText = `$${ah.strike_price.toFixed(2)} Put`;
+                const expEl = document.getElementById('hedge-active-exp');
+                if (expEl) expEl.innerText = ah.expiration_date;
+                const dteEl = document.getElementById('hedge-active-dte');
+                if (dteEl) dteEl.innerText = `${ah.days_to_expiration} DTE`;
+                const trigEl = document.getElementById('hedge-active-trigger-price');
+                if (trigEl) trigEl.innerText = `$${ah.target_monetization_price.toFixed(2)}/sh`;
+                const entShEl = document.getElementById('hedge-active-entry-share');
+                if (entShEl) entShEl.innerText = `$${ah.entry_price_per_share.toFixed(2)}/sh`;
+                const totCostEl = document.getElementById('hedge-active-total-cost');
+                if (totCostEl) totCostEl.innerText = `$${ah.entry_total_cost.toFixed(2)}`;
+                const valEl = document.getElementById('hedge-value-kpi');
+                if (valEl) valEl.innerText = `$${ah.current_market_value.toFixed(2)}`;
+                const pnlEl = document.getElementById('hedge-pnl-kpi');
+                if (pnlEl) pnlEl.innerText = `${ah.gain_pct >= 0 ? '+' : ''}${ah.gain_pct.toFixed(1)}%`;
+                const quoteEl = document.getElementById('hedge-active-quote');
+                if (quoteEl) quoteEl.innerText = `$${ah.current_price_per_share.toFixed(2)}/sh ($${ah.current_market_value.toFixed(2)})`;
+                const gainEl = document.getElementById('hedge-active-gain');
+                if (gainEl) gainEl.innerText = `${ah.gain_pct >= 0 ? '+' : ''}${ah.gain_pct.toFixed(1)}% Gain`;
+
+                const cntKpi = document.getElementById('hedge-contract-kpi');
+                if (cntKpi) cntKpi.innerText = `${ah.underlying} $${Math.round(ah.strike_price)} Put Shield`;
+                const tgtKpi = document.getElementById('hedge-target-kpi');
+                if (tgtKpi) tgtKpi.innerText = `+250% ($${(ah.target_monetization_price * 100).toFixed(2)})`;
+
+                const pct = Math.min(100, Math.max(0, (ah.progress_to_target || 0) * 100));
+                const progBar = document.getElementById('hedge-active-progress-bar');
+                if (progBar) progBar.style.width = pct.toFixed(1) + '%';
+                const progText = document.getElementById('hedge-active-progress-text');
+                if (progText) progText.innerText = `${pct.toFixed(1)}%`;
+
+                const statBadge = document.getElementById('hedge-status-badge');
+                if (statBadge) statBadge.innerText = 'Crash Shield Active';
+              } else {
+                const cntKpi = document.getElementById('hedge-contract-kpi');
+                if (cntKpi) cntKpi.innerText = 'Standby (No Crash Put)';
+                const statBadge = document.getElementById('hedge-status-badge');
+                if (statBadge) statBadge.innerText = 'Standby';
+              }
+
+              if (hdg.closed_count !== undefined) {
+                const ccEl = document.getElementById('hedge-closed-count-badge');
+                if (ccEl) ccEl.innerText = `${hdg.closed_count} Closed Hedges`;
+              }
+            }
+          } catch (e) {
+            console.warn("Error updating tail hedge telemetry:", e);
+          }
+
+          // Strategy 7: Blue-Chip Dip Buyer Telemetry
+          try {
+            if (data.dip_buyer) {
+              const dip = data.dip_buyer;
+              if (dip.active_positions_count !== undefined) {
+                const actEl = document.getElementById('dip-active-count-kpi');
+                if (actEl) actEl.innerText = dip.active_positions_count;
+                const bdgEl = document.getElementById('dip-active-badge');
+                if (bdgEl) bdgEl.innerText = `${dip.active_positions_count} Active Positions`;
+              }
+              if (dip.capital_deployed_usd !== undefined) {
+                const depEl = document.getElementById('dip-deployed-kpi');
+                if (depEl) depEl.innerText = `$${dip.capital_deployed_usd.toFixed(2)}`;
+              }
+              if (dip.total_realized_pnl !== undefined) {
+                const relEl = document.getElementById('dip-realized-kpi');
+                if (relEl) {
+                  const sign = dip.total_realized_pnl >= 0 ? '+' : '';
+                  relEl.innerText = `${sign}$${dip.total_realized_pnl.toFixed(2)}`;
+                }
+              }
+              if (dip.closed_trades_count !== undefined) {
+                const clEl = document.getElementById('dip-closed-count-kpi');
+                if (clEl) clEl.innerText = `${dip.closed_trades_count} Trades`;
+                const clBdg = document.getElementById('dip-closed-count-badge');
+                if (clBdg) clBdg.innerText = `${dip.closed_trades_count} Closed Snipes`;
+              }
+              if (dip.win_rate_pct !== undefined) {
+                const winEl = document.getElementById('dip-winrate-kpi');
+                if (winEl) winEl.innerText = `${dip.win_rate_pct.toFixed(1)}%`;
+              }
+
+              // Render Active Positions Table
+              const activeTable = document.getElementById('dip-active-table-body');
+              if (activeTable && dip.active_positions && dip.active_positions.length > 0) {
+                activeTable.innerHTML = dip.active_positions.map(p => {
+                  const pnlSign = (p.unrealized_pnl || 0) >= 0 ? '+' : '';
+                  const pnlColor = (p.unrealized_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                  const prog = Math.min(100, Math.max(0, p.progress_pct || 0));
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                      <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol}</td>
+                      <td class="py-2.5 px-4 text-slate-300">${(p.qty || 0).toFixed(4)}</td>
+                      <td class="py-2.5 px-4 text-slate-300">$${(p.entry_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-200 font-semibold">$${(p.current_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-cyan-400">${(p.current_rsi || 30.0).toFixed(1)}</td>
+                      <td class="py-2.5 px-4">
+                        <div class="flex items-center gap-2">
+                          <div class="w-20 h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-emerald-500 rounded-full" style="width: ${prog}%"></div>
+                          </div>
+                          <span class="text-[10px] text-emerald-400">${prog.toFixed(0)}%</span>
                         </div>
-                        <span class="text-[10px] text-emerald-400">${prog.toFixed(0)}%</span>
-                      </div>
-                    </td>
-                    <td class="py-2.5 px-4 text-rose-400 font-medium">$${(p.stop_loss_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(p.unrealized_pnl || 0).toFixed(2)} (${pnlSign}${(p.unrealized_pnl_pct || 0).toFixed(1)}%)</td>
-                  </tr>
-                `;
-              }).join('');
-            }
+                      </td>
+                      <td class="py-2.5 px-4 text-rose-400 font-medium">$${(p.stop_loss_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(p.unrealized_pnl || 0).toFixed(2)} (${pnlSign}${(p.unrealized_pnl_pct || 0).toFixed(1)}%)</td>
+                    </tr>
+                  `;
+                }).join('');
+              }
 
-            // Render Scanner Matrix if updated
-            const scannerTable = document.getElementById('dip-scanner-table-body');
-            if (scannerTable && dip.scanner_matrix && Object.keys(dip.scanner_matrix).length > 0) {
-              const keys = Object.keys(dip.scanner_matrix);
-              scannerTable.innerHTML = keys.map(k => {
-                const item = dip.scanner_matrix[k];
-                const rsiVal = item.rsi || 50.0;
-                const rsiColor = rsiVal <= 30 ? 'text-emerald-400 font-bold' : (rsiVal >= 70 ? 'text-rose-400' : 'text-slate-300');
-                const sig = item.signal || 'WATCHLIST';
-                const sigBadge = sig === 'BUY' 
-                  ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">BUY (OVERSOLD)</span>'
-                  : (sig === 'HOLD'
-                    ? '<span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 font-bold text-[10px]">HOLDING</span>'
-                    : '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span>');
-                return `
-                  <tr class="hover:bg-slate-800/40 transition">
-                    <td class="py-2.5 px-4 font-sans font-bold text-white">${item.symbol || k}</td>
-                    <td class="py-2.5 px-4 text-slate-300">$${(item.current_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4"><span class="${rsiColor}">${rsiVal.toFixed(1)}</span></td>
-                    <td class="py-2.5 px-4 text-slate-400">$${(item.sma_50 || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-400">$${(item.sma_200 || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-center font-sans">${sigBadge}</td>
-                  </tr>
-                `;
-              }).join('');
-            }
+              // Render Scanner Matrix if updated
+              const scannerTable = document.getElementById('dip-scanner-table-body');
+              if (scannerTable && dip.scanner_matrix && Object.keys(dip.scanner_matrix).length > 0) {
+                const keys = Object.keys(dip.scanner_matrix);
+                scannerTable.innerHTML = keys.map(k => {
+                  const item = dip.scanner_matrix[k];
+                  const rsiVal = item.rsi || 50.0;
+                  const rsiColor = rsiVal <= 30 ? 'text-emerald-400 font-bold' : (rsiVal >= 70 ? 'text-rose-400' : 'text-slate-300');
+                  const sig = item.signal || 'WATCHLIST';
+                  const sigBadge = sig === 'BUY' 
+                    ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">BUY (OVERSOLD)</span>'
+                    : (sig === 'HOLD'
+                      ? '<span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 font-bold text-[10px]">HOLDING</span>'
+                      : '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">WATCHLIST</span>');
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                      <td class="py-2.5 px-4 font-sans font-bold text-white">${item.symbol || k}</td>
+                      <td class="py-2.5 px-4 text-slate-300">$${(item.current_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4"><span class="${rsiColor}">${rsiVal.toFixed(1)}</span></td>
+                      <td class="py-2.5 px-4 text-slate-400">$${(item.sma_50 || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-400">$${(item.sma_200 || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-center font-sans">${sigBadge}</td>
+                    </tr>
+                  `;
+                }).join('');
+              }
 
-            // Render Closed Trades Ledger
-            const historyTable = document.getElementById('dip-history-table-body');
-            if (historyTable && dip.closed_trades && dip.closed_trades.length > 0) {
-              historyTable.innerHTML = dip.closed_trades.map(t => {
-                const isGain = (t.realized_pnl || 0) >= 0;
-                const pnlSign = isGain ? '+' : '';
-                const pnlColor = isGain ? 'text-emerald-400' : 'text-rose-400';
-                return `
-                  <tr class="hover:bg-slate-800/40 transition">
-                    <td class="py-2.5 px-4 font-sans font-bold text-white">${t.symbol}</td>
-                    <td class="py-2.5 px-4 text-slate-300">${(t.qty || 0).toFixed(4)}</td>
-                    <td class="py-2.5 px-4 text-slate-400">$${(t.entry_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-300">$${(t.exit_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-400">${t.holding_days || 0}d</td>
-                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(t.realized_pnl || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-right text-amber-400">$${(t.tax_escrow || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-center font-sans">
-                      <span class="px-2 py-0.5 rounded text-[10px] ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${t.exit_reason || 'EXIT'}</span>
-                    </td>
-                  </tr>
-                `;
-              }).join('');
+              // Render Closed Trades Ledger
+              const historyTable = document.getElementById('dip-history-table-body');
+              if (historyTable && dip.closed_trades && dip.closed_trades.length > 0) {
+                historyTable.innerHTML = dip.closed_trades.map(t => {
+                  const isGain = (t.realized_pnl || 0) >= 0;
+                  const pnlSign = isGain ? '+' : '';
+                  const pnlColor = isGain ? 'text-emerald-400' : 'text-rose-400';
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                      <td class="py-2.5 px-4 font-sans font-bold text-white">${t.symbol}</td>
+                      <td class="py-2.5 px-4 text-slate-300">${(t.qty || 0).toFixed(4)}</td>
+                      <td class="py-2.5 px-4 text-slate-400">$${(t.entry_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-300">$${(t.exit_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-400">${t.holding_days || 0}d</td>
+                      <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(t.realized_pnl || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-right text-amber-400">$${(t.tax_escrow || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-center font-sans">
+                        <span class="px-2 py-0.5 rounded text-[10px] ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${t.exit_reason || 'EXIT'}</span>
+                      </td>
+                    </tr>
+                  `;
+                }).join('');
+              }
             }
+          } catch (e) {
+            console.warn("Error updating dip buyer telemetry:", e);
           }
 
-          // Render Strategy 8: Macro Dual-Momentum Telemetry
-          if (data.macro_rotation) {
-            const macro = data.macro_rotation;
-            const capEl = document.getElementById('macro-capital-kpi');
-            if (capEl) capEl.innerText = `$${(macro.capital_deployed_usd || 0).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
-            const utilEl = document.getElementById('macro-utilization-kpi');
-            if (utilEl) {
-              const util = (macro.max_capital_usd > 0) ? ((macro.capital_deployed_usd || 0) / macro.max_capital_usd * 100) : 0;
-              utilEl.innerText = `${util.toFixed(1)}%`;
-            }
-            const regEl = document.getElementById('macro-regime-kpi');
-            if (regEl) {
-              const isRiskOn = macro.regime === 'RISK_ON';
-              regEl.innerText = isRiskOn ? 'RISK-ON' : (macro.regime === 'RISK_OFF' ? 'RISK-OFF' : 'STANDBY');
-              regEl.className = isRiskOn ? 'text-xl font-black text-emerald-400' : 'text-xl font-black text-amber-400';
-            }
-            const regBadge = document.getElementById('macro-regime-badge');
-            if (regBadge) {
-              const isRiskOn = macro.regime === 'RISK_ON';
-              regBadge.innerHTML = `
-                <span class="w-2 h-2 rounded-full ${isRiskOn ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse"></span>
-                Regime: ${isRiskOn ? 'RISK-ON (Growth Leaders)' : 'RISK-OFF (Safe Haven SGOV)'}
-              `;
-            }
-            const activeCountEl = document.getElementById('macro-active-count-kpi');
-            if (activeCountEl) activeCountEl.innerText = macro.active_positions_count || 0;
-            const activeBadge = document.getElementById('macro-active-badge');
-            if (activeBadge) activeBadge.innerText = `${macro.active_positions_count || 0} Active Allocations`;
-
-            const pnlEl = document.getElementById('macro-pnl-kpi');
-            if (pnlEl) {
-              const pnl = macro.total_realized_pnl || 0;
-              pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
-              pnlEl.className = `text-2xl font-black ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-            }
-            const closedCountEl = document.getElementById('macro-closed-count-kpi');
-            if (closedCountEl) closedCountEl.innerText = macro.closed_trades_count || 0;
-            const closedBadge = document.getElementById('macro-closed-count-badge');
-            if (closedBadge) closedBadge.innerText = `${macro.closed_trades_count || 0} Closed Rotations`;
-
-            const taxEl = document.getElementById('macro-tax-kpi');
-            if (taxEl) taxEl.innerText = `$${(macro.total_tax_escrow || 0).toFixed(2)}`;
-
-            // Render Active Allocations Table
-            const activeTable = document.getElementById('macro-active-table-body');
-            if (activeTable && macro.active_positions && macro.active_positions.length > 0) {
-              activeTable.innerHTML = macro.active_positions.map(p => {
-                const pnlSign = (p.unrealized_pnl || 0) >= 0 ? '+' : '';
-                const pnlColor = (p.unrealized_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
-                return `
-                  <tr class="hover:bg-slate-800/40 transition">
-                    <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol}</td>
-                    <td class="py-2.5 px-4 text-slate-300 font-sans">${p.asset_class || 'Global Asset'}</td>
-                    <td class="py-2.5 px-4 text-slate-300">${(p.shares || 0).toFixed(4)}</td>
-                    <td class="py-2.5 px-4 text-slate-400">$${(p.entry_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-200 font-semibold">$${(p.current_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-400">$${(p.cost_basis || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-300 font-medium">$${(p.market_value || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-rose-400 font-medium">$${(p.trailing_stop_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(p.unrealized_pnl || 0).toFixed(2)} (${pnlSign}${(p.unrealized_pnl_pct || 0).toFixed(1)}%)</td>
-                  </tr>
+          // Strategy 8: Macro Dual-Momentum Telemetry
+          try {
+            if (data.macro_rotation) {
+              const macro = data.macro_rotation;
+              const capEl = document.getElementById('macro-capital-kpi');
+              if (capEl) capEl.innerText = `$${(macro.capital_deployed_usd || 0).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+              const utilEl = document.getElementById('macro-utilization-kpi');
+              if (utilEl) {
+                const util = (macro.max_capital_usd > 0) ? ((macro.capital_deployed_usd || 0) / macro.max_capital_usd * 100) : 0;
+                utilEl.innerText = `${util.toFixed(1)}%`;
+              }
+              const regEl = document.getElementById('macro-regime-kpi');
+              if (regEl) {
+                const isRiskOn = macro.regime === 'RISK_ON';
+                regEl.innerText = isRiskOn ? 'RISK-ON' : (macro.regime === 'RISK_OFF' ? 'RISK-OFF' : 'STANDBY');
+                regEl.className = isRiskOn ? 'text-xl font-black text-emerald-400' : 'text-xl font-black text-amber-400';
+              }
+              const regBadge = document.getElementById('macro-regime-badge');
+              if (regBadge) {
+                const isRiskOn = macro.regime === 'RISK_ON';
+                regBadge.innerHTML = `
+                  <span class="w-2 h-2 rounded-full ${isRiskOn ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse"></span>
+                  Regime: ${isRiskOn ? 'RISK-ON (Growth Leaders)' : 'RISK-OFF (Safe Haven SGOV)'}
                 `;
-              }).join('');
-            }
+              }
+              const activeCountEl = document.getElementById('macro-active-count-kpi');
+              if (activeCountEl) activeCountEl.innerText = macro.active_positions_count || 0;
+              const activeBadge = document.getElementById('macro-active-badge');
+              if (activeBadge) activeBadge.innerText = `${macro.active_positions_count || 0} Active Allocations`;
 
-            // Render Leaderboard Matrix
-            const lbTable = document.getElementById('macro-leaderboard-table-body');
-            if (lbTable && macro.leaderboard && macro.leaderboard.length > 0) {
-              const sortedLb = [...macro.leaderboard].sort((a, b) => (b.blended_score || 0) - (a.blended_score || 0));
-              lbTable.innerHTML = sortedLb.map((item, idx) => {
-                const rankText = item.symbol === 'SGOV' ? '—' : `#${item.rank || idx + 1}`;
-                const rankColor = (item.rank === 1 || item.rank === 2) ? 'text-cyan-400 font-bold' : 'text-slate-500 font-bold';
-                const ret60Sign = (item.return_60d || 0) >= 0 ? '+' : '';
-                const ret60Color = (item.return_60d || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
-                const ret120Sign = (item.return_120d || 0) >= 0 ? '+' : '';
-                const ret120Color = (item.return_120d || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
-                const blendSign = (item.blended_score || 0) >= 0 ? '+' : '';
-                const blendColor = (item.blended_score || 0) >= 0 ? 'text-cyan-300 font-bold' : 'text-slate-400 font-bold';
-                const smaBadge = item.is_above_sma200 
-                  ? '<span class="text-emerald-400 text-[10px]">&gt;SMA</span>' 
-                  : '<span class="text-rose-400 text-[10px]">&lt;SMA</span>';
-                const statusBadge = item.is_selected
-                  ? (item.symbol === 'SGOV' 
-                    ? '<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px]">SAFE HAVEN</span>' 
-                    : '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">TOP MOMENTUM</span>')
-                  : (!item.is_above_sma200
-                    ? '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px]">BELOW TREND</span>'
-                    : '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span>');
-                return `
-                  <tr class="hover:bg-slate-800/40 transition ${item.symbol === 'SGOV' ? 'bg-slate-900/60' : ''}">
-                    <td class="py-2.5 px-4 ${rankColor}">${rankText}</td>
-                    <td class="py-2.5 px-4 font-sans font-bold text-white">${item.symbol}</td>
-                    <td class="py-2.5 px-4 text-slate-300 font-sans">${item.asset_class || 'Global Asset'}</td>
-                    <td class="py-2.5 px-4 text-slate-300">$${(item.current_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 ${ret60Color} font-semibold">${ret60Sign}${(item.return_60d || 0).toFixed(1)}%</td>
-                    <td class="py-2.5 px-4 ${ret120Color} font-semibold">${ret120Sign}${(item.return_120d || 0).toFixed(1)}%</td>
-                    <td class="py-2.5 px-4 ${blendColor}">${blendSign}${(item.blended_score || 0).toFixed(1)}%</td>
-                    <td class="py-2.5 px-4 text-slate-400">$${(item.sma_200 || 0).toFixed(2)} ${smaBadge}</td>
-                    <td class="py-2.5 px-4 text-center font-sans">${statusBadge}</td>
-                  </tr>
-                `;
-              }).join('');
-            }
+              const pnlEl = document.getElementById('macro-pnl-kpi');
+              if (pnlEl) {
+                const pnl = macro.total_realized_pnl || 0;
+                pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
+                pnlEl.className = `text-2xl font-black ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+              }
+              const closedCountEl = document.getElementById('macro-closed-count-kpi');
+              if (closedCountEl) closedCountEl.innerText = macro.closed_trades_count || 0;
+              const closedBadge = document.getElementById('macro-closed-count-badge');
+              if (closedBadge) closedBadge.innerText = `${macro.closed_trades_count || 0} Closed Rotations`;
 
-            // Render Closed Rotations History Table
-            const historyTable = document.getElementById('macro-history-table-body');
-            if (historyTable && macro.closed_trades && macro.closed_trades.length > 0) {
-              historyTable.innerHTML = macro.closed_trades.map(t => {
-                const isGain = (t.realized_pnl || 0) >= 0;
-                const pnlSign = isGain ? '+' : '';
-                const pnlColor = isGain ? 'text-emerald-400' : 'text-rose-400';
-                return `
-                  <tr class="hover:bg-slate-800/40 transition">
-                    <td class="py-2.5 px-4 font-sans font-bold text-white">${t.symbol}</td>
-                    <td class="py-2.5 px-4 text-slate-300">${(t.qty || 0).toFixed(4)}</td>
-                    <td class="py-2.5 px-4 text-slate-400">$${(t.entry_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-300">$${(t.exit_price || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-400">${t.holding_days || 0}d</td>
-                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(t.realized_pnl || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-right text-amber-400">$${(t.tax_escrow || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-center font-sans">
-                      <span class="px-2 py-0.5 rounded text-[10px] ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${t.exit_reason || 'ROTATION'}</span>
-                    </td>
-                  </tr>
-                `;
-              }).join('');
+              const taxEl = document.getElementById('macro-tax-kpi');
+              if (taxEl) taxEl.innerText = `$${(macro.total_tax_escrow || 0).toFixed(2)}`;
+
+              // Render Active Allocations Table (Resilient mapping for qty / shares)
+              const activeTable = document.getElementById('macro-active-table-body');
+              if (activeTable && macro.active_positions && macro.active_positions.length > 0) {
+                activeTable.innerHTML = macro.active_positions.map(p => {
+                  const shares = p.qty !== undefined ? p.qty : (p.shares !== undefined ? p.shares : 0);
+                  const curPrice = p.current_price || p.entry_price || 0;
+                  const costBasis = p.cost_basis || (shares * (p.entry_price || 0));
+                  const marketVal = p.market_value !== undefined ? p.market_value : (shares * curPrice);
+                  const unrealizedPnl = p.unrealized_pnl !== undefined ? p.unrealized_pnl : (marketVal - costBasis);
+                  const unrealizedPnlPct = p.unrealized_pnl_pct !== undefined ? p.unrealized_pnl_pct : (costBasis > 0 ? (unrealizedPnl / costBasis * 100) : 0);
+                  const pnlSign = unrealizedPnl >= 0 ? '+' : '';
+                  const pnlColor = unrealizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                      <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol}</td>
+                      <td class="py-2.5 px-4 text-slate-300 font-sans">${p.asset_class || 'Global Asset'}</td>
+                      <td class="py-2.5 px-4 text-slate-300">${shares.toFixed(4)}</td>
+                      <td class="py-2.5 px-4 text-slate-400">$${(p.entry_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-200 font-semibold">$${curPrice.toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-400">$${costBasis.toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-300 font-medium">$${marketVal.toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-rose-400 font-medium">$${(p.trailing_stop_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${unrealizedPnl.toFixed(2)} (${pnlSign}${unrealizedPnlPct.toFixed(1)}%)</td>
+                    </tr>
+                  `;
+                }).join('');
+              }
+
+              // Render Leaderboard Matrix
+              const lbTable = document.getElementById('macro-leaderboard-table-body');
+              if (lbTable && macro.leaderboard && macro.leaderboard.length > 0) {
+                const sortedLb = [...macro.leaderboard].sort((a, b) => (b.blended_score || 0) - (a.blended_score || 0));
+                lbTable.innerHTML = sortedLb.map((item, idx) => {
+                  const rankText = item.symbol === 'SGOV' ? '—' : `#${item.rank || idx + 1}`;
+                  const rankColor = (item.rank === 1 || item.rank === 2) ? 'text-cyan-400 font-bold' : 'text-slate-500 font-bold';
+                  const ret60Sign = (item.return_60d || 0) >= 0 ? '+' : '';
+                  const ret60Color = (item.return_60d || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                  const ret120Sign = (item.return_120d || 0) >= 0 ? '+' : '';
+                  const ret120Color = (item.return_120d || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                  const blendSign = (item.blended_score || 0) >= 0 ? '+' : '';
+                  const blendColor = (item.blended_score || 0) >= 0 ? 'text-cyan-300 font-bold' : 'text-slate-400 font-bold';
+                  const smaBadge = item.is_above_sma200 
+                    ? '<span class="text-emerald-400 text-[10px]">&gt;SMA</span>' 
+                    : '<span class="text-rose-400 text-[10px]">&lt;SMA</span>';
+                  const statusBadge = item.is_selected
+                    ? (item.symbol === 'SGOV' 
+                      ? '<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px]">SAFE HAVEN</span>' 
+                      : '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">TOP MOMENTUM</span>')
+                    : (!item.is_above_sma200
+                      ? '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px]">BELOW TREND</span>'
+                      : '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span>');
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition ${item.symbol === 'SGOV' ? 'bg-slate-900/60' : ''}">
+                      <td class="py-2.5 px-4 ${rankColor}">${rankText}</td>
+                      <td class="py-2.5 px-4 font-sans font-bold text-white">${item.symbol}</td>
+                      <td class="py-2.5 px-4 text-slate-300 font-sans">${item.asset_class || 'Global Asset'}</td>
+                      <td class="py-2.5 px-4 text-slate-300">$${(item.current_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 ${ret60Color} font-semibold">${ret60Sign}${(item.return_60d || 0).toFixed(1)}%</td>
+                      <td class="py-2.5 px-4 ${ret120Color} font-semibold">${ret120Sign}${(item.return_120d || 0).toFixed(1)}%</td>
+                      <td class="py-2.5 px-4 ${blendColor}">${blendSign}${(item.blended_score || 0).toFixed(1)}%</td>
+                      <td class="py-2.5 px-4 text-slate-400">$${(item.sma_200 || 0).toFixed(2)} ${smaBadge}</td>
+                      <td class="py-2.5 px-4 text-center font-sans">${statusBadge}</td>
+                    </tr>
+                  `;
+                }).join('');
+              }
+
+              // Render Closed Rotations History Table
+              const historyTable = document.getElementById('macro-history-table-body');
+              if (historyTable && macro.closed_trades && macro.closed_trades.length > 0) {
+                historyTable.innerHTML = macro.closed_trades.map(t => {
+                  const isGain = (t.realized_pnl || 0) >= 0;
+                  const pnlSign = isGain ? '+' : '';
+                  const pnlColor = isGain ? 'text-emerald-400' : 'text-rose-400';
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                      <td class="py-2.5 px-4 font-sans font-bold text-white">${t.symbol}</td>
+                      <td class="py-2.5 px-4 text-slate-300">${(t.qty || 0).toFixed(4)}</td>
+                      <td class="py-2.5 px-4 text-slate-400">$${(t.entry_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-300">$${(t.exit_price || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-400">${t.holding_days || 0}d</td>
+                      <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(t.realized_pnl || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-right text-amber-400">$${(t.tax_escrow || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-center font-sans">
+                        <span class="px-2 py-0.5 rounded text-[10px] ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${t.exit_reason || 'ROTATION'}</span>
+                      </td>
+                    </tr>
+                  `;
+                }).join('');
+              }
             }
+          } catch (e) {
+            console.warn("Error updating macro rotation telemetry:", e);
           }
 
-          // Render Strategy 9: Statistical Pairs Trading Telemetry
-          if (data.pairs_trading) {
-            const pairs = data.pairs_trading;
-            const capEl = document.getElementById('pairs-capital-kpi');
-            if (capEl) capEl.innerText = `$${(pairs.allocated_capital_usd || 0).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
-            const utilEl = document.getElementById('pairs-utilization-kpi');
-            if (utilEl) {
-              const util = (pairs.max_capital_usd > 0) ? ((pairs.allocated_capital_usd || 0) / pairs.max_capital_usd * 100) : 0;
-              utilEl.innerText = `${util.toFixed(1)}% Allocation`;
-            }
-            const activeCountEl = document.getElementById('pairs-active-count-kpi');
-            if (activeCountEl) activeCountEl.innerText = pairs.active_positions_count || 0;
-            const activeBadge = document.getElementById('pairs-active-badge');
-            if (activeBadge) activeBadge.innerText = `${pairs.active_positions_count || 0} Active Pairs`;
+          // Strategy 9: Statistical Pairs Trading Telemetry
+          try {
+            if (data.pairs_trading) {
+              const pairs = data.pairs_trading;
+              const capEl = document.getElementById('pairs-capital-kpi');
+              if (capEl) capEl.innerText = `$${(pairs.allocated_capital_usd || 0).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+              const utilEl = document.getElementById('pairs-utilization-kpi');
+              if (utilEl) {
+                const util = (pairs.max_capital_usd > 0) ? ((pairs.allocated_capital_usd || 0) / pairs.max_capital_usd * 100) : 0;
+                utilEl.innerText = `${util.toFixed(1)}% Allocation`;
+              }
+              const activeCountEl = document.getElementById('pairs-active-count-kpi');
+              if (activeCountEl) activeCountEl.innerText = pairs.active_positions_count || 0;
+              const activeBadge = document.getElementById('pairs-active-badge');
+              if (activeBadge) activeBadge.innerText = `${pairs.active_positions_count || 0} Active Pairs`;
 
-            const pnlEl = document.getElementById('pairs-pnl-kpi');
-            if (pnlEl) {
-              const pnl = pairs.total_realized_pnl || 0;
-              pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
-              pnlEl.className = `text-2xl font-black ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-            }
-            const winrateEl = document.getElementById('pairs-winrate-kpi');
-            if (winrateEl) {
-              winrateEl.innerText = `${pairs.win_rate_pct || 0}% Win Rate (${pairs.closed_trades_count || 0} Closed)`;
-            }
-            const closedBadge = document.getElementById('pairs-closed-count-badge');
-            if (closedBadge) closedBadge.innerText = `${pairs.closed_trades_count || 0} Closed Trades`;
+              const pnlEl = document.getElementById('pairs-pnl-kpi');
+              if (pnlEl) {
+                const pnl = pairs.total_realized_pnl || 0;
+                pnlEl.innerText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
+                pnlEl.className = `text-2xl font-black ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+              }
+              const winrateEl = document.getElementById('pairs-winrate-kpi');
+              if (winrateEl) {
+                winrateEl.innerText = `${pairs.win_rate_pct || 0}% Win Rate (${pairs.closed_trades_count || 0} Closed)`;
+              }
+              const closedBadge = document.getElementById('pairs-closed-count-badge');
+              if (closedBadge) closedBadge.innerText = `${pairs.closed_trades_count || 0} Closed Trades`;
 
-            const taxEl = document.getElementById('pairs-tax-kpi');
-            if (taxEl) taxEl.innerText = `$${(pairs.total_tax_escrow || 0).toFixed(2)}`;
+              const taxEl = document.getElementById('pairs-tax-kpi');
+              if (taxEl) taxEl.innerText = `$${(pairs.total_tax_escrow || 0).toFixed(2)}`;
 
-            // Render Active Pairs Positions Table
-            const activeTable = document.getElementById('pairs-active-table-body');
-            if (activeTable && pairs.active_positions && pairs.active_positions.length > 0) {
-              activeTable.innerHTML = pairs.active_positions.map(p => {
-                const legA = p.leg_a || {};
-                const legB = p.leg_b || {};
-                const netPnl = p.net_unrealized_pnl || 0;
-                const pnlSign = netPnl >= 0 ? '+' : '';
-                const pnlColor = netPnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
-                const zColor = Math.abs(p.current_zscore || 0) <= 0.5 ? 'text-emerald-400' : (Math.abs(p.current_zscore || 0) >= 3.0 ? 'text-rose-400' : 'text-violet-300');
-                return `
-                  <tr class="hover:bg-slate-800/40 transition">
-                    <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol_a} / ${p.symbol_b}</td>
-                    <td class="py-2.5 px-4 text-slate-300">
-                      <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${legA.side === 'BUY' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${legA.side || 'BUY'}</span>
-                      ${(legA.qty || 0).toFixed(4)} @ $${(legA.entry_price || 0).toFixed(2)}
-                    </td>
-                    <td class="py-2.5 px-4 text-slate-300">
-                      <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${legB.side === 'BUY' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${legB.side || 'SELL'}</span>
-                      ${(legB.qty || 0).toFixed(4)} @ $${(legB.entry_price || 0).toFixed(2)}
-                    </td>
-                    <td class="py-2.5 px-4 text-slate-400">${(p.entry_ratio || 0).toFixed(4)}</td>
-                    <td class="py-2.5 px-4 text-slate-200 font-semibold">${(p.current_ratio || 0).toFixed(4)}</td>
-                    <td class="py-2.5 px-4 font-bold ${zColor}">${(p.current_zscore || 0) >= 0 ? '+' : ''}${(p.current_zscore || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-300">$${(p.total_notional || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-400">${(p.holding_days || 0).toFixed(1)}d</td>
-                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${netPnl.toFixed(2)}</td>
-                  </tr>
-                `;
-              }).join('');
+              // Render Active Pairs Positions Table
+              const activeTable = document.getElementById('pairs-active-table-body');
+              if (activeTable && pairs.active_positions && pairs.active_positions.length > 0) {
+                activeTable.innerHTML = pairs.active_positions.map(p => {
+                  const legA = p.leg_a || {};
+                  const legB = p.leg_b || {};
+                  const netPnl = p.net_unrealized_pnl || 0;
+                  const pnlSign = netPnl >= 0 ? '+' : '';
+                  const pnlColor = netPnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                  const zColor = Math.abs(p.current_zscore || 0) <= 0.5 ? 'text-emerald-400' : (Math.abs(p.current_zscore || 0) >= 3.0 ? 'text-rose-400' : 'text-violet-300');
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                      <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol_a} / ${p.symbol_b}</td>
+                      <td class="py-2.5 px-4 text-slate-300">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${legA.side === 'BUY' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${legA.side || 'BUY'}</span>
+                        ${(legA.qty || 0).toFixed(4)} @ $${(legA.entry_price || 0).toFixed(2)}
+                      </td>
+                      <td class="py-2.5 px-4 text-slate-300">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${legB.side === 'BUY' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${legB.side || 'SELL'}</span>
+                        ${(legB.qty || 0).toFixed(4)} @ $${(legB.entry_price || 0).toFixed(2)}
+                      </td>
+                      <td class="py-2.5 px-4 text-slate-400">${(p.entry_ratio || 0).toFixed(4)}</td>
+                      <td class="py-2.5 px-4 text-slate-200 font-semibold">${(p.current_ratio || 0).toFixed(4)}</td>
+                      <td class="py-2.5 px-4 font-bold ${zColor}">${(p.current_zscore || 0) >= 0 ? '+' : ''}${(p.current_zscore || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-300">$${(p.total_notional || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-400">${(p.holding_days || 0).toFixed(1)}d</td>
+                      <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${netPnl.toFixed(2)}</td>
+                    </tr>
+                  `;
+                }).join('');
+              }
+
+              // Render Pairs Scanner Matrix
+              const scannerTable = document.getElementById('pairs-scanner-table-body');
+              if (scannerTable && pairs.scanned_metrics && Object.keys(pairs.scanned_metrics).length > 0) {
+                const metricsList = Object.values(pairs.scanned_metrics);
+                scannerTable.innerHTML = metricsList.map(m => {
+                  const zSign = (m.zscore || 0) >= 0 ? '+' : '';
+                  const zColor = Math.abs(m.zscore || 0) >= 2.0 ? 'text-emerald-400 font-black' : (Math.abs(m.zscore || 0) >= 1.5 ? 'text-violet-300 font-bold' : 'text-slate-400 font-medium');
+                  const sigColor = m.signal === 'BUY_A_SELL_B' ? 'text-emerald-400 font-bold' : (m.signal === 'SELL_A_BUY_B' ? 'text-indigo-400 font-bold' : 'text-slate-400');
+                  const statusBadge = m.status === 'ACTIVE'
+                    ? '<span class="px-2 py-0.5 rounded bg-violet-500/20 text-violet-300 font-bold text-[10px]">ACTIVE</span>'
+                    : (m.status === 'OPPORTUNITY'
+                      ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">OPPORTUNITY</span>'
+                      : '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span>');
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                      <td class="py-2.5 px-4 font-sans font-bold text-white">${m.symbol_a} / ${m.symbol_b}</td>
+                      <td class="py-2.5 px-4 text-slate-300">$${(m.price_a || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-300">$${(m.price_b || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-slate-200 font-semibold">${(m.ratio || 0).toFixed(4)}</td>
+                      <td class="py-2.5 px-4 text-slate-400">${(m.mean_ratio || 0).toFixed(4)}</td>
+                      <td class="py-2.5 px-4 text-slate-400">${(m.std_ratio || 0).toFixed(4)}</td>
+                      <td class="py-2.5 px-4 ${zColor}">${zSign}${(m.zscore || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 ${sigColor}">${m.signal || 'NEUTRAL'}</td>
+                      <td class="py-2.5 px-4 text-center font-sans">${statusBadge}</td>
+                    </tr>
+                  `;
+                }).join('');
+              }
+
+              // Render Closed Pairs History Table
+              const historyTable = document.getElementById('pairs-history-table-body');
+              if (historyTable && pairs.closed_trades && pairs.closed_trades.length > 0) {
+                historyTable.innerHTML = pairs.closed_trades.map(t => {
+                  const isGain = (t.net_realized_pnl || 0) >= 0;
+                  const pnlSign = isGain ? '+' : '';
+                  const pnlColor = isGain ? 'text-emerald-400' : 'text-rose-400';
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                      <td class="py-2.5 px-4 font-sans font-bold text-white">${t.symbol_a} / ${t.symbol_b}</td>
+                      <td class="py-2.5 px-4 text-slate-400">${(t.holding_days || 0).toFixed(1)}d</td>
+                      <td class="py-2.5 px-4 text-slate-300 font-semibold">${(t.entry_zscore || 0).toFixed(2)} ➔ ${(t.exit_zscore || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 ${(t.leg_a_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(t.leg_a_pnl || 0) >= 0 ? '+' : ''}$${(t.leg_a_pnl || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 ${(t.leg_b_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(t.leg_b_pnl || 0) >= 0 ? '+' : ''}$${(t.leg_b_pnl || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(t.net_realized_pnl || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-right text-amber-400">$${(t.tax_escrow || 0).toFixed(2)}</td>
+                      <td class="py-2.5 px-4 text-center font-sans">
+                        <span class="px-2 py-0.5 rounded text-[10px] ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${t.exit_reason || 'MEAN_REVERSION'}</span>
+                      </td>
+                    </tr>
+                  `;
+                }).join('');
+              }
+            }
+          } catch (e) {
+            console.warn("Error updating pairs trading telemetry:", e);
+          }
+
+          // Update Tab 1 Strategy Pillars Badges & Capital Allocation Progress Bar / Legend
+          try {
+            // Overview Pillar 4: Spreads
+            const ovSpreads = document.getElementById('overview-pillar-spreads-badge');
+            if (ovSpreads && data.spreads) {
+              const locked = data.spreads.collateral_locked || 0;
+              const count = data.spreads.active_count || 0;
+              ovSpreads.innerText = `$${locked.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} Locked (${count} Active)`;
             }
 
-            // Render Pairs Scanner Matrix
-            const scannerTable = document.getElementById('pairs-scanner-table-body');
-            if (scannerTable && pairs.scanned_metrics && Object.keys(pairs.scanned_metrics).length > 0) {
-              const metricsList = Object.values(pairs.scanned_metrics);
-              scannerTable.innerHTML = metricsList.map(m => {
-                const zSign = (m.zscore || 0) >= 0 ? '+' : '';
-                const zColor = Math.abs(m.zscore || 0) >= 2.0 ? 'text-emerald-400 font-black' : (Math.abs(m.zscore || 0) >= 1.5 ? 'text-violet-300 font-bold' : 'text-slate-400 font-medium');
-                const sigColor = m.signal === 'BUY_A_SELL_B' ? 'text-emerald-400 font-bold' : (m.signal === 'SELL_A_BUY_B' ? 'text-indigo-400 font-bold' : 'text-slate-400');
-                const statusBadge = m.status === 'ACTIVE'
-                  ? '<span class="px-2 py-0.5 rounded bg-violet-500/20 text-violet-300 font-bold text-[10px]">ACTIVE</span>'
-                  : (m.status === 'OPPORTUNITY'
-                    ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">OPPORTUNITY</span>'
-                    : '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">STANDBY</span>');
-                return `
-                  <tr class="hover:bg-slate-800/40 transition">
-                    <td class="py-2.5 px-4 font-sans font-bold text-white">${m.symbol_a} / ${m.symbol_b}</td>
-                    <td class="py-2.5 px-4 text-slate-300">$${(m.price_a || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-300">$${(m.price_b || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-slate-200 font-semibold">${(m.ratio || 0).toFixed(4)}</td>
-                    <td class="py-2.5 px-4 text-slate-400">${(m.mean_ratio || 0).toFixed(4)}</td>
-                    <td class="py-2.5 px-4 text-slate-400">${(m.std_ratio || 0).toFixed(4)}</td>
-                    <td class="py-2.5 px-4 ${zColor}">${zSign}${(m.zscore || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 ${sigColor}">${m.signal || 'NEUTRAL'}</td>
-                    <td class="py-2.5 px-4 text-center font-sans">${statusBadge}</td>
-                  </tr>
-                `;
-              }).join('');
+            // Overview Pillar 5: Crash Hedge
+            const ovHedge = document.getElementById('overview-pillar-hedge-badge');
+            if (ovHedge && data.tail_hedge) {
+              const spent = data.tail_hedge.monthly_spent || 0;
+              const status = data.tail_hedge.has_active_hedge ? 'Shield Active' : 'Standby';
+              ovHedge.innerText = `${status} ($${spent.toFixed(0)} Spent)`;
             }
 
-            // Render Closed Pairs History Table
-            const historyTable = document.getElementById('pairs-history-table-body');
-            if (historyTable && pairs.closed_trades && pairs.closed_trades.length > 0) {
-              historyTable.innerHTML = pairs.closed_trades.map(t => {
-                const isGain = (t.net_realized_pnl || 0) >= 0;
-                const pnlSign = isGain ? '+' : '';
-                const pnlColor = isGain ? 'text-emerald-400' : 'text-rose-400';
-                return `
-                  <tr class="hover:bg-slate-800/40 transition">
-                    <td class="py-2.5 px-4 font-sans font-bold text-white">${t.symbol_a} / ${t.symbol_b}</td>
-                    <td class="py-2.5 px-4 text-slate-400">${(t.holding_days || 0).toFixed(1)}d</td>
-                    <td class="py-2.5 px-4 text-slate-300 font-semibold">${(t.entry_zscore || 0).toFixed(2)} ➔ ${(t.exit_zscore || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 ${(t.leg_a_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(t.leg_a_pnl || 0) >= 0 ? '+' : ''}$${(t.leg_a_pnl || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 ${(t.leg_b_pnl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(t.leg_b_pnl || 0) >= 0 ? '+' : ''}$${(t.leg_b_pnl || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${(t.net_realized_pnl || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-right text-amber-400">$${(t.tax_escrow || 0).toFixed(2)}</td>
-                    <td class="py-2.5 px-4 text-center font-sans">
-                      <span class="px-2 py-0.5 rounded text-[10px] ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${t.exit_reason || 'MEAN_REVERSION'}</span>
-                    </td>
-                  </tr>
-                `;
-              }).join('');
+            // Overview Pillar 6: Dip Buyer
+            const ovDip = document.getElementById('overview-pillar-dip-badge');
+            if (ovDip && data.dip_buyer) {
+              const active = data.dip_buyer.active_positions_count || 0;
+              if (active > 0) {
+                ovDip.innerText = `${active} Active ($${(data.dip_buyer.capital_deployed_usd || 0).toFixed(0)})`;
+              } else {
+                const scanCount = Object.keys(data.dip_buyer.scanner_matrix || {}).length || 5;
+                ovDip.innerText = `Monitoring ${scanCount} Mega-Caps`;
+              }
             }
+
+            // Overview Pillar 7: Macro Momentum
+            const ovMacro = document.getElementById('overview-pillar-macro-badge');
+            if (ovMacro && data.macro_rotation) {
+              const dep = data.macro_rotation.capital_deployed_usd || 0;
+              const pos = (data.macro_rotation.active_positions && data.macro_rotation.active_positions[0]) ? data.macro_rotation.active_positions[0].symbol : '';
+              ovMacro.innerText = `$${dep.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})} Deployed${pos ? ' (' + pos + ')' : ''}`;
+            }
+
+            // Overview Pillar 8: Pairs Trading
+            const ovPairs = document.getElementById('overview-pillar-pairs-badge');
+            if (ovPairs && data.pairs_trading) {
+              const act = data.pairs_trading.active_positions_count || 0;
+              if (act > 0) {
+                ovPairs.innerText = `${act} Active Pairs ($${(data.pairs_trading.allocated_capital_usd || 0).toFixed(0)})`;
+              } else {
+                const scanCount = Object.keys(data.pairs_trading.scanned_metrics || {}).length || 3;
+                ovPairs.innerText = `Scanning ${scanCount} Pairs (Neutral)`;
+              }
+            }
+
+            // Capital Allocation Legend Elements
+            const allocSpreads = document.getElementById('alloc-spreads-val');
+            if (allocSpreads && data.spreads) {
+              const locked = data.spreads.collateral_locked || 0;
+              const pct = (locked / 100000.0 * 100).toFixed(1);
+              allocSpreads.innerHTML = `$${locked.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="font-normal text-slate-400 text-[10px]">(${pct}%)</span>`;
+            }
+            const allocMacro = document.getElementById('alloc-macro-val');
+            if (allocMacro && data.macro_rotation) {
+              const dep = data.macro_rotation.capital_deployed_usd || 0;
+              const pct = (dep / 100000.0 * 100).toFixed(1);
+              allocMacro.innerHTML = `$${dep.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="font-normal text-slate-400 text-[10px]">(${pct}%)</span>`;
+            }
+
+            // Top KPI Card: Active Deployments
+            const kpiDepCount = document.getElementById('kpi-deployments-count');
+            if (kpiDepCount) kpiDepCount.innerText = '8 Strategies';
+            const kpiDepDesc = document.getElementById('kpi-deployments-desc');
+            if (kpiDepDesc) kpiDepDesc.innerText = '18 Tickers • Wheels • Spreads • Hedge • Macro';
+          } catch (e) {
+            console.warn("Error updating overview badges:", e);
           }
 
           // Render AI Executive Briefing
