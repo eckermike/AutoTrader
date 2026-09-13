@@ -450,7 +450,7 @@ class LLMAdvisor:
         elif any(k in q_lower for k in ["wheel", "put", "call", "strike", "covered call"]):
             return (
                 f"🔄 **Option Wheel Overview**: The multi-asset wheel is actively monitoring cash-secured puts and covered calls "
-                f"across 6 tickers (INTC, F, SOFI, HOOD, PLTR, XLF) with a strict 50% profit decay target."
+                f"across 10 tickers (INTC, F, SOFI, HOOD, PLTR, XLF, RIVN, PFE, NU, CLF) with a strict 50% profit decay target."
             )
         else:
             financial_keywords = [

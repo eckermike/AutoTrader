@@ -281,3 +281,37 @@ def test_wheel_stale_order_cancellation_24h(test_setup):
     assert engine.active_contract_symbol is None
     assert engine.active_contract_premium is None
 
+
+def test_wheel_universe_10_stocks_tier2():
+    """Verifies that the default Option Wheel universe includes all 10 tickers and Tier 2 parameters are properly set."""
+    config = BotConfig(ALPACA_PAPER=True)
+    expected_symbols = ["INTC", "F", "SOFI", "HOOD", "PLTR", "XLF", "RIVN", "PFE", "NU", "CLF"]
+    
+    assert config.WHEEL_SYMBOLS == expected_symbols
+    assert len(config.WHEEL_SYMBOLS) == 10
+    
+    # Verify Tier 2 risk scaling defaults
+    assert config.SPREAD_ORDER_QTY == 2
+    assert config.HEDGE_MONTHLY_BUDGET_USD == 225.0
+    assert config.MACRO_MAX_CAPITAL_USD == 7500.0
+    assert config.MACRO_TOP_N_ASSETS == 3
+    
+    # Verify crypto cap remains strictly locked at $500
+    assert config.ORDER_SIZE_USD == 500.0
+    assert config.MAX_POSITION_USD == 500.0
+
+    # Verify WheelPortfolioManager initializes all 10 engines
+    options_client = AlpacaOptionsClient(api_key="MOCK", secret_key="MOCK", paper=True, mock_mode=True)
+    tax_engine = TaxEngine(filepath=Path("/tmp/test_tax.json"), tax_rate=0.30)
+    notifier = TradeNotifier(recipient=None, enabled=False, macos_banner=False)
+    portfolio = WheelPortfolioManager(
+        config=config,
+        options_client=options_client,
+        tax_engine=tax_engine,
+        notifier=notifier,
+    )
+    assert len(portfolio.engines) == 10
+    for sym in expected_symbols:
+        assert sym in portfolio.engines
+
+

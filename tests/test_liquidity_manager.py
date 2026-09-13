@@ -355,7 +355,7 @@ def test_spread_capital_shortage_triggers_liquidation_request(mock_config, mock_
     mock_liq.request_liquidation_for_opportunity.assert_called_once()
     kwargs = mock_liq.request_liquidation_for_opportunity.call_args[1]
     assert kwargs["target_symbol"] == "SPY"
-    assert kwargs["needed_cash"] == 500.0  # $5.00 * 100
+    assert kwargs["needed_cash"] == 500.0 * mock_config.SPREAD_ORDER_QTY  # $5.00 * 100 * qty
     assert "Defined-Risk Spread" in kwargs["opportunity_type"]
 
 

@@ -227,7 +227,7 @@ class BotConfig(BaseSettings):
         description="Default underlying equity symbol for single-asset option wheel",
     )
     WHEEL_SYMBOLS: Union[List[str], str] = Field(
-        default=["INTC", "F", "SOFI", "HOOD", "PLTR", "XLF"],
+        default=["INTC", "F", "SOFI", "HOOD", "PLTR", "XLF", "RIVN", "PFE", "NU", "CLF"],
         description="List of underlying equity symbols for multi-asset option wheel portfolio",
     )
     WHEEL_TARGET_DTE_MIN: int = Field(
@@ -327,7 +327,7 @@ class BotConfig(BaseSettings):
         description="Maximum cumulative collateral allocated across all open credit spreads",
     )
     SPREAD_ORDER_QTY: int = Field(
-        default=1,
+        default=2,
         ge=1,
         le=10,
         description="Number of spread contracts traded per order (1 contract = $500 collateral on $5 width)",
@@ -375,7 +375,7 @@ class BotConfig(BaseSettings):
         description="Maximum entry cost per share for crash hedge puts in USD (1.00 = $100 per contract)",
     )
     HEDGE_MONTHLY_BUDGET_USD: float = Field(
-        default=150.00,
+        default=225.00,
         ge=25.0,
         le=2000.0,
         description="Maximum cumulative monthly expenditure on catastrophe insurance",
@@ -475,13 +475,13 @@ class BotConfig(BaseSettings):
         description="Risk-free safe haven asset used during market crashes / bear regimes",
     )
     MACRO_MAX_CAPITAL_USD: float = Field(
-        default=5000.0,
+        default=7500.0,
         ge=500.0,
         le=50000.0,
         description="Maximum cumulative capital allocated to macro rotation portfolio",
     )
     MACRO_TOP_N_ASSETS: int = Field(
-        default=2,
+        default=3,
         ge=1,
         le=5,
         description="Number of top momentum assets to hold simultaneously in Risk-On mode",
