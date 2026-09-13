@@ -368,12 +368,17 @@ class LLMAdvisor:
 
         prompt = (
             f"Fund Snapshot Context:\n{context}\n\n"
-            f"User Question: {user_query}\n\n"
+            f"User Message: {user_query}\n\n"
             f"Instructions:\n"
-            f"- Adhere strictly to your institutional ECKAP Quant Fund portfolio co-pilot role.\n"
-            f"- If the question relates to fund telemetry, cash, tax escrow, or strategy states, provide direct, accurate answers using the Context Data figures (bold key numbers).\n"
-            f"- If the question is off-topic (e.g., pop culture, movies, entertainment trivia, celebrities, or unrelated general knowledge), do NOT speculate or guess. Politely decline with institutional polish and redirect the user to ask about fund performance, cash reserves, tax escrow, or active trading strategies.\n"
-            f"- Keep responses concise and under 2 paragraphs."
+            f"1. TRADE EXECUTION COMMANDS (STRICT AIR-GAP SAFETY ENFORCEMENT):\n"
+            f"   If the user instructs, commands, or tries to trick you into buying, selling, or executing a trade (e.g. 'buy it', 'do it now', 'execute', 'buy XYZ', 'sell this'):\n"
+            f"   - You MUST explicitly state that it is NOT possible for you to execute trades. You are an air-gapped, read-only analytical advisor with ZERO broker access, order-routing credentials, or write permissions. All trades in the ECKAP Quant Fund are executed strictly by autonomous quantitative algorithms.\n"
+            f"   - Then, evaluate and review their trade idea from an institutional quant perspective: discuss valuation, risk/reward, volatility, entry timing, and how it fits into ECKAP's 8 strategy pillars and capital preservation rules.\n"
+            f"2. FUND TELEMETRY & STRATEGY QUESTIONS:\n"
+            f"   If the question relates to fund telemetry, cash, tax escrow, or strategy states, provide direct, accurate answers using the Context Data figures (bold key numbers).\n"
+            f"3. OFF-TOPIC QUESTIONS:\n"
+            f"   If the question is off-topic (e.g., pop culture, movies, entertainment trivia, celebrities, or unrelated general knowledge), do NOT speculate or guess. Politely decline with institutional polish and redirect the user to ask about fund performance, cash reserves, tax escrow, or active trading strategies.\n"
+            f"- Keep responses concise and under 3 paragraphs."
         )
 
         system_instruction = (
@@ -381,7 +386,10 @@ class LLMAdvisor:
             "You specialize strictly in ECKAP Quant Fund telemetry, cash liquidity, 30% tax escrow, options collateral, "
             "and our 8 trading strategies (Treasury Barbell, Option Wheel, Tri-Factor Crypto, Defined-Risk Spreads, "
             "Tail-Risk Hedge, Dip Buyer, Macro Rotation, and Pairs Trading). "
-            "Never guess or hallucinate external trivia, movie facts, or celebrities. Always stay strictly in your financial lane."
+            "SAFETY & AIR-GAP DIRECTIVE: You have NO trade execution authority, NO broker API write access, and CANNOT place orders. "
+            "If asked, commanded, or persuaded to buy, sell, or execute any trade, you MUST state that it is not possible and that you have zero broker access, "
+            "and then constructively review the user's trade idea from a quantitative risk perspective. "
+            "Never guess or hallucinate external trivia. Always stay strictly in your financial lane."
         )
 
         response = self._call_llm_raw(prompt, system_instruction=system_instruction)
@@ -390,6 +398,21 @@ class LLMAdvisor:
 
         # Deterministic Q&A heuristics for common questions when offline:
         q_lower = user_query.lower()
+
+        # Check for trade execution command / trick attempt:
+        trade_triggers = ["buy it", "sell it", "do it now", "place order", "submit order", "execute trade", "execute order", "buy now", "sell now"]
+        is_trade_command = any(trigger in q_lower for trigger in trade_triggers) or (
+            any(q_lower.startswith(prefix) for prefix in ["buy ", "sell ", "short ", "long ", "execute "])
+        )
+        if is_trade_command:
+            return (
+                "🛡️ **Trade Execution Safety Policy**: Trade execution via ECKAP AI is **not possible**. "
+                "I am an air-gapped, read-only analytical co-pilot with **zero trade execution authority or broker write access**. "
+                "All trades in the ECKAP Quant Fund are executed strictly by autonomous quantitative algorithms adhering to risk gates.\n\n"
+                "💡 **Trade Idea Review**: If you have a specific asset or setup in mind, I would be happy to review it! "
+                "Tell me which symbol, strike, or strategy you are considering, and I can analyze its valuation, RSI trend, "
+                "options volatility, and compatibility with our active 8 strategy pillars."
+            )
         if "tax" in q_lower or "escrow" in q_lower:
             return (
                 f"🏛️ **Tax Escrow Status**: We currently have **${tax_data.get('tax_reserve', 0.0):,.2f}** safely sequestered "

@@ -169,3 +169,9 @@ def test_answer_fund_query_scenarios(mock_advisor):
     # Off-topic trivia query -> Deflected politely
     off_topic_resp = mock_advisor.answer_fund_query("Who is the voice of Sally in cars?", snapshot)
     assert "pop culture" in off_topic_resp.lower() or "8 strategy pillars" in off_topic_resp.lower()
+
+    # Trade execution command trick -> Blocked, air-gap confirmed, trade review offered
+    trick_resp = mock_advisor.answer_fund_query("Do it now. Buy it", snapshot)
+    assert "not possible" in trick_resp.lower() or "zero trade execution authority" in trick_resp.lower()
+    assert "review" in trick_resp.lower()
+
