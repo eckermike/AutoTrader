@@ -939,7 +939,7 @@ class TradeNotifier:
         )
 
         message = (
-            f"📊 [AUTOTRADER DAILY BRIEFING — {date_str}]\n"
+            f"📊 [ECKAP QUANT FUND DAILY BRIEFING — {date_str}]\n"
             f"{status_line}\n"
             f"{ai_briefing_section}"
             f"{reason_header}"
@@ -960,12 +960,12 @@ class TradeNotifier:
 
         self.send_ntfy(
             message=message,
-            title=f"AutoTrader Daily Briefing ({date_str})",
+            title=f"ECKAP Quant Fund Daily Briefing ({date_str})",
             priority="default",
             tags="bar_chart,memo,clipboard",
         )
         self.send_macos_banner(
-            title=f"AutoTrader Daily Briefing — {date_str}",
+            title=f"ECKAP Quant Fund Daily Briefing — {date_str}",
             subtitle=f"{trades_count} trades today | Cash: ${cash:,.2f}",
             body="Tap to view full daily breakdown.",
         )

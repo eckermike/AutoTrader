@@ -118,7 +118,7 @@ class LLMAdvisor:
                     diag_str += f"\n- {strat}: " + "; ".join(lines[:2])
 
         prompt = (
-            f"You are the Lead Portfolio Manager at AutoTrader Capital Partners. Write a crisp, 2-paragraph "
+            f"You are the Lead Portfolio Manager at ECKAP Quant Fund. Write a crisp, 2-paragraph "
             f"Executive Briefing for our daily market recap on {date_str}.\n\n"
             f"Key metrics:\n"
             f"- Trades executed today: {trades_count}\n"
@@ -135,13 +135,13 @@ class LLMAdvisor:
             # Deterministic Fallback Summary
             if trades_count > 0:
                 p1 = (
-                    f"AutoTrader closed the session with {trades_count} active execution(s) while maintaining disciplined "
-                    f"risk across all 5 strategies. Total fund liquidity stands at ${cash:,.2f}, with ${tradable_cash:,.2f} "
+                    f"ECKAP Quant Fund closed the session with {trades_count} active execution(s) while maintaining disciplined "
+                    f"risk across all 8 institutional strategies. Total fund liquidity stands at ${cash:,.2f}, with ${tradable_cash:,.2f} "
                     f"in active tradable cash ready for systematic deployment."
                 )
             else:
                 p1 = (
-                    f"AutoTrader remained defensively positioned today with 0 new orders triggered, adhering strictly to "
+                    f"ECKAP Quant Fund remained defensively positioned today with 0 new orders triggered, adhering strictly to "
                     f"selective entry thresholds across credit spreads, tail hedges, dip buyer, macro rotation, and pairs trading. "
                     f"Portfolio liquidity remains robust at ${cash:,.2f}."
                 )
@@ -353,7 +353,7 @@ class LLMAdvisor:
         pairs = fund_snapshot.get("pairs_trading", {})
 
         context = (
-            f"AutoTrader Capital Fund Snapshot:\n"
+            f"ECKAP Quant Fund Snapshot:\n"
             f"- Total Cash: ${portfolio.get('cash', 0.0):,.2f}\n"
             f"- Tradable Cash: ${portfolio.get('tradable_cash', 0.0):,.2f}\n"
             f"- 30% Tax Escrow Balance: ${tax_data.get('tax_reserve', 0.0):,.2f}\n"
@@ -370,15 +370,15 @@ class LLMAdvisor:
             f"Fund Snapshot Context:\n{context}\n\n"
             f"User Question: {user_query}\n\n"
             f"Instructions:\n"
-            f"- Adhere strictly to your institutional AutoTrader portfolio co-pilot role.\n"
+            f"- Adhere strictly to your institutional ECKAP Quant Fund portfolio co-pilot role.\n"
             f"- If the question relates to fund telemetry, cash, tax escrow, or strategy states, provide direct, accurate answers using the Context Data figures (bold key numbers).\n"
             f"- If the question is off-topic (e.g., pop culture, movies, entertainment trivia, celebrities, or unrelated general knowledge), do NOT speculate or guess. Politely decline with institutional polish and redirect the user to ask about fund performance, cash reserves, tax escrow, or active trading strategies.\n"
             f"- Keep responses concise and under 2 paragraphs."
         )
 
         system_instruction = (
-            "You are AutoTrader AI, the institutional quantitative portfolio co-pilot for AutoTrader Capital Partners. "
-            "You specialize strictly in AutoTrader fund telemetry, cash liquidity, 30% tax escrow, options collateral, "
+            "You are ECKAP AI, the institutional quantitative portfolio co-pilot for ECKAP Quant Fund. "
+            "You specialize strictly in ECKAP Quant Fund telemetry, cash liquidity, 30% tax escrow, options collateral, "
             "and our 8 trading strategies (Treasury Barbell, Option Wheel, Tri-Factor Crypto, Defined-Risk Spreads, "
             "Tail-Risk Hedge, Dip Buyer, Macro Rotation, and Pairs Trading). "
             "Never guess or hallucinate external trivia, movie facts, or celebrities. Always stay strictly in your financial lane."
@@ -438,12 +438,12 @@ class LLMAdvisor:
             ]
             if not any(k in q_lower for k in financial_keywords):
                 return (
-                    "🤖 **AutoTrader Co-Pilot**: My intelligence is specialized exclusively in AutoTrader Capital Partners "
+                    "🤖 **ECKAP AI Co-Pilot**: My intelligence is specialized exclusively in ECKAP Quant Fund "
                     "portfolio telemetry, risk management, and algorithmic execution across our 8 strategy pillars. "
                     "I don't track pop culture or entertainment trivia. How can I assist with your cash, tax escrow, or active positions today?"
                 )
             return (
-                f"📊 **AutoTrader Portfolio Status**: Total cash is **${portfolio.get('cash', 0.0):,.2f}** "
+                f"📊 **ECKAP Quant Fund Portfolio Status**: Total cash is **${portfolio.get('cash', 0.0):,.2f}** "
                 f"(Tradable: **${portfolio.get('tradable_cash', 0.0):,.2f}**), with **${tax_data.get('tax_reserve', 0.0):,.2f}** "
                 f"in tax escrow. We have **{spreads.get('active_count', 0)}** option spreads, "
                 f"**{dip.get('active_positions_count', 0)}** dip positions, "

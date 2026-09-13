@@ -126,9 +126,9 @@ def build_fund_status_snapshot() -> dict:
     crypto_matrix, portfolio = parse_latest_daemon_state()
     data = {
         "status": "online",
-        "fund_name": "AutoTrader Capital Partners",
+        "fund_name": "ECKAP Quant Fund",
         "executive_briefing": {
-            "summary": "AutoTrader quantitative systems operational. Risk gates, tax escrow, and 5 strategies active.",
+            "summary": "ECKAP Quant Fund systems operational. 8 institutional strategies active with strict risk gates, Treasury ballast, tail hedges, and automated tax escrow.",
             "generated_at": None,
             "date": None,
             "trades_count": 0,

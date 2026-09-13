@@ -35,7 +35,7 @@ def test_generate_daily_briefing_fallback(mock_advisor, tmp_path, monkeypatch):
         diagnostics={"Wheel": ["AAPL CSP active"], "Pairs": ["XOM/CVX active"]},
     )
 
-    assert "AutoTrader" in briefing
+    assert "ECKAP" in briefing
     assert "2 active execution(s)" in briefing
     assert "100,000.00" in briefing
     assert "30,000.00" in briefing

@@ -46,7 +46,7 @@ def test_notifier_formatting_daily_recap_zero_trades():
         assert mock_imsg.called
 
         msg = mock_ntfy.call_args[1]["message"]
-        assert "AUTOTRADER DAILY BRIEFING — 2026-09-08" in msg
+        assert "ECKAP QUANT FUND DAILY BRIEFING — 2026-09-08" in msg
         assert "0 New Orders" in msg
         assert "WHY NO TRADES WERE TRIGGERED TODAY" in msg
         assert "AVAX/USD: Active position" in msg
