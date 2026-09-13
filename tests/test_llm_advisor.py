@@ -165,3 +165,7 @@ def test_answer_fund_query_scenarios(mock_advisor):
     # Tail hedge query
     hedge_resp = mock_advisor.answer_fund_query("Is our black swan tail hedge active?", snapshot)
     assert "ACTIVE" in hedge_resp
+
+    # Off-topic trivia query -> Deflected politely
+    off_topic_resp = mock_advisor.answer_fund_query("Who is the voice of Sally in cars?", snapshot)
+    assert "pop culture" in off_topic_resp.lower() or "8 strategy pillars" in off_topic_resp.lower()

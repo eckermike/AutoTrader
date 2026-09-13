@@ -369,15 +369,19 @@ class LLMAdvisor:
         prompt = (
             f"Fund Snapshot Context:\n{context}\n\n"
             f"User Question: {user_query}\n\n"
-            f"Guidelines:\n"
-            f"- If the question is about fund performance, cash, tax, or trading strategies, answer directly and accurately using the figures from Context Data. Use bold for key numbers.\n"
-            f"- If the question is general knowledge, banter, or off-topic, answer directly, accurately, and naturally in first person. Do NOT include robotic disclaimers about context data or mention that the question is outside fund scope.\n"
-            f"- Keep answers concise, helpful, and under 3 paragraphs."
+            f"Instructions:\n"
+            f"- Adhere strictly to your institutional AutoTrader portfolio co-pilot role.\n"
+            f"- If the question relates to fund telemetry, cash, tax escrow, or strategy states, provide direct, accurate answers using the Context Data figures (bold key numbers).\n"
+            f"- If the question is off-topic (e.g., pop culture, movies, entertainment trivia, celebrities, or unrelated general knowledge), do NOT speculate or guess. Politely decline with institutional polish and redirect the user to ask about fund performance, cash reserves, tax escrow, or active trading strategies.\n"
+            f"- Keep responses concise and under 2 paragraphs."
         )
 
         system_instruction = (
-            "You are AutoTrader AI, an intelligent quantitative co-pilot and trading assistant for AutoTrader Capital Partners. "
-            "Speak directly in a confident, friendly, and professional first-person voice ('I', 'we'). Never use robotic meta-commentary."
+            "You are AutoTrader AI, the institutional quantitative portfolio co-pilot for AutoTrader Capital Partners. "
+            "You specialize strictly in AutoTrader fund telemetry, cash liquidity, 30% tax escrow, options collateral, "
+            "and our 8 trading strategies (Treasury Barbell, Option Wheel, Tri-Factor Crypto, Defined-Risk Spreads, "
+            "Tail-Risk Hedge, Dip Buyer, Macro Rotation, and Pairs Trading). "
+            "Never guess or hallucinate external trivia, movie facts, or celebrities. Always stay strictly in your financial lane."
         )
 
         response = self._call_llm_raw(prompt, system_instruction=system_instruction)
@@ -420,7 +424,24 @@ class LLMAdvisor:
                 f"🎯 **Dip Buyer Overview**: Currently **{dip.get('active_positions_count', 0)}** oversold dip positions "
                 f"active with **${dip.get('capital_deployed_usd', 0.0):,.2f}** deployed. Win rate is **{dip.get('win_rate_pct', 0.0):.1f}%**."
             )
+        elif any(k in q_lower for k in ["wheel", "put", "call", "strike", "covered call"]):
+            return (
+                f"🔄 **Option Wheel Overview**: The multi-asset wheel is actively monitoring cash-secured puts and covered calls "
+                f"across 6 tickers (INTC, F, SOFI, HOOD, PLTR, XLF) with a strict 50% profit decay target."
+            )
         else:
+            financial_keywords = [
+                "tax", "escrow", "cash", "balance", "liquidity", "pair", "pairs", "hedge", 
+                "black swan", "tail", "macro", "sector", "dip", "wheel", "option", "spread", 
+                "crypto", "btc", "trade", "portfolio", "fund", "pnl", "profit", "loss", "reserve", 
+                "collateral", "asset", "yield", "bond", "treasury", "position"
+            ]
+            if not any(k in q_lower for k in financial_keywords):
+                return (
+                    "🤖 **AutoTrader Co-Pilot**: My intelligence is specialized exclusively in AutoTrader Capital Partners "
+                    "portfolio telemetry, risk management, and algorithmic execution across our 8 strategy pillars. "
+                    "I don't track pop culture or entertainment trivia. How can I assist with your cash, tax escrow, or active positions today?"
+                )
             return (
                 f"📊 **AutoTrader Portfolio Status**: Total cash is **${portfolio.get('cash', 0.0):,.2f}** "
                 f"(Tradable: **${portfolio.get('tradable_cash', 0.0):,.2f}**), with **${tax_data.get('tax_reserve', 0.0):,.2f}** "
