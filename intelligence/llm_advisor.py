@@ -367,15 +367,17 @@ class LLMAdvisor:
         )
 
         prompt = (
-            f"You are the AI Chief Risk Officer & Co-Pilot for AutoTrader Capital Partners.\n"
-            f"Context Data:\n{context}\n\n"
+            f"Fund Snapshot Context:\n{context}\n\n"
             f"User Question: {user_query}\n\n"
-            f"Answer the user's question directly, precisely, and professionally using the exact figures from context. "
-            f"Keep the answer concise (under 3 paragraphs). Use bold text for key figures."
+            f"Guidelines:\n"
+            f"- If the question is about fund performance, cash, tax, or trading strategies, answer directly and accurately using the figures from Context Data. Use bold for key numbers.\n"
+            f"- If the question is general knowledge, banter, or off-topic, answer directly, accurately, and naturally in first person. Do NOT include robotic disclaimers about context data or mention that the question is outside fund scope.\n"
+            f"- Keep answers concise, helpful, and under 3 paragraphs."
         )
 
         system_instruction = (
-            "You are AutoTrader AI, an institutional quantitative trading assistant. Always provide accurate figures from context."
+            "You are AutoTrader AI, an intelligent quantitative co-pilot and trading assistant for AutoTrader Capital Partners. "
+            "Speak directly in a confident, friendly, and professional first-person voice ('I', 'we'). Never use robotic meta-commentary."
         )
 
         response = self._call_llm_raw(prompt, system_instruction=system_instruction)
