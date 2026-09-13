@@ -3565,23 +3565,26 @@
                   </tr>
                 `;
               }).join('');
-            // Render AI Executive Briefing
-            if (data.executive_briefing) {
-              const briefEl = document.getElementById('executive-briefing-text');
-              if (briefEl && data.executive_briefing.summary) {
-                briefEl.innerText = data.executive_briefing.summary;
-              }
-              const timeEl = document.getElementById('briefing-timestamp');
-              if (timeEl && (data.executive_briefing.date || data.executive_briefing.generated_at)) {
-                const dt = data.executive_briefing.date || data.executive_briefing.generated_at.split('T')[0];
-                timeEl.innerText = `Generated for session: ${dt} | Institutional Wall Street PM Review`;
-              }
-              const tagEl = document.getElementById('briefing-model-tag');
-              if (tagEl && data.executive_briefing.provider) {
-                tagEl.innerText = `AutoTrader PM AI (${data.executive_briefing.provider.toUpperCase()})`;
-              }
             }
           }
+
+          // Render AI Executive Briefing
+          if (data.executive_briefing) {
+            const briefEl = document.getElementById('executive-briefing-text');
+            if (briefEl && data.executive_briefing.summary) {
+              briefEl.innerText = data.executive_briefing.summary;
+            }
+            const timeEl = document.getElementById('briefing-timestamp');
+            if (timeEl && (data.executive_briefing.date || data.executive_briefing.generated_at)) {
+              const dt = data.executive_briefing.date || data.executive_briefing.generated_at.split('T')[0];
+              timeEl.innerText = `Generated for session: ${dt} | Institutional Wall Street PM Review`;
+            }
+            const tagEl = document.getElementById('briefing-model-tag');
+            if (tagEl && data.executive_briefing.provider) {
+              tagEl.innerText = `AutoTrader PM AI (${data.executive_briefing.provider.toUpperCase()})`;
+            }
+          }
+        }
       } catch (err) {
         console.debug("Live sync notice:", err);
       } finally {
@@ -3602,7 +3605,7 @@
       const drawer = document.getElementById('ai-chat-drawer');
       const panel = document.getElementById('ai-chat-panel');
       if (drawer && panel) {
-        drawer.classList.remove('pointer-events-none', 'opacity-0');
+        drawer.classList.remove('hidden', 'pointer-events-none', 'opacity-0');
         drawer.classList.add('opacity-100');
         panel.classList.remove('translate-x-full');
         panel.classList.add('translate-x-0');
@@ -3620,9 +3623,9 @@
         panel.classList.remove('translate-x-0');
         panel.classList.add('translate-x-full');
         drawer.classList.remove('opacity-100');
-        drawer.classList.add('opacity-0');
+        drawer.classList.add('opacity-0', 'pointer-events-none');
         setTimeout(() => {
-          drawer.classList.add('pointer-events-none');
+          drawer.classList.add('hidden');
         }, 300);
       }
     }
@@ -3698,9 +3701,9 @@
   </button>
 
   <!-- Slide-Over AI Assistant Drawer -->
-  <div id="ai-chat-drawer" class="fixed inset-0 z-50 pointer-events-none transition-opacity duration-300 opacity-0">
+  <div id="ai-chat-drawer" class="fixed inset-0 z-50 pointer-events-none hidden transition-opacity duration-300 opacity-0">
     <!-- Backdrop -->
-    <div id="ai-chat-backdrop" onclick="closeChatDrawer()" class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto"></div>
+    <div id="ai-chat-backdrop" onclick="closeChatDrawer()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
     <!-- Drawer Panel -->
     <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col pointer-events-auto transform translate-x-full transition-transform duration-300" id="ai-chat-panel">
       <!-- Header -->
