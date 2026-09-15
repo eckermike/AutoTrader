@@ -270,6 +270,10 @@ class BotConfig(BaseSettings):
         default="DAY",
         description="Time-in-force for option orders ('DAY' or 'GTC')",
     )
+    WHEEL_STATE_FILE: str = Field(
+        default="wheel_state.json",
+        description="Path to option wheel state persistence file",
+    )
 
     # --- Defined-Risk Credit Spreads Strategy ---
     SPREAD_ENABLED: bool = Field(

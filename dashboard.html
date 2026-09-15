@@ -410,7 +410,7 @@
             <span class="w-3 h-3 rounded-md bg-cyan-500 shrink-0"></span>
             <div>
               <p class="text-slate-400 text-[11px]">Bond Barbell</p>
-              <p class="font-bold text-slate-200 text-xs">$40,000.00 <span class="font-normal text-slate-400 text-[10px]">(39.9%)</span></p>
+              <p class="font-bold text-slate-200 text-xs" id="alloc-barbell-val">$40,000.00 <span class="font-normal text-slate-400 text-[10px]">(39.9%)</span></p>
             </div>
           </div>
 
@@ -418,7 +418,7 @@
             <span class="w-3 h-3 rounded-md bg-indigo-600 shrink-0"></span>
             <div>
               <p class="text-slate-400 text-[11px]">Option Wheel</p>
-              <p class="font-bold text-slate-200 text-xs">$45,200.00 <span class="font-normal text-slate-400 text-[10px]">(45.1%)</span></p>
+              <p class="font-bold text-slate-200 text-xs" id="alloc-wheel-val">$45,050.00 <span class="font-normal text-slate-400 text-[10px]">(45.3%)</span></p>
             </div>
           </div>
 
@@ -426,7 +426,7 @@
             <span class="w-3 h-3 rounded-md bg-purple-500 shrink-0"></span>
             <div>
               <p class="text-slate-400 text-[11px]">Defined Spreads</p>
-              <p class="font-bold text-slate-200 text-xs" id="alloc-spreads-val">$1,500.00 <span class="font-normal text-slate-400 text-[10px]">(1.5%)</span></p>
+              <p class="font-bold text-slate-200 text-xs" id="alloc-spreads-val">$0.00 <span class="font-normal text-slate-400 text-[10px]">(0.0%)</span></p>
             </div>
           </div>
 
@@ -434,7 +434,7 @@
             <span class="w-3 h-3 rounded-md bg-sky-400 shrink-0"></span>
             <div>
               <p class="text-slate-400 text-[11px]">Macro Momentum</p>
-              <p class="font-bold text-slate-200 text-xs" id="alloc-macro-val">$2,500.00 <span class="font-normal text-slate-400 text-[10px]">(2.5%)</span></p>
+              <p class="font-bold text-slate-200 text-xs" id="alloc-macro-val">$0.00 <span class="font-normal text-slate-400 text-[10px]">(0.0%)</span></p>
             </div>
           </div>
 
@@ -442,7 +442,7 @@
             <span class="w-3 h-3 rounded-md bg-rose-500 shrink-0"></span>
             <div>
               <p class="text-slate-400 text-[11px]">Hedge / Crypto</p>
-              <p class="font-bold text-slate-200 text-xs">$1,052.22 <span class="font-normal text-slate-400 text-[10px]">(1.0%)</span></p>
+              <p class="font-bold text-slate-200 text-xs" id="alloc-hedge-val">$55.00 <span class="font-normal text-slate-400 text-[10px]">(0.1%)</span></p>
             </div>
           </div>
 
@@ -450,7 +450,7 @@
             <span class="w-3 h-3 rounded-md bg-emerald-500 shrink-0"></span>
             <div>
               <p class="text-slate-400 text-[11px]">Liquid Cash Buffer</p>
-              <p class="font-bold text-slate-200 text-xs">$10,053.83 <span class="font-normal text-slate-400 text-[10px]">(10.0%)</span></p>
+              <p class="font-bold text-slate-200 text-xs" id="alloc-cash-val">$60,794.43 <span class="font-normal text-slate-400 text-[10px]">(61.1%)</span></p>
             </div>
           </div>
         </div>
@@ -773,13 +773,13 @@
               <span><strong>The "Win-Win-Win" Setup:</strong> We make money if the stock goes up, stays completely flat, or even drops slightly. The cash we collect upfront protects us if the market dips.</span>
             </div>
             <div class="text-slate-500 text-[11px]">
-              Active & Earmarked Collateral: <span class="text-slate-200 font-semibold">$51,900.00 across 10 tickers</span>
+              Active & Earmarked Collateral: <span class="text-slate-200 font-semibold" id="wheel-total-collateral-kpi">$51,900.00 across 10 tickers</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div id="wheel-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         
         <!-- INTC Card -->
         <div onclick="openModal('INTC', 'Intel Corporation', 'INTC261002P00089000', '$89.00', '2026-10-02', '21 Days', '$8,900.00', '+$55.00 (+34.4%)', '68.8% to 50% Target', 'MONITORING_PUT', '$102.52')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-indigo-500/50">
@@ -931,77 +931,88 @@
           </div>
         </div>
 
-        <!-- F Card (Pending Refresh) -->
-        <div onclick="openModal('F', 'Ford Motor Company', 'F261002P00013500', '$13.50', '2026-10-02', '21 Days', '$1,350.00', '24h TTL Refresh', 'Awaiting Mon Open', 'PENDING_ORDER', '$13.95')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-amber-500/40">
+        <!-- F Card -->
+        <div onclick="openModal('F', 'Ford Motor Company', 'F261009P00013000', '$13.00', '2026-10-09', '25 Days', '$1,300.00', '-$3.00', 'Decaying toward exit', 'MONITORING_PUT', '$13.86')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-indigo-500/50">
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-lg font-bold text-white">F</span>
-                <span class="text-xs px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 font-medium border border-amber-500/20">24H REFRESH READY</span>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">ACTIVE PUT</span>
               </div>
-              <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$13.95</span></p>
+              <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$13.86</span></p>
             </div>
             <div class="text-right">
-              <span class="text-xs font-mono text-cyan-400 font-semibold">$13.50 Strike</span>
-              <p class="text-[11px] text-slate-400">Oct 02 Exp (21 DTE)</p>
+              <span class="text-xs font-mono text-cyan-400 font-semibold">$13.00 Strike</span>
+              <p class="text-[11px] text-slate-400">Oct 09 Exp (25 DTE)</p>
             </div>
           </div>
 
           <div class="mt-4 pt-3 border-t border-slate-800/80">
-            <p class="text-xs text-slate-300">Stale $0.50 order cancelled by 24h TTL. Fresh DAY order will submit at live market bid ($0.18) at Monday 9:30 AM open.</p>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Strike Distance:</span>
+              <span class="text-emerald-400 font-medium">+6.6% OTM Safe</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-500 rounded-full" style="width: 25%"></div>
+            </div>
           </div>
 
           <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
             <div>
-              <p class="text-slate-500">Earmarked Collateral</p>
-              <p class="font-semibold text-slate-200">$1,350.00</p>
+              <p class="text-slate-500">Collateral Locked</p>
+              <p class="font-semibold text-slate-200">$1,300.00</p>
             </div>
             <div class="text-right">
-              <p class="text-slate-500">Target Premium</p>
-              <p class="font-semibold text-emerald-400">$18.00 (Live Bid)</p>
+              <p class="text-slate-500">Premium Captured</p>
+              <p class="font-semibold text-slate-300">$15.00 Initial</p>
             </div>
           </div>
         </div>
 
-        <!-- XLF Card (Pending Refresh) -->
-        <div onclick="openModal('XLF', 'Financial Select Sector SPDR', 'XLF260930P00055000', '$55.00', '2026-09-30', '19 Days', '$5,500.00', '24h TTL Refresh', 'Awaiting Mon Open', 'PENDING_ORDER', '$57.24')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-amber-500/40">
+        <!-- XLF Card -->
+        <div onclick="openModal('XLF', 'Financial Select Sector SPDR', 'XLF261009P00054000', '$54.00', '2026-10-09', '25 Days', '$5,400.00', '-$9.00', 'Decaying toward exit', 'MONITORING_PUT', '$57.37')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-indigo-500/50">
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-lg font-bold text-white">XLF</span>
-                <span class="text-xs px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 font-medium border border-amber-500/20">24H REFRESH READY</span>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">ACTIVE PUT</span>
               </div>
-              <p class="text-xs text-slate-400 mt-0.5">ETF Price: <span class="text-slate-200 font-medium">$57.24</span></p>
+              <p class="text-xs text-slate-400 mt-0.5">ETF Price: <span class="text-slate-200 font-medium">$57.37</span></p>
             </div>
             <div class="text-right">
-              <span class="text-xs font-mono text-cyan-400 font-semibold">$55.00 Strike</span>
-              <p class="text-[11px] text-slate-400">Sep 30 Exp (19 DTE)</p>
+              <span class="text-xs font-mono text-cyan-400 font-semibold">$54.00 Strike</span>
+              <p class="text-[11px] text-slate-400">Oct 09 Exp (25 DTE)</p>
             </div>
           </div>
 
           <div class="mt-4 pt-3 border-t border-slate-800/80">
-            <p class="text-xs text-slate-300">Stale $0.50 order cancelled by 24h TTL. Fresh DAY order will submit at live market bid ($0.13) at Monday 9:30 AM open.</p>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Strike Distance:</span>
+              <span class="text-emerald-400 font-medium">+6.2% OTM Safe</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-500 rounded-full" style="width: 25%"></div>
+            </div>
           </div>
 
           <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
             <div>
-              <p class="text-slate-500">Earmarked Collateral</p>
-              <p class="font-semibold text-slate-200">$5,500.00</p>
+              <p class="text-slate-500">Collateral Locked</p>
+              <p class="font-semibold text-slate-200">$5,400.00</p>
             </div>
             <div class="text-right">
-              <p class="text-slate-500">Target Premium</p>
-              <p class="font-semibold text-emerald-400">$13.00 (Live Bid)</p>
+              <p class="text-slate-500">Premium Captured</p>
+              <p class="font-semibold text-slate-300">$11.00 Initial</p>
             </div>
           </div>
         </div>
 
         <!-- RIVN Card -->
-        <div onclick="openModal('RIVN', 'Rivian Automotive', 'RIVN261002P00015000', '$15.00', '2026-10-02', '21 Days', '$1,500.00', 'Tier 2 Expansion', 'Awaiting Mon Open', 'PENDING_ORDER', '$16.50')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-emerald-500/40">
+        <div onclick="openModal('RIVN', 'Rivian Automotive', 'RIVN261002P00015000', '$15.00', '2026-10-02', '21 Days', '$1,500.00', 'Standby', 'Awaiting Cycle', 'PENDING_ORDER', '$16.50')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-slate-700/60">
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-lg font-bold text-white">RIVN</span>
-                <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">TIER 2 EXPANSION</span>
               </div>
               <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$16.50</span></p>
             </div>
@@ -1012,7 +1023,7 @@
           </div>
 
           <div class="mt-4 pt-3 border-t border-slate-800/80">
-            <p class="text-xs text-slate-300">Tier 2 expansion stock. High IV provides elevated premium buffer (+10.0% OTM margin of safety at $15.00 strike).</p>
+            <p class="text-xs text-slate-300">High IV provides elevated premium buffer (+10.0% OTM margin of safety at $15.00 strike).</p>
           </div>
 
           <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
@@ -1028,12 +1039,11 @@
         </div>
 
         <!-- PFE Card -->
-        <div onclick="openModal('PFE', 'Pfizer Inc.', 'PFE261002P00026000', '$26.00', '2026-10-02', '21 Days', '$2,600.00', 'Tier 2 Expansion', 'Awaiting Mon Open', 'PENDING_ORDER', '$28.00')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-emerald-500/40">
+        <div onclick="openModal('PFE', 'Pfizer Inc.', 'PFE261002P00026000', '$26.00', '2026-10-02', '21 Days', '$2,600.00', 'Standby', 'Awaiting Cycle', 'PENDING_ORDER', '$28.00')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-slate-700/60">
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-lg font-bold text-white">PFE</span>
-                <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">TIER 2 EXPANSION</span>
               </div>
               <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$28.00</span></p>
             </div>
@@ -1044,7 +1054,7 @@
           </div>
 
           <div class="mt-4 pt-3 border-t border-slate-800/80">
-            <p class="text-xs text-slate-300">Tier 2 expansion stock. Defensive healthcare blue-chip with low beta, high liquidity, and dividend support (+7.7% OTM).</p>
+            <p class="text-xs text-slate-300">Defensive healthcare blue-chip with low beta, high liquidity, and dividend support (+7.7% OTM).</p>
           </div>
 
           <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
@@ -1060,12 +1070,11 @@
         </div>
 
         <!-- NU Card -->
-        <div onclick="openModal('NU', 'Nu Holdings Ltd.', 'NU261002P00014000', '$14.00', '2026-10-02', '21 Days', '$1,400.00', 'Tier 2 Expansion', 'Awaiting Mon Open', 'PENDING_ORDER', '$15.00')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-emerald-500/40">
+        <div onclick="openModal('NU', 'Nu Holdings Ltd.', 'NU261002P00014000', '$14.00', '2026-10-02', '21 Days', '$1,400.00', 'Standby', 'Awaiting Cycle', 'PENDING_ORDER', '$15.00')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-slate-700/60">
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-lg font-bold text-white">NU</span>
-                <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">TIER 2 EXPANSION</span>
               </div>
               <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$15.00</span></p>
             </div>
@@ -1076,7 +1085,7 @@
           </div>
 
           <div class="mt-4 pt-3 border-t border-slate-800/80">
-            <p class="text-xs text-slate-300">Tier 2 expansion stock. High-growth fintech leader with massive institutional interest and narrow option spreads (+7.1% OTM).</p>
+            <p class="text-xs text-slate-300">High-growth fintech leader with massive institutional interest and narrow option spreads (+7.1% OTM).</p>
           </div>
 
           <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
@@ -1092,12 +1101,11 @@
         </div>
 
         <!-- CLF Card -->
-        <div onclick="openModal('CLF', 'Cleveland-Cliffs Inc.', 'CLF261002P00012000', '$12.00', '2026-10-02', '21 Days', '$1,200.00', 'Tier 2 Expansion', 'Awaiting Mon Open', 'PENDING_ORDER', '$12.50')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-emerald-500/40">
+        <div onclick="openModal('CLF', 'Cleveland-Cliffs Inc.', 'CLF261002P00012000', '$12.00', '2026-10-02', '21 Days', '$1,200.00', 'Standby', 'Awaiting Cycle', 'PENDING_ORDER', '$12.50')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] hover:border-slate-700/60">
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-lg font-bold text-white">CLF</span>
-                <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">TIER 2 EXPANSION</span>
               </div>
               <p class="text-xs text-slate-400 mt-0.5">Stock Price: <span class="text-slate-200 font-medium">$12.50</span></p>
             </div>
@@ -1108,7 +1116,7 @@
           </div>
 
           <div class="mt-4 pt-3 border-t border-slate-800/80">
-            <p class="text-xs text-slate-300">Tier 2 expansion stock. Domestic steel and industrial cyclicals providing non-correlated yield with rich put premia (+4.2% OTM).</p>
+            <p class="text-xs text-slate-300">Domestic steel and industrial cyclicals providing non-correlated yield with rich put premia (+4.2% OTM).</p>
           </div>
 
           <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
@@ -1417,7 +1425,7 @@
               <span><strong>Guaranteed Passive Income:</strong> $40,000 works 24/7 generating ~$168.33 every month (~$2,020.00/year) in pure interest without taking on stock market risk.</span>
             </div>
             <div class="text-slate-500 text-[11px]">
-              Barbell Capital: <span class="text-slate-200 font-semibold">$40,000.00 (39.9% of fund)</span>
+              Barbell Capital: <span class="text-slate-200 font-semibold" id="barbell-total-deployed">$39,998.71 (40.2% of fund)</span>
             </div>
           </div>
         </div>
@@ -1427,11 +1435,11 @@
         <!-- SGOV Card -->
         <div class="glass-card rounded-2xl p-6 border-t-4 border-t-cyan-500">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold px-2.5 py-1 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">THE STABLE ANCHOR</span>
-            <span class="text-xs text-slate-400">Alpaca Order: bbca4aa4</span>
+            <span id="sgov-status-badge" class="text-xs font-bold px-2.5 py-1 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">ACTIVE HOLDING</span>
+            <span id="sgov-holding-detail" class="text-xs text-slate-400">198.945 Shares • Alpaca Live</span>
           </div>
           <h3 class="text-2xl font-bold text-white mt-3">SGOV <span class="text-sm font-normal text-slate-400">(iShares 0-3 Month Treasury)</span></h3>
-          <p class="text-3xl font-bold text-cyan-400 mt-2">$20,000.00</p>
+          <p id="sgov-market-value" class="text-3xl font-bold text-cyan-400 mt-2">$20,000.98</p>
 
           <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-slate-800 text-xs">
             <div>
@@ -1456,11 +1464,11 @@
         <!-- FBND Card -->
         <div class="glass-card rounded-2xl p-6 border-t-4 border-t-indigo-500">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">GROWTH & DURATION</span>
-            <span class="text-xs text-slate-400">Alpaca Order: b4d91246</span>
+            <span id="fbnd-status-badge" class="text-xs font-bold px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">ACTIVE HOLDING</span>
+            <span id="fbnd-holding-detail" class="text-xs text-slate-400">452.591 Shares • Alpaca Live</span>
           </div>
           <h3 class="text-2xl font-bold text-white mt-3">FBND <span class="text-sm font-normal text-slate-400">(Fidelity Total Bond ETF)</span></h3>
-          <p class="text-3xl font-bold text-indigo-400 mt-2">$20,000.00</p>
+          <p id="fbnd-market-value" class="text-3xl font-bold text-indigo-400 mt-2">$19,997.73</p>
 
           <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-slate-800 text-xs">
             <div>
@@ -1759,7 +1767,7 @@
         </div>
         
         <div class="flex items-center gap-2 text-xs">
-          <span class="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">3 Spreads Active</span>
+          <span id="spread-header-badge" class="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">0 Spreads Active</span>
           <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 font-medium">Max Risk Capped @ $500</span>
           <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Level 3 MLEG Validated</span>
         </div>
@@ -1846,7 +1854,7 @@
               <span><strong>The Peace-of-Mind Guarantee:</strong> Unlike open-ended stock buying or naked options, your maximum possible loss and maximum profit are locked in and known down to the penny before the trade is placed.</span>
             </div>
             <div class="text-slate-500 text-[11px]">
-              Active Spread Collateral: <span class="text-slate-200 font-semibold">$1,500.00 across 3 index ETFs</span>
+              Active Spread Collateral: <span class="text-slate-200 font-semibold" id="spread-summary-collateral">$0.00 (0 active spreads)</span>
             </div>
           </div>
         </div>
@@ -3416,6 +3424,160 @@
       toggleGuide('eli5-wheel');
     }
 
+    function renderWheelCards(wheelData) {
+      if (!wheelData || !wheelData.wheels) return;
+      const grid = document.getElementById('wheel-cards-grid');
+      if (!grid) return;
+
+      const wheels = wheelData.wheels;
+      const symbols = Object.keys(wheels);
+      if (symbols.length === 0) return;
+
+      const collatKpi = document.getElementById('wheel-total-collateral-kpi');
+      if (collatKpi && wheelData.total_collateral_locked !== undefined) {
+        collatKpi.innerText = `$${wheelData.total_collateral_locked.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} across ${wheelData.total_symbols_count || symbols.length} tickers`;
+      }
+      const pillarBadge = document.getElementById('overview-pillar-wheel-badge');
+      if (pillarBadge && wheelData.active_positions_count !== undefined) {
+        pillarBadge.innerText = `${wheelData.active_positions_count} Tickers Active`;
+      }
+
+      grid.innerHTML = symbols.map(sym => {
+        const w = wheels[sym];
+        const d = w.details || {};
+        const statusLabel = d.status_label || "STANDBY";
+        const companyName = d.company_name || sym;
+        const stockPrice = d.stock_price || w.stock_price || 0;
+        const strike = d.strike_price || 0;
+        const exp = d.expiration_date || 'Awaiting Cycle';
+        const dte = d.days_to_expiration || 0;
+        const contractSym = d.contract_symbol || (sym + ' (Standby)');
+        const collateral = d.collateral_locked || w.collateral_locked || 0;
+        const pnl = d.unrealized_pnl || 0;
+        const pnlPct = d.unrealized_pnl_pct || 0;
+        const rawProg = d.progress_to_target || 0;
+        const prog = Math.min(100, Math.max(0, rawProg <= 1.0 && rawProg > 0 ? rawProg * 100 : rawProg));
+        const distPct = d.strike_distance_pct || 0;
+        const entryPrem = d.entry_premium || w.contract_entry_premium || 0;
+        const note = d.note || (statusLabel === "STANDBY" ? "Monitoring underlying for optimal entry." : "");
+
+        let badgeHtml = '';
+        let hoverBorder = 'hover:border-slate-700/60';
+        let middleHtml = '';
+        let leftLabel = 'Collateral Locked';
+        let leftVal = `$${collateral.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        let rightLabel = 'Premium Captured';
+        let rightVal = `$${(entryPrem * 100).toFixed(2)} Initial`;
+        let rightColor = 'text-emerald-400';
+
+        const pnlSign = pnl >= 0 ? '+' : '';
+        const pnlColor = pnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+        const pnlDisplay = (statusLabel === 'ACTIVE PUT' || statusLabel === 'ACTIVE CALL')
+          ? `${pnlSign}$${pnl.toFixed(2)} (${pnlSign}${pnlPct.toFixed(1)}%)`
+          : 'Standby';
+
+        const targetText = prog > 0 ? `${prog.toFixed(1)}% to 50% Target` : 'Decaying toward exit';
+
+        if (statusLabel === 'ACTIVE PUT') {
+          badgeHtml = `<span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">ACTIVE PUT</span>`;
+          hoverBorder = 'hover:border-indigo-500/50';
+          if (prog > 0) {
+            middleHtml = `
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-400">Progress to 50% Profit Exit:</span>
+                <span class="text-emerald-400 font-semibold">${prog.toFixed(1)}%</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 rounded-full" style="width: ${Math.max(5, prog)}%"></div>
+              </div>
+            `;
+          } else {
+            middleHtml = `
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-400">Strike Distance:</span>
+                <span class="text-emerald-400 font-medium">${distPct >= 0 ? '+' : ''}${distPct.toFixed(1)}% OTM Safe</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-indigo-500 rounded-full" style="width: 25%"></div>
+              </div>
+            `;
+          }
+          rightLabel = 'Unrealized PnL';
+          rightVal = pnlDisplay;
+          rightColor = pnlColor;
+        } else if (statusLabel === 'ACTIVE CALL') {
+          badgeHtml = `<span class="text-xs px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 font-medium border border-indigo-500/20">COVERED CALL</span>`;
+          hoverBorder = 'hover:border-indigo-500/50';
+          middleHtml = `
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400">Call Distance:</span>
+              <span class="text-indigo-400 font-medium">${distPct >= 0 ? '+' : ''}${distPct.toFixed(1)}% OTM</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-500 rounded-full" style="width: ${Math.max(5, prog)}%"></div>
+            </div>
+          `;
+          leftLabel = 'Shares Covered';
+          leftVal = `${d.shares_held || 100} Shares`;
+          rightLabel = 'Unrealized PnL';
+          rightVal = pnlDisplay;
+          rightColor = pnlColor;
+        } else if (statusLabel === 'PENDING ORDER') {
+          badgeHtml = `<span class="text-xs px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 font-medium border border-amber-500/20">PENDING ORDER</span>`;
+          hoverBorder = 'hover:border-amber-500/40';
+          middleHtml = `<p class="text-xs text-slate-300">${note}</p>`;
+          leftLabel = 'Earmarked Collateral';
+          rightLabel = 'Target Premium';
+          rightVal = `$${(entryPrem * 100).toFixed(2)} (Live Bid)`;
+        } else {
+          hoverBorder = 'hover:border-slate-700/60';
+          middleHtml = `<p class="text-xs text-slate-300">${note}</p>`;
+          leftLabel = 'Target Collateral';
+          leftVal = collateral > 0 ? `$${collateral.toLocaleString(undefined, {minimumFractionDigits: 2})}` : `$${(strike * 100).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+          rightLabel = 'Target Strike';
+          rightVal = strike > 0 ? `$${strike.toFixed(2)} Strike` : 'Standby';
+          rightColor = 'text-slate-300';
+        }
+
+        const assetType = sym === 'XLF' ? 'ETF Price' : 'Stock Price';
+        const strikeDisplay = strike > 0 ? `$${strike.toFixed(2)} Strike` : 'Standby Strike';
+        const expDisplay = dte > 0 ? `${exp} (${dte} DTE)` : (exp || 'Standby');
+
+        return `
+          <div onclick="openModal('${sym}', '${companyName}', '${contractSym}', '$${strike.toFixed(2)}', '${exp}', '${dte} Days', '${leftVal}', '${pnlDisplay}', '${targetText}', '${statusLabel.replace(/\\s+/g, '_')}', '$${stockPrice.toFixed(2)}')" class="glass-card rounded-2xl p-5 cursor-pointer transition hover:scale-[1.01] ${hoverBorder}">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-white">${sym}</span>
+                  ${badgeHtml}
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">${assetType}: <span class="text-slate-200 font-medium">$${stockPrice.toFixed(2)}</span></p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-mono text-cyan-400 font-semibold">${strikeDisplay}</span>
+                <p class="text-[11px] text-slate-400">${expDisplay}</p>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800/80">
+              ${middleHtml}
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+              <div>
+                <p class="text-slate-500">${leftLabel}</p>
+                <p class="font-semibold text-slate-200">${leftVal}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-slate-500">${rightLabel}</p>
+                <p class="font-semibold ${rightColor}">${rightVal}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     // Live Feed Synchronization
     async function refreshData() {
       const btn = document.getElementById('refresh-label');
@@ -3454,7 +3616,7 @@
               if (netEl) netEl.innerText = `${sign}$${tax.net_realized_pnl.toFixed(2)}`;
 
               const assetEl = document.getElementById('kpi-fund-assets');
-              if (assetEl) {
+              if (assetEl && (!data.portfolio || !data.portfolio.portfolio_value)) {
                 const totalAssets = 100000.0 + tax.net_realized_pnl;
                 assetEl.innerText = '$' + totalAssets.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
               }
@@ -3465,6 +3627,80 @@
             }
             if (tax.trade_history && Array.isArray(tax.trade_history)) {
               renderTaxLedger(tax.trade_history);
+            }
+          }
+
+          // Live Alpaca Portfolio Telemetry
+          if (data.portfolio) {
+            const p = data.portfolio;
+            const assetEl = document.getElementById('kpi-fund-assets');
+            if (assetEl && p.portfolio_value) {
+              assetEl.innerText = '$' + p.portfolio_value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+            const allocCash = document.getElementById('alloc-cash-val');
+            if (allocCash && p.cash !== undefined) {
+              const fundVal = p.portfolio_value || 100000.0;
+              const pct = (p.cash / fundVal * 100).toFixed(1);
+              allocCash.innerHTML = `$${p.cash.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="font-normal text-slate-400 text-[10px]">(${pct}%)</span>`;
+            }
+          }
+
+          // Live Liquidity Barbell (SGOV + FBND) Telemetry
+          if (data.liquidity_barbell) {
+            const bar = data.liquidity_barbell;
+            const fundVal = (data.portfolio && data.portfolio.portfolio_value) ? data.portfolio.portfolio_value : 100000.0;
+            
+            const barbellTotEl = document.getElementById('barbell-total-deployed');
+            if (barbellTotEl && bar.total_deployed_usd !== undefined) {
+              const pct = (bar.total_deployed_usd / fundVal * 100).toFixed(1);
+              barbellTotEl.innerText = `$${bar.total_deployed_usd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${pct}% of fund)`;
+            }
+
+            const allocBarbell = document.getElementById('alloc-barbell-val');
+            if (allocBarbell && bar.total_deployed_usd !== undefined) {
+              const pct = (bar.total_deployed_usd / fundVal * 100).toFixed(1);
+              allocBarbell.innerHTML = `$${bar.total_deployed_usd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span class="font-normal text-slate-400 text-[10px]">(${pct}%)</span>`;
+            }
+
+            // SGOV Card
+            if (bar.sgov) {
+              const sgovVal = document.getElementById('sgov-market-value');
+              if (sgovVal && bar.sgov.market_value !== undefined) {
+                sgovVal.innerText = `$${bar.sgov.market_value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+              }
+              const sgovDetail = document.getElementById('sgov-holding-detail');
+              if (sgovDetail && bar.sgov.shares !== undefined) {
+                sgovDetail.innerText = `${bar.sgov.shares.toFixed(3)} Shares • Alpaca Live`;
+              }
+              const sgovBadge = document.getElementById('sgov-status-badge');
+              if (sgovBadge && bar.sgov.status) {
+                sgovBadge.innerText = bar.sgov.status;
+              }
+            }
+
+            // FBND Card
+            if (bar.fbnd) {
+              const fbndVal = document.getElementById('fbnd-market-value');
+              if (fbndVal && bar.fbnd.market_value !== undefined) {
+                fbndVal.innerText = `$${bar.fbnd.market_value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+              }
+              const fbndDetail = document.getElementById('fbnd-holding-detail');
+              if (fbndDetail && bar.fbnd.shares !== undefined) {
+                fbndDetail.innerText = `${bar.fbnd.shares.toFixed(3)} Shares • Alpaca Live`;
+              }
+              const fbndBadge = document.getElementById('fbnd-status-badge');
+              if (fbndBadge && bar.fbnd.status) {
+                fbndBadge.innerText = bar.fbnd.status;
+              }
+            }
+
+            // Yield run-rate calculation
+            const sgovVal = bar.sgov ? (bar.sgov.market_value || 0) : 0;
+            const fbndVal = bar.fbnd ? (bar.fbnd.market_value || 0) : 0;
+            const monthlyYield = (sgovVal * 0.051 + fbndVal * 0.050) / 12;
+            const ovBondBadge = document.getElementById('overview-pillar-bond-badge');
+            if (ovBondBadge && monthlyYield > 0) {
+              ovBondBadge.innerText = `+$${monthlyYield.toFixed(2)} / mo Yield`;
             }
           }
 
@@ -3515,6 +3751,15 @@
             });
           }
 
+          // Strategy 2: Triple Income Option Wheel Telemetry
+          try {
+            if (data.wheel) {
+              renderWheelCards(data.wheel);
+            }
+          } catch (e) {
+            console.warn("Error updating wheel telemetry:", e);
+          }
+
           // Strategy 5: Defined-Risk Option Spreads Telemetry
           try {
             if (data.spreads) {
@@ -3535,59 +3780,76 @@
 
               // Dynamic render of active spreads
               const spreadsGrid = document.getElementById('spreads-active-grid');
-              if (spreadsGrid && sprd.active_spreads && sprd.active_spreads.length > 0) {
-                spreadsGrid.innerHTML = sprd.active_spreads.map(s => {
-                  const prog = Math.min(100, Math.max(0, (s.progress_to_target || 0) * 100));
-                  const targetBuyback = (s.entry_credit || 0) * 0.5;
-                  const pnlSign = (s.unrealized_pnl || 0) >= 0 ? '+' : '';
-                  return `
-                    <div class="glass-card rounded-2xl p-5 border border-slate-800 hover:border-purple-500/50 transition">
-                      <div class="flex items-start justify-between">
-                        <div>
-                          <div class="flex items-center gap-2">
-                            <span class="text-lg font-bold text-white">${s.underlying}</span>
-                            <span class="text-xs px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 font-medium border border-purple-500/20">BULL PUT SPREAD</span>
+              if (spreadsGrid) {
+                if (sprd.active_spreads && sprd.active_spreads.length > 0) {
+                  spreadsGrid.innerHTML = sprd.active_spreads.map(s => {
+                    const prog = Math.min(100, Math.max(0, (s.progress_to_target || 0) * 100));
+                    const targetBuyback = (s.entry_credit || 0) * 0.5;
+                    const pnlSign = (s.unrealized_pnl || 0) >= 0 ? '+' : '';
+                    return `
+                      <div class="glass-card rounded-2xl p-5 border border-slate-800 hover:border-purple-500/50 transition">
+                        <div class="flex items-start justify-between">
+                          <div>
+                            <div class="flex items-center gap-2">
+                              <span class="text-lg font-bold text-white">${s.underlying}</span>
+                              <span class="text-xs px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 font-medium border border-purple-500/20">BULL PUT SPREAD</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-0.5">Strikes: <span class="text-slate-200 font-medium">$${s.short_strike}P / $${s.long_strike}P</span></p>
                           </div>
-                          <p class="text-xs text-slate-400 mt-0.5">Strikes: <span class="text-slate-200 font-medium">$${s.short_strike}P / $${s.long_strike}P</span></p>
+                          <div class="text-right">
+                            <span class="text-xs font-mono text-purple-300 font-semibold">$${s.short_strike}P / $${s.long_strike}P</span>
+                            <p class="text-[11px] text-slate-400">${s.days_to_expiration || 0} DTE (${s.expiration_date || ''})</p>
+                          </div>
                         </div>
-                        <div class="text-right">
-                          <span class="text-xs font-mono text-purple-300 font-semibold">$${s.short_strike}P / $${s.long_strike}P</span>
-                          <p class="text-[11px] text-slate-400">${s.days_to_expiration || 0} DTE (${s.expiration_date || ''})</p>
-                        </div>
-                      </div>
 
-                      <div class="mt-4 pt-3 border-t border-slate-800/80">
-                        <div class="flex justify-between text-xs mb-1.5">
-                          <span class="text-slate-400">Progress to 50% Profit Exit:</span>
-                          <span class="text-emerald-400 font-semibold">${prog.toFixed(1)}% (${pnlSign}$${(s.unrealized_pnl || 0).toFixed(2)} / $${(s.max_profit || 0).toFixed(2)})</span>
+                        <div class="mt-4 pt-3 border-t border-slate-800/80">
+                          <div class="flex justify-between text-xs mb-1.5">
+                            <span class="text-slate-400">Progress to 50% Profit Exit:</span>
+                            <span class="text-emerald-400 font-semibold">${prog.toFixed(1)}% (${pnlSign}$${(s.unrealized_pnl || 0).toFixed(2)} / $${(s.max_profit || 0).toFixed(2)})</span>
+                          </div>
+                          <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: ${prog}%"></div>
+                          </div>
                         </div>
-                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                          <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full" style="width: ${prog}%"></div>
-                        </div>
-                      </div>
 
-                      <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
-                        <div>
-                          <p class="text-slate-500">Collateral Locked</p>
-                          <p class="font-semibold text-slate-200">$${(s.collateral_locked || 500).toFixed(2)}</p>
-                        </div>
-                        <div class="text-right">
-                          <p class="text-slate-500">Net Credit Collected</p>
-                          <p class="font-semibold text-emerald-400">+$${(s.entry_credit || 0).toFixed(2)}/sh (+$${((s.entry_credit || 0) * 100).toFixed(2)})</p>
-                        </div>
-                        <div>
-                          <p class="text-slate-500">Max Risk Capped</p>
-                          <p class="font-semibold text-slate-300">$${(s.max_loss || 420).toFixed(2)}</p>
-                        </div>
-                        <div class="text-right">
-                          <p class="text-slate-500">Buyback Target</p>
-                          <p class="font-semibold text-cyan-400">≤ $${targetBuyback.toFixed(3)}/sh</p>
+                        <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+                          <div>
+                            <p class="text-slate-500">Collateral Locked</p>
+                            <p class="font-semibold text-slate-200">$${(s.collateral_locked || 500).toFixed(2)}</p>
+                          </div>
+                          <div class="text-right">
+                            <p class="text-slate-500">Net Credit Collected</p>
+                            <p class="font-semibold text-emerald-400">+$${(s.entry_credit || 0).toFixed(2)}/sh (+$${((s.entry_credit || 0) * 100).toFixed(2)})</p>
+                          </div>
+                          <div>
+                            <p class="text-slate-500">Max Risk Capped</p>
+                            <p class="font-semibold text-slate-300">$${(s.max_loss || 420).toFixed(2)}</p>
+                          </div>
+                          <div class="text-right">
+                            <p class="text-slate-500">Buyback Target</p>
+                            <p class="font-semibold text-cyan-400">≤ $${targetBuyback.toFixed(3)}/sh</p>
+                          </div>
                         </div>
                       </div>
+                    `;
+                  }).join('');
+                } else {
+                  spreadsGrid.innerHTML = `
+                    <div class="col-span-1 md:col-span-3 glass-card rounded-2xl p-8 border border-slate-800 text-center">
+                      <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mx-auto mb-3 text-2xl">
+                        🛡️
+                      </div>
+                      <h4 class="text-base font-bold text-white mb-1">0 Active Defined-Risk Spreads</h4>
+                      <p class="text-xs text-slate-400 max-w-md mx-auto">100% of capital protected. The credit spread engine is actively scanning SPY, QQQ, and IWM option chains for optimal high-probability setups with 30-45 DTE and &ge; $0.75 net credit.</p>
                     </div>
                   `;
-                }).join('');
+                }
               }
+
+              const headerBadge = document.getElementById('spread-header-badge');
+              if (headerBadge) headerBadge.innerText = `${sprd.active_count || 0} Spreads Active`;
+              const summaryCollateral = document.getElementById('spread-summary-collateral');
+              if (summaryCollateral) summaryCollateral.innerText = `$${(sprd.collateral_locked || 0).toFixed(2)} (${sprd.active_count || 0} active spreads)`;
 
               // Dynamic render of closed spreads audit table if present
               const historyTable = document.getElementById('spreads-history-table-body');
@@ -3859,30 +4121,43 @@
 
               // Render Active Allocations Table (Resilient mapping for qty / shares)
               const activeTable = document.getElementById('macro-active-table-body');
-              if (activeTable && macro.active_positions && macro.active_positions.length > 0) {
-                activeTable.innerHTML = macro.active_positions.map(p => {
-                  const shares = p.qty !== undefined ? p.qty : (p.shares !== undefined ? p.shares : 0);
-                  const curPrice = p.current_price || p.entry_price || 0;
-                  const costBasis = p.cost_basis || (shares * (p.entry_price || 0));
-                  const marketVal = p.market_value !== undefined ? p.market_value : (shares * curPrice);
-                  const unrealizedPnl = p.unrealized_pnl !== undefined ? p.unrealized_pnl : (marketVal - costBasis);
-                  const unrealizedPnlPct = p.unrealized_pnl_pct !== undefined ? p.unrealized_pnl_pct : (costBasis > 0 ? (unrealizedPnl / costBasis * 100) : 0);
-                  const pnlSign = unrealizedPnl >= 0 ? '+' : '';
-                  const pnlColor = unrealizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
-                  return `
-                    <tr class="hover:bg-slate-800/40 transition">
-                      <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol}</td>
-                      <td class="py-2.5 px-4 text-slate-300 font-sans">${p.asset_class || 'Global Asset'}</td>
-                      <td class="py-2.5 px-4 text-slate-300">${shares.toFixed(4)}</td>
-                      <td class="py-2.5 px-4 text-slate-400">$${(p.entry_price || 0).toFixed(2)}</td>
-                      <td class="py-2.5 px-4 text-slate-200 font-semibold">$${curPrice.toFixed(2)}</td>
-                      <td class="py-2.5 px-4 text-slate-400">$${costBasis.toFixed(2)}</td>
-                      <td class="py-2.5 px-4 text-slate-300 font-medium">$${marketVal.toFixed(2)}</td>
-                      <td class="py-2.5 px-4 text-rose-400 font-medium">$${(p.trailing_stop_price || 0).toFixed(2)}</td>
-                      <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${unrealizedPnl.toFixed(2)} (${pnlSign}${unrealizedPnlPct.toFixed(1)}%)</td>
+              if (activeTable) {
+                if (macro.active_positions && macro.active_positions.length > 0) {
+                  activeTable.innerHTML = macro.active_positions.map(p => {
+                    const shares = p.qty !== undefined ? p.qty : (p.shares !== undefined ? p.shares : 0);
+                    const curPrice = p.current_price || p.entry_price || 0;
+                    const costBasis = p.cost_basis || (shares * (p.entry_price || 0));
+                    const marketVal = p.market_value !== undefined ? p.market_value : (shares * curPrice);
+                    const unrealizedPnl = p.unrealized_pnl !== undefined ? p.unrealized_pnl : (marketVal - costBasis);
+                    const unrealizedPnlPct = p.unrealized_pnl_pct !== undefined ? p.unrealized_pnl_pct : (costBasis > 0 ? (unrealizedPnl / costBasis * 100) : 0);
+                    const pnlSign = unrealizedPnl >= 0 ? '+' : '';
+                    const pnlColor = unrealizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                    return `
+                      <tr class="hover:bg-slate-800/40 transition">
+                        <td class="py-2.5 px-4 font-sans font-bold text-white">${p.symbol}</td>
+                        <td class="py-2.5 px-4 text-slate-300 font-sans">${p.asset_class || 'Global Asset'}</td>
+                        <td class="py-2.5 px-4 text-slate-300">${shares.toFixed(4)}</td>
+                        <td class="py-2.5 px-4 text-slate-400">$${(p.entry_price || 0).toFixed(2)}</td>
+                        <td class="py-2.5 px-4 text-slate-200 font-semibold">$${curPrice.toFixed(2)}</td>
+                        <td class="py-2.5 px-4 text-slate-400">$${costBasis.toFixed(2)}</td>
+                        <td class="py-2.5 px-4 text-slate-300 font-medium">$${marketVal.toFixed(2)}</td>
+                        <td class="py-2.5 px-4 text-rose-400 font-medium">$${(p.trailing_stop_price || 0).toFixed(2)}</td>
+                        <td class="py-2.5 px-4 text-right font-bold ${pnlColor}">${pnlSign}$${unrealizedPnl.toFixed(2)} (${pnlSign}${unrealizedPnlPct.toFixed(1)}%)</td>
+                      </tr>
+                    `;
+                  }).join('');
+                } else {
+                  activeTable.innerHTML = `
+                    <tr>
+                      <td colspan="9" class="py-6 px-4 text-center font-sans text-slate-400">
+                        <div class="flex flex-col items-center justify-center gap-1">
+                          <span class="text-sm font-semibold text-slate-300">0 Active Macro Allocations (Capital Safeguarded)</span>
+                          <span class="text-xs text-slate-500">Dual-momentum engine is tracking QQQ, SPY, GLD, and VNQ. Capital remains in risk-free yield or liquid reserve awaiting trend confirmation.</span>
+                        </div>
+                      </td>
                     </tr>
                   `;
-                }).join('');
+                }
               }
 
               // Render Leaderboard Matrix

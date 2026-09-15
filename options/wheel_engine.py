@@ -7,9 +7,13 @@ Implements the Triple Income Option Wheel state machine:
 4. Coordination with Virtual Tax Escrow Engine and ntfy push notifications.
 """
 
+import os
+import re
+import json
 import enum
 import logging
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
@@ -24,6 +28,49 @@ from options.options_client import (
 from tax_engine import TaxEngine
 
 logger = logging.getLogger("options.wheel")
+
+COMPANY_NAMES = {
+    "INTC": "Intel Corporation",
+    "F": "Ford Motor Company",
+    "SOFI": "SoFi Technologies",
+    "HOOD": "Robinhood Markets",
+    "PLTR": "Palantir Technologies",
+    "XLF": "Financial Select Sector SPDR",
+    "RIVN": "Rivian Automotive",
+    "PFE": "Pfizer Inc.",
+    "NU": "Nu Holdings Ltd.",
+    "CLF": "Cleveland-Cliffs Inc.",
+}
+
+
+def parse_occ_symbol(sym: str) -> Dict[str, Any]:
+    """Parses standard OCC option symbol into components (e.g. INTC261002P00089000)."""
+    if not sym:
+        return {}
+    m = re.match(r"^([A-Z]+)(\d{2})(\d{2})(\d{2})([CP])(\d{8})$", sym)
+    if not m:
+        return {}
+    underlying, yy, mm, dd, opt_type, raw_price = m.groups()
+    strike = int(raw_price) / 1000.0
+    exp_date = f"20{yy}-{mm}-{dd}"
+    return {
+        "underlying": underlying,
+        "expiration_date": exp_date,
+        "option_type": "call" if opt_type == "C" else "put",
+        "strike_price": strike,
+    }
+
+
+def compute_dte(expiration_date_str: str) -> int:
+    """Calculates days remaining until contract expiration."""
+    if not expiration_date_str:
+        return 0
+    try:
+        exp_dt = datetime.strptime(str(expiration_date_str)[:10], "%Y-%m-%d").date()
+        today = datetime.now(timezone.utc).date()
+        return max(0, (exp_dt - today).days)
+    except Exception:
+        return 0
 
 
 class WheelState(str, enum.Enum):
@@ -504,6 +551,137 @@ class WheelEngine:
                         self.symbol,
                     )
 
+        # Build comprehensive live telemetry dictionary for dashboard synchronization
+        details: Dict[str, Any] = {
+            "company_name": COMPANY_NAMES.get(self.symbol, self.symbol),
+            "status_label": "STANDBY",
+            "phase": state.value,
+            "contract_symbol": None,
+            "strike_price": 0.0,
+            "expiration_date": "",
+            "days_to_expiration": 0,
+            "contracts": 0,
+            "entry_premium": 0.0,
+            "current_option_price": 0.0,
+            "unrealized_pnl": 0.0,
+            "unrealized_pnl_pct": 0.0,
+            "progress_to_target": 0.0,
+            "target_buyback_price": 0.0,
+            "strike_distance_pct": 0.0,
+            "collateral_locked": collateral_locked,
+            "shares_held": shares_held,
+            "stock_price": stock_price,
+            "note": "Awaiting market entry / capital allocation",
+        }
+
+        opt_positions = self.client.get_active_option_positions(self.symbol)
+        active_put = next((p for p in opt_positions if p.contract_type == "put" and p.qty < 0), None)
+        active_call = next((p for p in opt_positions if p.contract_type == "call" and p.qty < 0), None)
+        get_orders_fn = getattr(self.client, "get_open_orders", None)
+        open_orders = get_orders_fn(self.symbol) if get_orders_fn else []
+
+        if active_put:
+            entry_p = self.active_contract_premium or active_put.avg_entry_price
+            curr_p = active_put.current_price
+            contracts = abs(active_put.qty)
+            strike_p = active_put.strike_price or parse_occ_symbol(active_put.symbol).get("strike_price", 0.0)
+            collateral = strike_p * 100 * contracts
+            collateral_locked = collateral
+            dte = compute_dte(active_put.expiration_date) if active_put.expiration_date else 0
+
+            pnl = round((entry_p - curr_p) * 100 * contracts, 2)
+            pnl_pct = round(((entry_p - curr_p) / entry_p) * 100, 2) if entry_p > 0 else 0.0
+            prog = max(0.0, min(1.0, (entry_p - curr_p) / (entry_p * self.config.WHEEL_PROFIT_TARGET_PCT))) if entry_p > 0 else 0.0
+            dist_pct = round(((stock_price - strike_p) / stock_price) * 100, 2) if stock_price > 0 else 0.0
+            target_bb = round(entry_p * (1.0 - self.config.WHEEL_PROFIT_TARGET_PCT), 2)
+
+            self.active_contract_symbol = active_put.symbol
+            self.active_contract_premium = entry_p
+            self.active_contract_strike = strike_p
+
+            details.update({
+                "status_label": "ACTIVE PUT",
+                "contract_symbol": active_put.symbol,
+                "strike_price": strike_p,
+                "expiration_date": active_put.expiration_date,
+                "days_to_expiration": dte,
+                "contracts": contracts,
+                "entry_premium": entry_p,
+                "current_option_price": curr_p,
+                "unrealized_pnl": pnl,
+                "unrealized_pnl_pct": pnl_pct,
+                "progress_to_target": round(prog, 3),
+                "target_buyback_price": target_bb,
+                "strike_distance_pct": dist_pct,
+                "collateral_locked": collateral,
+                "note": f"+{dist_pct:.1f}% OTM Safe" if dist_pct >= 0 else f"{abs(dist_pct):.1f}% ITM",
+            })
+
+        elif active_call:
+            entry_p = self.active_contract_premium or active_call.avg_entry_price
+            curr_p = active_call.current_price
+            contracts = abs(active_call.qty)
+            strike_p = active_call.strike_price or parse_occ_symbol(active_call.symbol).get("strike_price", 0.0)
+            dte = compute_dte(active_call.expiration_date) if active_call.expiration_date else 0
+
+            pnl = round((entry_p - curr_p) * 100 * contracts, 2)
+            pnl_pct = round(((entry_p - curr_p) / entry_p) * 100, 2) if entry_p > 0 else 0.0
+            prog = max(0.0, min(1.0, (entry_p - curr_p) / (entry_p * self.config.WHEEL_PROFIT_TARGET_PCT))) if entry_p > 0 else 0.0
+            dist_pct = round(((strike_p - stock_price) / stock_price) * 100, 2) if stock_price > 0 else 0.0
+            target_bb = round(entry_p * (1.0 - self.config.WHEEL_PROFIT_TARGET_PCT), 2)
+
+            self.active_contract_symbol = active_call.symbol
+            self.active_contract_premium = entry_p
+            self.active_contract_strike = strike_p
+
+            details.update({
+                "status_label": "ACTIVE CALL",
+                "contract_symbol": active_call.symbol,
+                "strike_price": strike_p,
+                "expiration_date": active_call.expiration_date,
+                "days_to_expiration": dte,
+                "contracts": contracts,
+                "entry_premium": entry_p,
+                "current_option_price": curr_p,
+                "unrealized_pnl": pnl,
+                "unrealized_pnl_pct": pnl_pct,
+                "progress_to_target": round(prog, 3),
+                "target_buyback_price": target_bb,
+                "strike_distance_pct": dist_pct,
+                "collateral_locked": 0.0,
+                "note": f"+{dist_pct:.1f}% OTM Safe" if dist_pct >= 0 else f"{abs(dist_pct):.1f}% ITM",
+            })
+
+        elif open_orders:
+            po = open_orders[0]
+            csym = getattr(po, "symbol", "")
+            parsed = parse_occ_symbol(csym)
+            strike_p = parsed.get("strike_price", 0.0)
+            exp_date = parsed.get("expiration_date", "")
+            dte = compute_dte(exp_date) if exp_date else 0
+            qty = int(getattr(po, "qty", 1))
+            limit_p = float(getattr(po, "limit_price", 0.0) or 0.0)
+            collateral = strike_p * 100 * qty if "P" in csym else 0.0
+            collateral_locked = collateral
+
+            details.update({
+                "status_label": "PENDING ORDER",
+                "contract_symbol": csym,
+                "strike_price": strike_p,
+                "expiration_date": exp_date,
+                "days_to_expiration": dte,
+                "contracts": qty,
+                "entry_premium": limit_p,
+                "current_option_price": limit_p,
+                "unrealized_pnl": 0.0,
+                "unrealized_pnl_pct": 0.0,
+                "progress_to_target": 0.0,
+                "target_buyback_price": round(limit_p * (1.0 - self.config.WHEEL_PROFIT_TARGET_PCT), 2),
+                "strike_distance_pct": round(((stock_price - strike_p) / stock_price) * 100, 2) if stock_price > 0 and strike_p > 0 else 0.0,
+                "collateral_locked": collateral,
+                "note": f"Order in book @ ${limit_p:.2f} limit. Awaiting fill.",
+            })
+
         return WheelStatus(
             state=state,
             underlying=self.symbol,
@@ -513,6 +691,7 @@ class WheelEngine:
             active_contract=self.active_contract_symbol,
             contract_entry_premium=self.active_contract_premium,
             collateral_locked=collateral_locked,
+            details=details,
         )
 
 
@@ -520,7 +699,7 @@ class WheelPortfolioManager:
     """
     Multi-Asset Option Wheel Portfolio Engine.
     Coordinates multiple isolated WheelEngine instances across target equity symbols.
-    Enforces shared capital gating across the portfolio.
+    Enforces shared capital gating across the portfolio and persists live state to disk.
     """
 
     def __init__(
@@ -537,6 +716,7 @@ class WheelPortfolioManager:
         self.tax_engine = tax_engine
         self.notifier = notifier
         self.liquidity_manager = liquidity_manager
+        self.state_file = getattr(config, "WHEEL_STATE_FILE", "wheel_state.json")
         target_symbols = symbols or config.WHEEL_SYMBOLS or [config.WHEEL_SYMBOL]
         self.symbols = [s.upper() for s in target_symbols]
         self.engines: Dict[str, WheelEngine] = {
@@ -551,11 +731,155 @@ class WheelPortfolioManager:
             for sym in self.symbols
         }
 
+    def save_state(self, statuses: Optional[Dict[str, WheelStatus]] = None) -> None:
+        """Persists Option Wheel portfolio status to JSON state file."""
+        try:
+            wheels_dict: Dict[str, Any] = {}
+            total_collateral = 0.0
+            active_count = 0
+
+            # If statuses provided, serialize them
+            if statuses:
+                for sym, status in statuses.items():
+                    s_dict = status.model_dump()
+                    wheels_dict[sym] = s_dict
+                    collat = status.collateral_locked or (status.details.get("collateral_locked", 0.0) if status.details else 0.0)
+                    total_collateral += collat
+                    if status.details and status.details.get("status_label") in ("ACTIVE PUT", "ACTIVE CALL"):
+                        active_count += 1
+            else:
+                # Compile current state from engines on-demand
+                for sym, engine in self.engines.items():
+                    stock_pos = engine.client.get_stock_position(sym)
+                    stock_price = stock_pos.current_price if stock_pos else engine.client.get_stock_price(sym)
+                    shares_held = int(stock_pos.qty) if stock_pos else 0
+                    opt_positions = engine.client.get_active_option_positions(sym)
+                    active_put = next((p for p in opt_positions if p.contract_type == "put" and p.qty < 0), None)
+                    active_call = next((p for p in opt_positions if p.contract_type == "call" and p.qty < 0), None)
+                    get_orders_fn = getattr(engine.client, "get_open_orders", None)
+                    open_orders = get_orders_fn(sym) if get_orders_fn else []
+
+                    collat = 0.0
+                    stat_label = "STANDBY"
+                    contract_sym = None
+                    strike_p = 0.0
+                    exp_date = ""
+                    dte = 0
+                    contracts = 0
+                    entry_p = 0.0
+                    curr_p = 0.0
+                    pnl = 0.0
+                    pnl_pct = 0.0
+                    prog = 0.0
+                    dist_pct = 0.0
+                    note = "Awaiting market entry / capital allocation"
+
+                    if active_put:
+                        stat_label = "ACTIVE PUT"
+                        contract_sym = active_put.symbol
+                        entry_p = engine.active_contract_premium or active_put.avg_entry_price
+                        curr_p = active_put.current_price
+                        contracts = abs(active_put.qty)
+                        strike_p = active_put.strike_price or parse_occ_symbol(active_put.symbol).get("strike_price", 0.0)
+                        collat = strike_p * 100 * contracts
+                        dte = compute_dte(active_put.expiration_date) if active_put.expiration_date else 0
+                        exp_date = active_put.expiration_date
+                        pnl = round((entry_p - curr_p) * 100 * contracts, 2)
+                        pnl_pct = round(((entry_p - curr_p) / entry_p) * 100, 2) if entry_p > 0 else 0.0
+                        prog = max(0.0, min(1.0, (entry_p - curr_p) / (entry_p * engine.config.WHEEL_PROFIT_TARGET_PCT))) if entry_p > 0 else 0.0
+                        dist_pct = round(((stock_price - strike_p) / stock_price) * 100, 2) if stock_price > 0 else 0.0
+                        note = f"+{dist_pct:.1f}% OTM Safe" if dist_pct >= 0 else f"{abs(dist_pct):.1f}% ITM"
+                        active_count += 1
+                    elif active_call:
+                        stat_label = "ACTIVE CALL"
+                        contract_sym = active_call.symbol
+                        entry_p = engine.active_contract_premium or active_call.avg_entry_price
+                        curr_p = active_call.current_price
+                        contracts = abs(active_call.qty)
+                        strike_p = active_call.strike_price or parse_occ_symbol(active_call.symbol).get("strike_price", 0.0)
+                        collat = 0.0
+                        dte = compute_dte(active_call.expiration_date) if active_call.expiration_date else 0
+                        exp_date = active_call.expiration_date
+                        pnl = round((entry_p - curr_p) * 100 * contracts, 2)
+                        pnl_pct = round(((entry_p - curr_p) / entry_p) * 100, 2) if entry_p > 0 else 0.0
+                        prog = max(0.0, min(1.0, (entry_p - curr_p) / (entry_p * engine.config.WHEEL_PROFIT_TARGET_PCT))) if entry_p > 0 else 0.0
+                        dist_pct = round(((strike_p - stock_price) / stock_price) * 100, 2) if stock_price > 0 else 0.0
+                        note = f"+{dist_pct:.1f}% OTM Safe" if dist_pct >= 0 else f"{abs(dist_pct):.1f}% ITM"
+                        active_count += 1
+                    elif open_orders:
+                        stat_label = "PENDING ORDER"
+                        po = open_orders[0]
+                        contract_sym = getattr(po, "symbol", "")
+                        parsed = parse_occ_symbol(contract_sym)
+                        strike_p = parsed.get("strike_price", 0.0)
+                        exp_date = parsed.get("expiration_date", "")
+                        dte = compute_dte(exp_date) if exp_date else 0
+                        contracts = int(getattr(po, "qty", 1))
+                        entry_p = float(getattr(po, "limit_price", 0.0) or 0.0)
+                        curr_p = entry_p
+                        collat = strike_p * 100 * contracts if "P" in contract_sym else 0.0
+                        dist_pct = round(((stock_price - strike_p) / stock_price) * 100, 2) if stock_price > 0 and strike_p > 0 else 0.0
+                        note = f"Order in book @ ${entry_p:.2f} limit. Awaiting fill."
+
+                    total_collateral += collat
+
+                    wheels_dict[sym] = {
+                        "state": engine.evaluate_state().value,
+                        "underlying": sym,
+                        "stock_price": stock_price,
+                        "shares_held": shares_held,
+                        "cost_basis": engine.cost_basis,
+                        "active_contract": contract_sym,
+                        "contract_entry_premium": entry_p,
+                        "collateral_locked": collat,
+                        "details": {
+                            "company_name": COMPANY_NAMES.get(sym, sym),
+                            "status_label": stat_label,
+                            "contract_symbol": contract_sym,
+                            "strike_price": strike_p,
+                            "expiration_date": exp_date,
+                            "days_to_expiration": dte,
+                            "contracts": contracts,
+                            "entry_premium": entry_p,
+                            "current_option_price": curr_p,
+                            "unrealized_pnl": pnl,
+                            "unrealized_pnl_pct": pnl_pct,
+                            "progress_to_target": round(prog, 3),
+                            "target_buyback_price": round(entry_p * (1.0 - engine.config.WHEEL_PROFIT_TARGET_PCT), 2) if entry_p > 0 else 0.0,
+                            "strike_distance_pct": dist_pct,
+                            "collateral_locked": collat,
+                            "shares_held": shares_held,
+                            "stock_price": stock_price,
+                            "note": note,
+                        },
+                    }
+
+            payload = {
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "total_collateral_locked": round(total_collateral, 2),
+                "active_positions_count": active_count,
+                "total_symbols_count": len(self.symbols),
+                "wheels": wheels_dict,
+            }
+
+            state_path = Path(self.state_file)
+            if not state_path.is_absolute():
+                state_path = Path.cwd() / self.state_file
+
+            tmp_file = f"{state_path}.tmp"
+            with open(tmp_file, "w", encoding="utf-8") as f:
+                json.dump(payload, f, indent=2)
+            os.replace(tmp_file, state_path)
+            logger.debug("Option Wheel state saved to %s", state_path)
+        except Exception as e:
+            logger.warning("Failed to save wheel state to %s: %s", self.state_file, e)
+
     def step(self, total_cash: float) -> Dict[str, WheelStatus]:
         """
         Executes an evaluation cycle across all configured wheel assets.
         Shared capital gating: Each newly opened CSP decrements available tradable cash
         for subsequent wheels in the same cycle.
+        Persists live state to disk at the end of each cycle.
         """
         tradable_cash = self.tax_engine.calculate_tradable_cash(total_cash)
         remaining_cash = tradable_cash
@@ -571,4 +895,5 @@ class WheelPortfolioManager:
             except Exception as e:
                 logger.exception("Error executing wheel cycle for %s: %s", sym, e)
 
+        self.save_state(statuses)
         return statuses

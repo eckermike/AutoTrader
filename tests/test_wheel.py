@@ -175,9 +175,11 @@ def test_multi_asset_portfolio_manager_initialization(tmp_path: Path):
 
 def test_multi_asset_portfolio_step_all(tmp_path: Path):
     tax_file = tmp_path / "portfolio_tax_reserve_step.json"
+    state_file = tmp_path / "wheel_state.json"
     config = BotConfig(
         ALPACA_PAPER=True,
         TAX_RESERVE_FILE=tax_file,
+        WHEEL_STATE_FILE=str(state_file),
         WHEEL_ENABLED=True,
         WHEEL_SYMBOLS=["INTC", "F", "SOFI"],
     )
@@ -205,9 +207,11 @@ def test_multi_asset_portfolio_step_all(tmp_path: Path):
 
 def test_multi_asset_portfolio_capital_gating(tmp_path: Path):
     tax_file = tmp_path / "portfolio_tax_gate.json"
+    state_file = tmp_path / "wheel_state_gate.json"
     config = BotConfig(
         ALPACA_PAPER=True,
         TAX_RESERVE_FILE=tax_file,
+        WHEEL_STATE_FILE=str(state_file),
         WHEEL_ENABLED=True,
         WHEEL_SYMBOLS=["INTC", "F", "SOFI"],
     )
@@ -313,5 +317,48 @@ def test_wheel_universe_10_stocks_tier2():
     assert len(portfolio.engines) == 10
     for sym in expected_symbols:
         assert sym in portfolio.engines
+
+
+def test_wheel_portfolio_save_state(tmp_path: Path):
+    """Verifies that WheelPortfolioManager persists live telemetry to wheel_state.json."""
+    import json
+    state_file = tmp_path / "test_wheel_state.json"
+    tax_file = tmp_path / "test_tax.json"
+    config = BotConfig(
+        ALPACA_PAPER=True,
+        TAX_RESERVE_FILE=tax_file,
+        WHEEL_STATE_FILE=str(state_file),
+        WHEEL_SYMBOLS=["INTC", "F"],
+    )
+    options_client = AlpacaOptionsClient(api_key="MOCK", secret_key="MOCK", paper=True, mock_mode=True)
+    tax_engine = TaxEngine(filepath=tax_file, tax_rate=0.30)
+    notifier = TradeNotifier(recipient=None, enabled=False, macos_banner=False)
+    portfolio = WheelPortfolioManager(
+        config=config,
+        options_client=options_client,
+        tax_engine=tax_engine,
+        notifier=notifier,
+        symbols=["INTC", "F"],
+    )
+
+    statuses = portfolio.step(total_cash=100000.0)
+    assert len(statuses) == 2
+    assert state_file.exists()
+
+    with open(state_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    assert "updated_at" in data
+    assert "total_collateral_locked" in data
+    assert "active_positions_count" in data
+    assert "wheels" in data
+    assert "INTC" in data["wheels"]
+    assert "F" in data["wheels"]
+
+    intc_details = data["wheels"]["INTC"]["details"]
+    assert intc_details["company_name"] == "Intel Corporation"
+    assert "status_label" in intc_details
+    assert "progress_to_target" in intc_details
+    assert "strike_distance_pct" in intc_details
 
 

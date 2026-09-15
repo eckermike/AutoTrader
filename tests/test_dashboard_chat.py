@@ -46,6 +46,17 @@ def test_build_fund_status_snapshot_contains_executive_briefing():
     assert "portfolio" in snapshot
 
 
+def test_build_fund_status_snapshot_contains_liquidity_barbell():
+    snapshot = build_fund_status_snapshot()
+    assert "liquidity_barbell" in snapshot
+    bar = snapshot["liquidity_barbell"]
+    assert "sgov" in bar
+    assert "fbnd" in bar
+    assert "total_deployed_usd" in bar
+    assert "status" in bar["sgov"]
+    assert "status" in bar["fbnd"]
+
+
 def test_api_status_handler():
     handler = make_mock_handler(command="GET", path="/api/status")
     handler.serve_status_api()
