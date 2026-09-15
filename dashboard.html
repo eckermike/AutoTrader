@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ECKAP Quant Fund | Investor Dashboard</title>
+  <link rel="icon" type="image/png" sizes="128x128" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="favicon.png">
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     /* Custom Scrollbars */
@@ -29,10 +33,8 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
       <div>
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-            </svg>
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500/30 via-indigo-500/30 to-cyan-500/30 p-0.5 border border-emerald-500/40 shadow-lg shadow-emerald-500/10 flex items-center justify-center shrink-0">
+            <img src="dog_mascot_head.png" alt="ECKAP Mascot" class="w-full h-full object-cover rounded-[14px]">
           </div>
           <div>
             <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -162,8 +164,8 @@
         <div class="absolute -right-8 -top-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="flex items-start justify-between gap-4 mb-3">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xl shadow-inner">
-              🤖
+            <div class="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/40 p-0.5 flex items-center justify-center shadow-inner overflow-hidden shrink-0">
+              <img src="dog_mascot_head.png" alt="ECKAP Mascot" class="w-full h-full object-cover rounded-lg">
             </div>
             <div>
               <div class="flex items-center gap-2">
@@ -4493,13 +4495,20 @@
       if (!container) return;
       const isUser = sender === 'user';
       const bubble = document.createElement('div');
-      bubble.className = isUser
-        ? 'p-3 rounded-xl bg-indigo-600/90 text-white ml-6 text-xs shadow-md border border-indigo-500/30'
-        : 'p-3 rounded-xl bg-slate-800/90 text-slate-200 mr-6 text-xs shadow-md border border-slate-700 leading-relaxed';
       
       // Simple markdown bold conversion
       const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      bubble.innerHTML = formatted;
+      
+      if (isUser) {
+        bubble.className = 'p-3 rounded-xl bg-indigo-600/90 text-white ml-6 text-xs shadow-md border border-indigo-500/30';
+        bubble.innerHTML = formatted;
+      } else {
+        bubble.className = 'p-3 rounded-xl bg-slate-800/90 text-slate-200 mr-4 text-xs shadow-md border border-slate-700 leading-relaxed flex items-start gap-2.5';
+        bubble.innerHTML = `
+          <img src="dog_mascot_head.png" alt="Mascot" class="w-6 h-6 rounded-md object-cover ring-1 ring-emerald-400/40 shrink-0 mt-0.5">
+          <div class="flex-1">${formatted}</div>
+        `;
+      }
       container.appendChild(bubble);
       container.scrollTop = container.scrollHeight;
     }
@@ -4593,8 +4602,8 @@
   </script>
 
   <!-- Floating AI Co-Pilot Button -->
-  <button onclick="openChatDrawer()" class="fixed bottom-6 right-6 z-40 px-4 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 text-white font-bold text-xs shadow-2xl flex items-center gap-2.5 transition transform hover:scale-105 border border-indigo-400/40">
-    <span class="text-base">🤖</span>
+  <button onclick="openChatDrawer()" class="fixed bottom-6 right-6 z-40 px-4 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 via-slate-900 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 text-white font-bold text-xs shadow-2xl flex items-center gap-2.5 transition transform hover:scale-105 border border-emerald-400/40 backdrop-blur-md">
+    <img src="dog_mascot_head.png" alt="Mascot" class="w-6 h-6 rounded-full object-cover ring-1 ring-emerald-400/60 shrink-0">
     <span>Ask ECKAP AI</span>
   </button>
 
@@ -4607,9 +4616,14 @@
       <!-- Header -->
       <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-sm font-bold">🤖</div>
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 p-0.5 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+            <img src="dog_mascot_head.png" alt="ECKAP Mascot" class="w-full h-full object-cover rounded-[8px]">
+          </div>
           <div>
-            <h4 class="text-sm font-bold text-white">ECKAP AI Co-Pilot</h4>
+            <h4 class="text-sm font-bold text-white flex items-center gap-1.5">
+              ECKAP AI Co-Pilot
+              <span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-normal border border-emerald-500/30">Chief Morale Officer</span>
+            </h4>
             <p class="text-[11px] text-slate-400">Context-aware portfolio intelligence</p>
           </div>
         </div>
@@ -4627,8 +4641,11 @@
       </div>
       <!-- Chat Messages Container -->
       <div id="ai-chat-messages" onpointerdown="cancelBlurSubmit = true" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs leading-relaxed">
-        <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-200">
-          👋 Hello! I am your <strong>ECKAP AI Portfolio Co-Pilot</strong>. I have real-time access to your cash, tax escrow, options collateral, and all 8 institutional strategy pillars. How can I assist the ECKAP Quant Fund today?
+        <div class="p-3.5 rounded-xl bg-slate-800/90 border border-slate-700 text-slate-200 flex items-start gap-2.5">
+          <img src="dog_mascot_head.png" alt="ECKAP Mascot" class="w-7 h-7 rounded-lg object-cover ring-1 ring-emerald-400/40 shrink-0 mt-0.5">
+          <div class="flex-1">
+            👋 Hello! I am your <strong>ECKAP AI Portfolio Co-Pilot</strong>. I have real-time access to your live cash, bond barbell, tax escrow, options collateral, and all 8 quantitative strategy pillars. How can I assist you today?
+          </div>
         </div>
       </div>
       <!-- Chat Input Form -->

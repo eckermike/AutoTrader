@@ -165,8 +165,36 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             self.serve_dashboard()
         elif req_path == "/api/status":
             self.serve_status_api()
+        elif req_path in ("/favicon.ico", "/favicon.png", "/favicon-32x32.png", "/dog_mascot_head.png", "/dog_mascot_avatar.png", "/dog_mascot_avatar128.png", "/dog_mascot_full.png"):
+            self.serve_static_asset(req_path.lstrip("/"))
         else:
             super().do_GET()
+
+    def serve_static_asset(self, filename: str):
+        asset_path = BASE_DIR / filename
+        if not asset_path.exists():
+            self.send_error(404, f"Asset {filename} not found")
+            return
+
+        content_type = "image/png"
+        if filename.endswith(".ico"):
+            content_type = "image/x-icon"
+        elif filename.endswith(".jpg") or filename.endswith(".jpeg"):
+            content_type = "image/jpeg"
+
+        try:
+            with open(asset_path, "rb") as f:
+                content = f.read()
+
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(content)))
+            self.send_header("Cache-Control", "public, max-age=86400")
+            self.end_headers()
+            self.wfile.write(content)
+        except Exception as e:
+            logger.error("Error serving asset %s: %s", filename, e)
+            self.send_error(500, "Internal Server Error")
 
     def serve_dashboard(self):
         if not DASHBOARD_HTML.exists():
