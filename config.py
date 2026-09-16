@@ -308,8 +308,14 @@ class BotConfig(BaseSettings):
         le=0.45,
         description="Target delta for short put strike (0.20 = ~80% probability OTM)",
     )
+    SPREAD_TARGET_OTM_PCT: float = Field(
+        default=0.04,
+        ge=0.01,
+        le=0.15,
+        description="Target OTM distance percentage for short strike (0.04 = ~4% OTM / ~0.20 delta)",
+    )
     SPREAD_MIN_CREDIT_USD: float = Field(
-        default=0.50,
+        default=0.40,
         ge=0.10,
         description="Minimum net credit required to open a credit spread in USD",
     )

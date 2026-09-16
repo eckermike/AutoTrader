@@ -340,13 +340,22 @@ class MacroRotationEngine:
             if curr_price <= 0:
                 curr_price = pos.current_price or pos.entry_price
 
-            # Submit sell order
-            self.options_client.submit_stock_order(
-                symbol=sym,
-                side="SELL",
-                qty=pos.qty,
-                time_in_force=getattr(self.config, "MACRO_TIME_IN_FORCE", "DAY"),
-            )
+            # Submit sell order only if actually held on broker
+            actual_pos = self.options_client.get_stock_position(sym)
+            if actual_pos and actual_pos.qty > 0:
+                sell_qty = min(pos.qty, actual_pos.qty)
+                self.options_client.submit_stock_order(
+                    symbol=sym,
+                    side="SELL",
+                    qty=sell_qty,
+                    time_in_force=getattr(self.config, "MACRO_TIME_IN_FORCE", "DAY"),
+                )
+            else:
+                logger.warning(
+                    "Demoted macro position %s (qty: %s) not held on broker. Clearing local state.",
+                    sym,
+                    pos.qty,
+                )
 
             # PnL & Tax Escrow Calculation
             realized_pnl = round((curr_price - pos.entry_price) * pos.qty, 2)

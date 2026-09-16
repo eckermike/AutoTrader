@@ -114,7 +114,8 @@ class SpreadEngine:
         for c in put_contracts:
             by_expiry.setdefault(c.expiration_date, []).append(c)
 
-        target_short_strike = current_price * (1.0 - self.config.SPREAD_TARGET_DELTA)
+        otm_pct = getattr(self.config, "SPREAD_TARGET_OTM_PCT", 0.04)
+        target_short_strike = current_price * (1.0 - otm_pct)
         width = self.config.SPREAD_WIDTH_USD
 
         best_pair = None
@@ -240,13 +241,25 @@ class SpreadEngine:
     ) -> Dict[str, Any]:
         """Closes the active spread and records realized profit in the TaxEngine."""
         spread = self.active_spread
-        close_res = self.client.close_mleg_spread_order(
-            short_symbol=spread.short_symbol,
-            long_symbol=spread.long_symbol,
-            qty=spread.qty,
-            limit_debit=debit_price,
-            time_in_force=self.config.SPREAD_TIME_IN_FORCE,
-        )
+        try:
+            close_res = self.client.close_mleg_spread_order(
+                short_symbol=spread.short_symbol,
+                long_symbol=spread.long_symbol,
+                qty=spread.qty,
+                limit_debit=debit_price,
+                time_in_force=self.config.SPREAD_TIME_IN_FORCE,
+            )
+        except Exception as e:
+            err_str = str(e).lower()
+            if any(term in err_str for term in ("intent mismatch", "not found", "does not exist", "invalid legs", "404")):
+                logger.warning(
+                    "Spread legs for %s no longer exist on broker (%s). Clearing ghost spread position.",
+                    self.symbol,
+                    e,
+                )
+                self.active_spread = None
+                return {"status": "GHOST_CLEARED", "symbol": self.symbol}
+            raise
 
         spread.status = "CLOSED"
         spread.close_timestamp = datetime.now(timezone.utc).isoformat()
