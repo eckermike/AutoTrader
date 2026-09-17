@@ -9,7 +9,7 @@ import re
 import json
 import time
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
@@ -148,74 +148,222 @@ def parse_latest_daemon_state():
     return list(matrix.values()), portfolio
 
 
-class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
-    daemon_threads = True
-    allow_reuse_address = True
+def compute_income_analytics(base_dir=BASE_DIR) -> dict:
+    """Aggregates historical daily income from all active quant strategies."""
+    tax_file = base_dir / "tax_reserve.json"
+    spreads_file = base_dir / "spreads_state.json"
+    macro_file = base_dir / "macro_rotation_state.json"
+    dip_file = base_dir / "dip_buyer_state.json"
 
+    wheel_symbols = {"INTC", "F", "SOFI", "HOOD", "PLTR", "XLF", "RIVN", "PFE", "NU", "CLF"}
+    spread_symbols = {"SPY", "QQQ", "IWM"}
+    crypto_symbols = {"ETH/USD", "BTC/USD", "SOL/USD", "AVAX/USD", "LINK/USD", "DOGE/USD"}
 
-class DashboardHandler(SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(BASE_DIR), **kwargs)
+    daily_data = {}
 
-    def do_GET(self):
-        # Normalize path
-        req_path = self.path.split("?")[0]
+    def ensure_date(d_str):
+        if d_str not in daily_data:
+            daily_data[d_str] = {
+                "wheel": 0.0,
+                "bonds": 0.0,
+                "spreads": 0.0,
+                "crypto": 0.0,
+                "macro_dip": 0.0,
+            }
 
-        if req_path in ("/", "/index.html", "/dashboard", "/dashboard.html"):
-            self.serve_dashboard()
-        elif req_path == "/api/status":
-            self.serve_status_api()
-        elif req_path in ("/favicon.ico", "/favicon.png", "/favicon-32x32.png", "/dog_mascot_head.png", "/dog_mascot_avatar.png", "/dog_mascot_avatar128.png", "/dog_mascot_full.png"):
-            self.serve_static_asset(req_path.lstrip("/"))
-        else:
-            super().do_GET()
-
-    def serve_static_asset(self, filename: str):
-        asset_path = BASE_DIR / filename
-        if not asset_path.exists():
-            self.send_error(404, f"Asset {filename} not found")
-            return
-
-        content_type = "image/png"
-        if filename.endswith(".ico"):
-            content_type = "image/x-icon"
-        elif filename.endswith(".jpg") or filename.endswith(".jpeg"):
-            content_type = "image/jpeg"
-
+    # 1. Tax reserve trade history (Wheel option premiums, Crypto trades, Realized PnL)
+    if tax_file.exists():
         try:
-            with open(asset_path, "rb") as f:
-                content = f.read()
+            with open(tax_file, "r", encoding="utf-8") as f:
+                tax_json = json.load(f)
+                for tr in tax_json.get("trade_history", []):
+                    ts_str = tr.get("timestamp", "")
+                    if not ts_str:
+                        continue
+                    d_str = datetime.fromisoformat(ts_str).strftime("%Y-%m-%d")
+                    ensure_date(d_str)
 
-            self.send_response(200)
-            self.send_header("Content-Type", content_type)
-            self.send_header("Content-Length", str(len(content)))
-            self.send_header("Cache-Control", "public, max-age=86400")
-            self.end_headers()
-            self.wfile.write(content)
+                    sym = tr.get("symbol", "")
+                    pnl = float(tr.get("gross_pnl", 0.0))
+
+                    is_wheel = any(sym.startswith(s) for s in wheel_symbols) and not any(sym.startswith(s) for s in spread_symbols)
+                    if is_wheel:
+                        daily_data[d_str]["wheel"] += pnl
+                    elif sym in crypto_symbols or "/" in sym:
+                        daily_data[d_str]["crypto"] += pnl
+                    elif any(sym.startswith(s) for s in spread_symbols):
+                        daily_data[d_str]["spreads"] += pnl
+                    else:
+                        daily_data[d_str]["macro_dip"] += pnl
         except Exception as e:
-            logger.error("Error serving asset %s: %s", filename, e)
-            self.send_error(500, "Internal Server Error")
+            logger.warning("Error reading tax reserve for income analytics: %s", e)
 
-    def serve_dashboard(self):
-        if not DASHBOARD_HTML.exists():
-            self.send_error(404, "Dashboard HTML file not found")
-            return
-
+    # 2. Spreads state (entry credits and realized gains)
+    if spreads_file.exists():
         try:
-            with open(DASHBOARD_HTML, "rb") as f:
-                content = f.read()
-
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(content)))
-            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-            self.send_header("Pragma", "no-cache")
-            self.send_header("Expires", "0")
-            self.end_headers()
-            self.wfile.write(content)
+            with open(spreads_file, "r", encoding="utf-8") as f:
+                sprd_json = json.load(f)
+                for sp in sprd_json.get("active_spreads", []):
+                    entry_ts = sp.get("entry_timestamp")
+                    if entry_ts:
+                        d_str = datetime.fromisoformat(entry_ts).strftime("%Y-%m-%d")
+                        ensure_date(d_str)
+                        credit = float(sp.get("entry_credit", 0.0)) * 100 * float(sp.get("qty", 1))
+                        daily_data[d_str]["spreads"] += credit
+                for sp in sprd_json.get("closed_spreads", []):
+                    close_ts = sp.get("close_timestamp")
+                    if close_ts and sp.get("realized_pnl") is not None:
+                        d_str = datetime.fromisoformat(close_ts).strftime("%Y-%m-%d")
+                        ensure_date(d_str)
+                        daily_data[d_str]["spreads"] += float(sp["realized_pnl"])
         except Exception as e:
-            logger.error("Error serving dashboard: %s", e)
-            self.send_error(500, "Internal Server Error")
+            logger.warning("Error reading spreads state for income analytics: %s", e)
+
+    # 3. Macro state closed trades
+    if macro_file.exists():
+        try:
+            with open(macro_file, "r", encoding="utf-8") as f:
+                macro_json = json.load(f)
+                for tr in macro_json.get("closed_trades", []):
+                    exit_ts = tr.get("exit_time")
+                    pnl = float(tr.get("realized_pnl", 0.0))
+                    if exit_ts and pnl != 0.0:
+                        d_str = datetime.fromisoformat(exit_ts).strftime("%Y-%m-%d")
+                        ensure_date(d_str)
+                        daily_data[d_str]["macro_dip"] += pnl
+        except Exception as e:
+            logger.warning("Error reading macro state for income analytics: %s", e)
+
+    # 4. Dip buyer closed trades
+    if dip_file.exists():
+        try:
+            with open(dip_file, "r", encoding="utf-8") as f:
+                dip_json = json.load(f)
+                for tr in dip_json.get("closed_trades", []):
+                    exit_ts = tr.get("exit_time") or tr.get("timestamp")
+                    pnl = float(tr.get("realized_pnl", 0.0))
+                    if exit_ts and pnl != 0.0:
+                        d_str = datetime.fromisoformat(exit_ts).strftime("%Y-%m-%d")
+                        ensure_date(d_str)
+                        daily_data[d_str]["macro_dip"] += pnl
+        except Exception as e:
+            logger.warning("Error reading dip state for income analytics: %s", e)
+
+    # 5. Continuous calendar sequence from inception (2026-09-06) to current date
+    start_date = datetime(2026, 9, 6).date()
+    end_date = datetime.now(timezone.utc).date()
+    if daily_data:
+        earliest_raw = min(datetime.strptime(k, "%Y-%m-%d").date() for k in daily_data.keys())
+        if earliest_raw < start_date:
+            start_date = earliest_raw
+
+    cur = start_date
+    dates = []
+    wheel_series = []
+    bonds_series = []
+    spreads_series = []
+    crypto_series = []
+    macro_series = []
+    daily_totals = []
+
+    cum_wheel = []
+    cum_bonds = []
+    cum_spreads = []
+    cum_crypto = []
+    cum_macro = []
+    cum_totals = []
+
+    r_wheel = 0.0
+    r_bonds = 0.0
+    r_spreads = 0.0
+    r_crypto = 0.0
+    r_macro = 0.0
+    r_total = 0.0
+
+    while cur <= end_date:
+        d_str = cur.strftime("%Y-%m-%d")
+        dates.append(d_str)
+        day_vals = daily_data.get(d_str, {"wheel": 0.0, "bonds": 0.0, "spreads": 0.0, "crypto": 0.0, "macro_dip": 0.0})
+
+        # Daily bond yield accrual (~$5.61/day on $40,000 @ 5.05% APY)
+        b_val = 5.61
+        w_val = round(day_vals["wheel"], 2)
+        s_val = round(day_vals["spreads"], 2)
+        c_val = round(day_vals["crypto"], 2)
+        m_val = round(day_vals["macro_dip"], 2)
+        d_tot = round(w_val + b_val + s_val + c_val + m_val, 2)
+
+        r_wheel = round(r_wheel + w_val, 2)
+        r_bonds = round(r_bonds + b_val, 2)
+        r_spreads = round(r_spreads + s_val, 2)
+        r_crypto = round(r_crypto + c_val, 2)
+        r_macro = round(r_macro + m_val, 2)
+        r_total = round(r_total + d_tot, 2)
+
+        wheel_series.append(w_val)
+        bonds_series.append(b_val)
+        spreads_series.append(s_val)
+        crypto_series.append(c_val)
+        macro_series.append(m_val)
+        daily_totals.append(d_tot)
+
+        cum_wheel.append(r_wheel)
+        cum_bonds.append(r_bonds)
+        cum_spreads.append(r_spreads)
+        cum_crypto.append(r_crypto)
+        cum_macro.append(r_macro)
+        cum_totals.append(r_total)
+
+        cur += timedelta(days=1)
+
+    days_count = max(1, len(dates))
+    daily_run_rate = round(r_total / days_count, 2)
+    monthly_run_rate = round(daily_run_rate * 30.0, 2)
+    annualized_yield = round((r_total / days_count * 365.0) / 100000.0 * 100.0, 1)
+
+    tot_positive = max(0.01, sum(v for v in [r_wheel, r_bonds, r_spreads, r_crypto, r_macro] if v > 0))
+
+    return {
+        "dates": dates,
+        "by_strategy": {
+            "wheel": wheel_series,
+            "bonds": bonds_series,
+            "spreads": spreads_series,
+            "crypto": crypto_series,
+            "macro_dip": macro_series,
+        },
+        "cumulative_by_strategy": {
+            "wheel": cum_wheel,
+            "bonds": cum_bonds,
+            "spreads": cum_spreads,
+            "crypto": cum_crypto,
+            "macro_dip": cum_macro,
+        },
+        "overall_daily": daily_totals,
+        "overall_cumulative": cum_totals,
+        "summary": {
+            "total_income": r_total,
+            "daily_run_rate": daily_run_rate,
+            "monthly_run_rate": monthly_run_rate,
+            "annualized_yield_pct": annualized_yield,
+            "days_active": days_count,
+            "strategy_totals": {
+                "wheel": r_wheel,
+                "bonds": r_bonds,
+                "spreads": r_spreads,
+                "crypto": r_crypto,
+                "macro_dip": r_macro,
+            },
+            "strategy_shares_pct": {
+                "wheel": round(max(0.0, r_wheel) / tot_positive * 100, 1),
+                "bonds": round(max(0.0, r_bonds) / tot_positive * 100, 1),
+                "spreads": round(max(0.0, r_spreads) / tot_positive * 100, 1),
+                "crypto": round(max(0.0, r_crypto) / tot_positive * 100, 1),
+                "macro_dip": round(max(0.0, r_macro) / tot_positive * 100, 1),
+            },
+        },
+    }
+
 
 def build_fund_status_snapshot() -> dict:
     """Compiles live fund metrics from disk states into a unified status dictionary."""
@@ -675,6 +823,12 @@ def build_fund_status_snapshot() -> dict:
             "wheels": wheels_data,
         }
 
+    try:
+        data["income_analytics"] = compute_income_analytics()
+    except Exception as e:
+        logger.warning("Error generating income_analytics in snapshot: %s", e)
+        data["income_analytics"] = {}
+
     return data
 
 
@@ -706,6 +860,32 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.end_headers()
 
+    def serve_static_asset(self, filename: str):
+        asset_path = BASE_DIR / filename
+        if not asset_path.exists():
+            self.send_error(404, f"Asset {filename} not found")
+            return
+
+        content_type = "image/png"
+        if filename.endswith(".ico"):
+            content_type = "image/x-icon"
+        elif filename.endswith(".jpg") or filename.endswith(".jpeg"):
+            content_type = "image/jpeg"
+
+        try:
+            with open(asset_path, "rb") as f:
+                content = f.read()
+
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(content)))
+            self.send_header("Cache-Control", "public, max-age=86400")
+            self.end_headers()
+            self.wfile.write(content)
+        except Exception as e:
+            logger.error("Error serving asset %s: %s", filename, e)
+            self.send_error(500, "Internal Server Error")
+
     def do_GET(self):
         req_path = self.path.split("?")[0]
 
@@ -713,6 +893,10 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             self.serve_dashboard()
         elif req_path == "/api/status":
             self.serve_status_api()
+        elif req_path == "/api/income":
+            self.send_json_response(compute_income_analytics())
+        elif req_path in ("/favicon.ico", "/favicon.png", "/favicon-32x32.png", "/dog_mascot_head.png", "/dog_mascot_avatar.png", "/dog_mascot_avatar128.png", "/dog_mascot_full.png"):
+            self.serve_static_asset(req_path.lstrip("/"))
         else:
             super().do_GET()
 

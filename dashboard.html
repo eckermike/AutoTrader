@@ -9,6 +9,7 @@
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="favicon.png">
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     /* Custom Scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -383,6 +384,163 @@
                 <p class="text-violet-300/90">• <strong>The Risk:</strong> Structural relationship break between pairs; hard stop at |z| &ge; 3.50 strictly limits losses</p>
               </div>
             </div>
+          </div>
+        </div>
+      <!-- ==================== QUANTITATIVE INCOME GENERATION GRAPH ==================== -->
+      <div class="glass-card rounded-2xl p-6 border border-indigo-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-indigo-950/30 shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Header & KPI Strip -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/20 via-indigo-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center text-xl shadow-inner text-emerald-400 shrink-0">
+              📈
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-base sm:text-lg font-bold text-white tracking-wide">Quantitative Income & Cash Flow Generation</h2>
+                <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Dynamic Multi-Engine Feed
+                </span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Realized cash flow & accrued yield across Option Wheels, Treasury Ballast, Credit Spreads & Alpha Engines</p>
+            </div>
+          </div>
+
+          <!-- Top Run-Rate Badges -->
+          <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div class="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800">
+              <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Net Cash</p>
+              <p id="chart-stat-total" class="text-base sm:text-lg font-extrabold text-emerald-400 tracking-tight">+$3,133.24</p>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800">
+              <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Monthly Run-Rate</p>
+              <p id="chart-stat-monthly" class="text-base sm:text-lg font-extrabold text-cyan-400 tracking-tight">+$7,833.00<span class="text-[10px] font-normal text-slate-400"> / mo</span></p>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 hidden sm:block">
+              <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Annualized APY</p>
+              <p id="chart-stat-yield" class="text-base sm:text-lg font-extrabold text-indigo-400 tracking-tight">95.3%<span class="text-[10px] font-normal text-slate-400"> on Assets</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Control Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-4 pt-1">
+          <!-- Timeframe Selector -->
+          <div class="flex items-center gap-1 p-1 bg-slate-950/90 rounded-xl border border-slate-800 self-start">
+            <button onclick="setIncomeTimeframe('7D')" id="btn-tf-7D" class="px-3 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">7D</button>
+            <button onclick="setIncomeTimeframe('30D')" id="btn-tf-30D" class="px-3 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">30D</button>
+            <button onclick="setIncomeTimeframe('90D')" id="btn-tf-90D" class="px-3 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition">90D</button>
+            <button onclick="setIncomeTimeframe('ALL')" id="btn-tf-ALL" class="px-3 py-1 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow-sm transition">ALL</button>
+          </div>
+
+          <!-- View Mode & Strategy Filters -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- View Mode Toggle -->
+            <div class="flex items-center gap-1 p-1 bg-slate-950/90 rounded-xl border border-slate-800">
+              <button onclick="setIncomeViewMode('cumulative')" id="btn-mode-cumulative" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow-sm flex items-center gap-1 transition">
+                <span>📈 Cumulative</span>
+              </button>
+              <button onclick="setIncomeViewMode('periodic')" id="btn-mode-periodic" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white flex items-center gap-1 transition">
+                <span>📊 Stacked Bar</span>
+              </button>
+            </div>
+
+            <!-- Strategy Selector Chips -->
+            <div class="flex items-center gap-1 overflow-x-auto py-0.5 max-w-full">
+              <button onclick="setIncomeStrategy('all')" id="chip-strat-all" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 transition shrink-0">
+                All Streams
+              </button>
+              <button onclick="setIncomeStrategy('wheel')" id="chip-strat-wheel" class="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-slate-950/70 text-slate-400 hover:text-indigo-300 border border-slate-800 transition shrink-0 flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Wheel
+              </button>
+              <button onclick="setIncomeStrategy('bonds')" id="chip-strat-bonds" class="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-slate-950/70 text-slate-400 hover:text-cyan-300 border border-slate-800 transition shrink-0 flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span> Bonds
+              </button>
+              <button onclick="setIncomeStrategy('spreads')" id="chip-strat-spreads" class="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-slate-950/70 text-slate-400 hover:text-purple-300 border border-slate-800 transition shrink-0 flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-purple-500"></span> Spreads
+              </button>
+              <button onclick="setIncomeStrategy('crypto')" id="chip-strat-crypto" class="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-slate-950/70 text-slate-400 hover:text-emerald-300 border border-slate-800 transition shrink-0 flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Crypto
+              </button>
+              <button onclick="setIncomeStrategy('macro_dip')" id="chip-strat-macro_dip" class="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-slate-950/70 text-slate-400 hover:text-amber-300 border border-slate-800 transition shrink-0 flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span> Macro/Dip
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="relative w-full h-72 sm:h-80 mt-4 bg-slate-950/40 rounded-xl p-2 border border-slate-800/60">
+          <canvas id="incomeChart"></canvas>
+          <div id="chart-fallback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 rounded-xl p-4 text-center">
+            <p class="text-sm font-bold text-white mb-1">Loading Interactive Cash Flow Engine...</p>
+            <p class="text-xs text-slate-400">Compiling multi-strategy telemetry across Alpaca and ledger states.</p>
+          </div>
+        </div>
+
+        <!-- Strategy Performance Breakdown Pill Grid (Below Chart) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-4 pt-4 border-t border-slate-800/80 text-xs">
+          <!-- Wheel Pill -->
+          <div class="p-3 rounded-xl bg-slate-950/60 border border-indigo-500/20 hover:border-indigo-500/40 transition">
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-[10px] uppercase font-bold text-indigo-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span> Option Wheel (10)
+              </span>
+              <span id="pill-wheel-pct" class="text-[10px] font-semibold text-slate-400">88.1%</span>
+            </div>
+            <p id="pill-wheel-val" class="text-sm sm:text-base font-bold text-white">+$2,806.86</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">100% Win • 50% Profit Harvest</p>
+          </div>
+
+          <!-- Bond Barbell Pill -->
+          <div class="p-3 rounded-xl bg-slate-950/60 border border-cyan-500/20 hover:border-cyan-500/40 transition">
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-[10px] uppercase font-bold text-cyan-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> Treasury Ballast ($40k)
+              </span>
+              <span id="pill-bonds-pct" class="text-[10px] font-semibold text-slate-400">2.1%</span>
+            </div>
+            <p id="pill-bonds-val" class="text-sm sm:text-base font-bold text-white">+$67.32</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">$5.61/day • 5.05% SGOV/FBND</p>
+          </div>
+
+          <!-- Defined Spreads Pill -->
+          <div class="p-3 rounded-xl bg-slate-950/60 border border-purple-500/20 hover:border-purple-500/40 transition">
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-[10px] uppercase font-bold text-purple-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span> Credit Spreads
+              </span>
+              <span id="pill-spreads-pct" class="text-[10px] font-semibold text-slate-400">9.7%</span>
+            </div>
+            <p id="pill-spreads-val" class="text-sm sm:text-base font-bold text-white">+$310.00</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">SPY/QQQ/IWM • $500 Max Risk</p>
+          </div>
+
+          <!-- Spot Crypto Pill -->
+          <div class="p-3 rounded-xl bg-slate-950/60 border border-emerald-500/20 hover:border-emerald-500/40 transition">
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-[10px] uppercase font-bold text-emerald-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Crypto Momentum
+              </span>
+              <span id="pill-crypto-pct" class="text-[10px] font-semibold text-slate-400">Active</span>
+            </div>
+            <p id="pill-crypto-val" class="text-sm sm:text-base font-bold text-white">-$53.92</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">-5% Strict Hard Stop Floor</p>
+          </div>
+
+          <!-- Macro & Dip Pill -->
+          <div class="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 hover:border-amber-500/40 transition col-span-2 sm:col-span-1">
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-[10px] uppercase font-bold text-amber-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Macro &amp; Dip Buyer
+              </span>
+              <span id="pill-macro-pct" class="text-[10px] font-semibold text-slate-400">0.1%</span>
+            </div>
+            <p id="pill-macro-val" class="text-sm sm:text-base font-bold text-white">+$2.98</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Dual-Mom + RSI Snipe</p>
           </div>
         </div>
       </div>
@@ -3580,6 +3738,355 @@
       }).join('');
     }
 
+    // ==================== INTERACTIVE QUANTITATIVE INCOME GRAPH ENGINE ====================
+    let incomeChartInstance = null;
+    let rawIncomeAnalytics = null;
+    let currentIncomeTimeframe = 'ALL';
+    let currentIncomeViewMode = 'cumulative';
+    let currentIncomeStrategy = 'all';
+
+    const STRATEGY_CONFIGS = {
+      wheel: {
+        label: 'Option Wheel (CSPs & CCs)',
+        borderColor: '#818cf8',
+        backgroundColor: 'rgba(99, 102, 241, 0.25)',
+        barColor: 'rgba(99, 102, 241, 0.85)',
+      },
+      bonds: {
+        label: 'Treasury Ballast (SGOV + FBND)',
+        borderColor: '#22d3ee',
+        backgroundColor: 'rgba(6, 182, 212, 0.25)',
+        barColor: 'rgba(6, 182, 212, 0.85)',
+      },
+      spreads: {
+        label: 'Credit Spreads (SPY/QQQ/IWM)',
+        borderColor: '#c084fc',
+        backgroundColor: 'rgba(168, 85, 247, 0.25)',
+        barColor: 'rgba(168, 85, 247, 0.85)',
+      },
+      crypto: {
+        label: 'Crypto Momentum',
+        borderColor: '#34d399',
+        backgroundColor: 'rgba(16, 185, 129, 0.25)',
+        barColor: 'rgba(16, 185, 129, 0.85)',
+      },
+      macro_dip: {
+        label: 'Macro Rotation & Dip Buyer',
+        borderColor: '#fbbf24',
+        backgroundColor: 'rgba(245, 158, 11, 0.25)',
+        barColor: 'rgba(245, 158, 11, 0.85)',
+      },
+      total: {
+        label: 'Total Net Cash (All Streams)',
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.18)',
+        barColor: 'rgba(16, 185, 129, 0.85)',
+      }
+    };
+
+    function setIncomeTimeframe(tf) {
+      currentIncomeTimeframe = tf;
+      ['7D', '30D', '90D', 'ALL'].forEach(id => {
+        const btn = document.getElementById(`btn-tf-${id}`);
+        if (!btn) return;
+        if (id === tf) {
+          btn.className = "px-3 py-1 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow-sm transition";
+        } else {
+          btn.className = "px-3 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition";
+        }
+      });
+      renderIncomeChart();
+    }
+
+    function setIncomeViewMode(mode) {
+      currentIncomeViewMode = mode;
+      const btnCum = document.getElementById('btn-mode-cumulative');
+      const btnPer = document.getElementById('btn-mode-periodic');
+      if (mode === 'cumulative') {
+        if (btnCum) btnCum.className = "px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow-sm flex items-center gap-1 transition";
+        if (btnPer) btnPer.className = "px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white flex items-center gap-1 transition";
+      } else {
+        if (btnCum) btnCum.className = "px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white flex items-center gap-1 transition";
+        if (btnPer) btnPer.className = "px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow-sm flex items-center gap-1 transition";
+      }
+      renderIncomeChart();
+    }
+
+    function setIncomeStrategy(strat) {
+      currentIncomeStrategy = strat;
+      const strats = ['all', 'wheel', 'bonds', 'spreads', 'crypto', 'macro_dip'];
+      strats.forEach(s => {
+        const chip = document.getElementById(`chip-strat-${s}`);
+        if (!chip) return;
+        if (s === strat) {
+          chip.classList.remove('text-slate-400', 'bg-slate-950/70', 'border-slate-800');
+          chip.classList.add('bg-indigo-500/20', 'text-indigo-300', 'border-indigo-500/40', 'font-bold');
+        } else {
+          chip.classList.remove('bg-indigo-500/20', 'text-indigo-300', 'border-indigo-500/40', 'font-bold');
+          chip.classList.add('bg-slate-950/70', 'text-slate-400', 'border-slate-800');
+        }
+      });
+      renderIncomeChart();
+    }
+
+    function updateIncomeAnalyticsData(data) {
+      rawIncomeAnalytics = data;
+      if (!data) return;
+
+      // Update Summary Badges
+      if (data.summary) {
+        const s = data.summary;
+        const totEl = document.getElementById('chart-stat-total');
+        if (totEl && s.total_income !== undefined) {
+          totEl.innerText = `${s.total_income >= 0 ? '+' : ''}$${s.total_income.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+        const moEl = document.getElementById('chart-stat-monthly');
+        if (moEl && s.monthly_run_rate !== undefined) {
+          moEl.innerHTML = `+$${s.monthly_run_rate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}<span class="text-[10px] font-normal text-slate-400"> / mo</span>`;
+        }
+        const yldEl = document.getElementById('chart-stat-yield');
+        if (yldEl && s.annualized_yield_pct !== undefined) {
+          yldEl.innerHTML = `${s.annualized_yield_pct.toFixed(1)}%<span class="text-[10px] font-normal text-slate-400"> on Assets</span>`;
+        }
+
+        // Update Bottom Stat Pills
+        if (s.strategy_totals) {
+          const st = s.strategy_totals;
+          const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = `${val >= 0 ? '+' : ''}$${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+          };
+          setVal('pill-wheel-val', st.wheel || 0);
+          setVal('pill-bonds-val', st.bonds || 0);
+          setVal('pill-spreads-val', st.spreads || 0);
+          setVal('pill-crypto-val', st.crypto || 0);
+          setVal('pill-macro-val', st.macro_dip || 0);
+        }
+
+        if (s.strategy_shares_pct) {
+          const sp = s.strategy_shares_pct;
+          const setPct = (id, pct) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = `${pct.toFixed(1)}%`;
+          };
+          if (sp.wheel !== undefined) setPct('pill-wheel-pct', sp.wheel);
+          if (sp.bonds !== undefined) setPct('pill-bonds-pct', sp.bonds);
+          if (sp.spreads !== undefined) setPct('pill-spreads-pct', sp.spreads);
+          if (sp.macro_dip !== undefined) setPct('pill-macro-pct', sp.macro_dip);
+        }
+      }
+
+      renderIncomeChart();
+    }
+
+    function renderIncomeChart() {
+      if (!rawIncomeAnalytics || !rawIncomeAnalytics.dates || rawIncomeAnalytics.dates.length === 0) {
+        return;
+      }
+
+      const canvas = document.getElementById('incomeChart');
+      if (!canvas) return;
+
+      // Check Chart.js availability
+      if (typeof Chart === 'undefined') {
+        const fallback = document.getElementById('chart-fallback');
+        if (fallback) fallback.classList.remove('hidden');
+        return;
+      }
+      const fallback = document.getElementById('chart-fallback');
+      if (fallback) fallback.classList.add('hidden');
+
+      // 1. Slice dates based on current timeframe
+      let dates = [...rawIncomeAnalytics.dates];
+      let sliceCount = dates.length;
+      if (currentIncomeTimeframe === '7D') sliceCount = Math.min(7, dates.length);
+      else if (currentIncomeTimeframe === '30D') sliceCount = Math.min(30, dates.length);
+      else if (currentIncomeTimeframe === '90D') sliceCount = Math.min(90, dates.length);
+
+      const startIndex = dates.length - sliceCount;
+      const slicedDates = dates.slice(startIndex);
+      const labels = slicedDates.map(d => {
+        const parts = d.split('-');
+        if (parts.length === 3) return `${parts[1]}/${parts[2]}`;
+        return d;
+      });
+
+      // 2. Build datasets
+      const isCumulative = currentIncomeViewMode === 'cumulative';
+      const datasets = [];
+
+      if (currentIncomeStrategy === 'all') {
+        if (isCumulative) {
+          // Total Cumulative Line + Area
+          const totalCum = rawIncomeAnalytics.overall_cumulative.slice(startIndex);
+          datasets.push({
+            label: 'Total Net Cash',
+            data: totalCum,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.35,
+            pointRadius: slicedDates.length <= 15 ? 4 : 2,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#ffffff',
+            order: 1
+          });
+
+          // Individual strategy curves
+          const strats = [
+            { key: 'wheel', cfg: STRATEGY_CONFIGS.wheel },
+            { key: 'spreads', cfg: STRATEGY_CONFIGS.spreads },
+            { key: 'bonds', cfg: STRATEGY_CONFIGS.bonds },
+            { key: 'crypto', cfg: STRATEGY_CONFIGS.crypto },
+            { key: 'macro_dip', cfg: STRATEGY_CONFIGS.macro_dip }
+          ];
+
+          strats.forEach(s => {
+            const series = (rawIncomeAnalytics.cumulative_by_strategy[s.key] || []).slice(startIndex);
+            datasets.push({
+              label: s.cfg.label,
+              data: series,
+              borderColor: s.cfg.borderColor,
+              borderWidth: 1.8,
+              borderDash: [4, 4],
+              fill: false,
+              tension: 0.3,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              order: 2
+            });
+          });
+        } else {
+          // Stacked Bars per strategy
+          const strats = [
+            { key: 'wheel', cfg: STRATEGY_CONFIGS.wheel },
+            { key: 'spreads', cfg: STRATEGY_CONFIGS.spreads },
+            { key: 'bonds', cfg: STRATEGY_CONFIGS.bonds },
+            { key: 'macro_dip', cfg: STRATEGY_CONFIGS.macro_dip },
+            { key: 'crypto', cfg: STRATEGY_CONFIGS.crypto }
+          ];
+
+          strats.forEach(s => {
+            const series = (rawIncomeAnalytics.by_strategy[s.key] || []).slice(startIndex);
+            datasets.push({
+              label: s.cfg.label,
+              data: series,
+              backgroundColor: s.cfg.barColor,
+              borderRadius: 4,
+              stack: 'strategyStack'
+            });
+          });
+        }
+      } else {
+        // Single Strategy Isolated
+        const cfg = STRATEGY_CONFIGS[currentIncomeStrategy] || STRATEGY_CONFIGS.total;
+        const rawSeries = isCumulative 
+          ? (rawIncomeAnalytics.cumulative_by_strategy[currentIncomeStrategy] || [])
+          : (rawIncomeAnalytics.by_strategy[currentIncomeStrategy] || []);
+        const dataSeries = rawSeries.slice(startIndex);
+
+        datasets.push({
+          label: cfg.label,
+          data: dataSeries,
+          borderColor: cfg.borderColor,
+          backgroundColor: isCumulative ? cfg.backgroundColor : cfg.barColor,
+          borderWidth: 2.5,
+          fill: isCumulative,
+          tension: 0.35,
+          borderRadius: 6,
+          pointRadius: slicedDates.length <= 15 ? 4 : 2,
+          pointHoverRadius: 6,
+          pointBackgroundColor: cfg.borderColor,
+          pointBorderColor: '#ffffff'
+        });
+      }
+
+      // 3. Destroy old instance if exists
+      if (incomeChartInstance) {
+        incomeChartInstance.destroy();
+      }
+
+      const ctx = canvas.getContext('2d');
+      const chartType = isCumulative ? 'line' : 'bar';
+
+      incomeChartInstance = new Chart(ctx, {
+        type: chartType,
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              align: 'end',
+              labels: {
+                boxWidth: 12,
+                boxHeight: 12,
+                color: '#94a3b8',
+                font: { size: 11, family: 'system-ui, sans-serif' }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#ffffff',
+              bodyColor: '#e2e8f0',
+              borderColor: 'rgba(99, 102, 241, 0.35)',
+              borderWidth: 1,
+              padding: 12,
+              boxPadding: 4,
+              callbacks: {
+                title: function(items) {
+                  if (!items || items.length === 0) return '';
+                  const idx = items[0].dataIndex;
+                  return `Date: ${slicedDates[idx] || items[0].label}`;
+                },
+                label: function(context) {
+                  let val = context.raw || 0;
+                  const sign = val >= 0 ? '+' : '';
+                  return ` ${context.dataset.label}: ${sign}$${val.toFixed(2)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.04)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#64748b',
+                font: { size: 10 }
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#64748b',
+                font: { size: 10 },
+                callback: function(val) {
+                  return '$' + val;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
     // Live Feed Synchronization
     async function refreshData() {
       const btn = document.getElementById('refresh-label');
@@ -3591,6 +4098,16 @@
         const res = await fetch('/api/status', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
+
+          // Render Quantitative Income Analytics
+          if (data.income_analytics) {
+            try {
+              updateIncomeAnalyticsData(data.income_analytics);
+            } catch (e) {
+              console.warn("Error updating income analytics:", e);
+            }
+          }
+
           if (data.tax_engine) {
             const tax = data.tax_engine;
             if (tax.tax_reserve !== undefined) {

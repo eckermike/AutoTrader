@@ -6,7 +6,7 @@ Uses in-memory stream testing to remain 100% compliant with sandbox policies.
 import io
 import json
 from unittest.mock import MagicMock
-from dashboard_server import DashboardHandler, build_fund_status_snapshot, BASE_DIR
+from dashboard_server import DashboardHandler, build_fund_status_snapshot, compute_income_analytics, BASE_DIR
 
 
 def make_mock_handler(command: str = "GET", path: str = "/api/status", body: bytes = b""):
@@ -102,3 +102,35 @@ def test_api_chat_empty_query_rejected():
     assert "400 Bad Request" in headers
     data = json.loads(body)
     assert "error" in data
+
+
+def test_build_fund_status_snapshot_contains_income_analytics():
+    snapshot = build_fund_status_snapshot()
+    assert "income_analytics" in snapshot
+    analytics = snapshot["income_analytics"]
+    assert "dates" in analytics
+    assert len(analytics["dates"]) > 0
+    assert "by_strategy" in analytics
+    assert "wheel" in analytics["by_strategy"]
+    assert "bonds" in analytics["by_strategy"]
+    assert "spreads" in analytics["by_strategy"]
+    assert "crypto" in analytics["by_strategy"]
+    assert "macro_dip" in analytics["by_strategy"]
+    assert "overall_cumulative" in analytics
+    assert "summary" in analytics
+    assert analytics["summary"]["total_income"] > 0
+    assert analytics["summary"]["monthly_run_rate"] > 0
+
+
+def test_api_income_endpoint():
+    handler = make_mock_handler(command="GET", path="/api/income")
+    handler.do_GET()
+
+    headers, body = parse_response(handler)
+    assert "200 OK" in headers
+    assert "application/json" in headers
+    data = json.loads(body)
+    assert "dates" in data
+    assert "summary" in data
+    assert "strategy_totals" in data["summary"]
+
