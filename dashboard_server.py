@@ -886,6 +886,26 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             logger.error("Error serving asset %s: %s", filename, e)
             self.send_error(500, "Internal Server Error")
 
+    def serve_static_script(self, filename: str):
+        asset_path = BASE_DIR / filename
+        if not asset_path.exists():
+            self.send_error(404, f"Script {filename} not found")
+            return
+
+        try:
+            with open(asset_path, "rb") as f:
+                content = f.read()
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(content)))
+            self.send_header("Cache-Control", "public, max-age=86400")
+            self.end_headers()
+            self.wfile.write(content)
+        except Exception as e:
+            logger.error("Error serving script %s: %s", filename, e)
+            self.send_error(500, "Internal Server Error")
+
     def do_GET(self):
         req_path = self.path.split("?")[0]
 
@@ -895,6 +915,8 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             self.serve_status_api()
         elif req_path == "/api/income":
             self.send_json_response(compute_income_analytics())
+        elif req_path == "/chart.umd.min.js":
+            self.serve_static_script("chart.umd.min.js")
         elif req_path in ("/favicon.ico", "/favicon.png", "/favicon-32x32.png", "/dog_mascot_head.png", "/dog_mascot_avatar.png", "/dog_mascot_avatar128.png", "/dog_mascot_full.png"):
             self.serve_static_asset(req_path.lstrip("/"))
         else:

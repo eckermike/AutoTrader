@@ -134,3 +134,14 @@ def test_api_income_endpoint():
     assert "summary" in data
     assert "strategy_totals" in data["summary"]
 
+
+def test_api_chart_script_endpoint():
+    handler = make_mock_handler(command="GET", path="/chart.umd.min.js")
+    handler.do_GET()
+
+    headers, body = parse_response(handler)
+    assert "200 OK" in headers
+    assert "application/javascript" in headers
+    assert len(body) > 10000
+
+

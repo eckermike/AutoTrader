@@ -9,7 +9,7 @@
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="favicon.png">
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="chart.umd.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';" onload="window.chartJsLoaded=true; if (typeof renderIncomeChart === 'function') renderIncomeChart();"></script>
   <style>
     /* Custom Scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -473,11 +473,14 @@
         </div>
 
         <!-- Chart Container -->
-        <div class="relative w-full h-72 sm:h-80 mt-4 bg-slate-950/40 rounded-xl p-2 border border-slate-800/60">
-          <canvas id="incomeChart"></canvas>
-          <div id="chart-fallback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 rounded-xl p-4 text-center">
-            <p class="text-sm font-bold text-white mb-1">Loading Interactive Cash Flow Engine...</p>
-            <p class="text-xs text-slate-400">Compiling multi-strategy telemetry across Alpaca and ledger states.</p>
+        <div id="chart-wrapper" class="relative w-full h-72 sm:h-84 mt-4 bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 overflow-hidden select-none">
+          <canvas id="incomeChart" class="w-full h-full block" style="width: 100%; height: 100%; display: block; touch-action: none;"></canvas>
+          <!-- Floating Interactive Tooltip -->
+          <div id="chart-tooltip" class="pointer-events-none absolute z-20 hidden transition-opacity duration-150 bg-slate-900/95 border border-indigo-500/40 backdrop-blur-md rounded-xl p-3 shadow-2xl text-xs text-slate-200"></div>
+          <!-- Fallback Spinner (shown only while data is loading) -->
+          <div id="chart-fallback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 rounded-xl p-4 text-center z-10 pointer-events-none">
+            <div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+            <p class="text-xs font-semibold text-slate-300">Loading Cash Flow Engine...</p>
           </div>
         </div>
 
@@ -3879,22 +3882,21 @@
       renderIncomeChart();
     }
 
+    let nativeChartActiveIndex = -1;
+    let nativeChartListenersAttached = false;
+
     function renderIncomeChart() {
       if (!rawIncomeAnalytics || !rawIncomeAnalytics.dates || rawIncomeAnalytics.dates.length === 0) {
-        return;
-      }
-
-      const canvas = document.getElementById('incomeChart');
-      if (!canvas) return;
-
-      // Check Chart.js availability
-      if (typeof Chart === 'undefined') {
         const fallback = document.getElementById('chart-fallback');
         if (fallback) fallback.classList.remove('hidden');
         return;
       }
+
       const fallback = document.getElementById('chart-fallback');
       if (fallback) fallback.classList.add('hidden');
+
+      const canvas = document.getElementById('incomeChart');
+      if (!canvas) return;
 
       // 1. Slice dates based on current timeframe
       let dates = [...rawIncomeAnalytics.dates];
@@ -3911,13 +3913,34 @@
         return d;
       });
 
-      // 2. Build datasets
       const isCumulative = currentIncomeViewMode === 'cumulative';
+
+      // 2. Attempt Chart.js first if available
+      let renderedWithChartJs = false;
+      if (typeof Chart !== 'undefined') {
+        try {
+          renderWithChartJs(canvas, slicedDates, labels, startIndex, isCumulative);
+          renderedWithChartJs = true;
+        } catch (e) {
+          console.warn("Chart.js rendering failed, switching to native canvas engine:", e);
+        }
+      }
+
+      // 3. If Chart.js not loaded or threw an error, render with Native Canvas Engine
+      if (!renderedWithChartJs) {
+        if (incomeChartInstance) {
+          try { incomeChartInstance.destroy(); } catch (_) {}
+          incomeChartInstance = null;
+        }
+        renderNativeCanvasChart(canvas, slicedDates, labels, startIndex, isCumulative);
+      }
+    }
+
+    function renderWithChartJs(canvas, slicedDates, labels, startIndex, isCumulative) {
       const datasets = [];
 
       if (currentIncomeStrategy === 'all') {
         if (isCumulative) {
-          // Total Cumulative Line + Area
           const totalCum = rawIncomeAnalytics.overall_cumulative.slice(startIndex);
           datasets.push({
             label: 'Total Net Cash',
@@ -3934,7 +3957,6 @@
             order: 1
           });
 
-          // Individual strategy curves
           const strats = [
             { key: 'wheel', cfg: STRATEGY_CONFIGS.wheel },
             { key: 'spreads', cfg: STRATEGY_CONFIGS.spreads },
@@ -3959,7 +3981,6 @@
             });
           });
         } else {
-          // Stacked Bars per strategy
           const strats = [
             { key: 'wheel', cfg: STRATEGY_CONFIGS.wheel },
             { key: 'spreads', cfg: STRATEGY_CONFIGS.spreads },
@@ -3980,7 +4001,6 @@
           });
         }
       } else {
-        // Single Strategy Isolated
         const cfg = STRATEGY_CONFIGS[currentIncomeStrategy] || STRATEGY_CONFIGS.total;
         const rawSeries = isCumulative 
           ? (rawIncomeAnalytics.cumulative_by_strategy[currentIncomeStrategy] || [])
@@ -4003,7 +4023,6 @@
         });
       }
 
-      // 3. Destroy old instance if exists
       if (incomeChartInstance) {
         incomeChartInstance.destroy();
       }
@@ -4030,10 +4049,10 @@
               position: 'top',
               align: 'end',
               labels: {
-                boxWidth: 12,
-                boxHeight: 12,
+                boxWidth: 10,
+                boxHeight: 10,
                 color: '#94a3b8',
-                font: { size: 11, family: 'system-ui, sans-serif' }
+                font: { size: 10, family: 'system-ui, sans-serif' }
               }
             },
             tooltip: {
@@ -4042,7 +4061,7 @@
               bodyColor: '#e2e8f0',
               borderColor: 'rgba(99, 102, 241, 0.35)',
               borderWidth: 1,
-              padding: 12,
+              padding: 10,
               boxPadding: 4,
               callbacks: {
                 title: function(items) {
@@ -4053,7 +4072,7 @@
                 label: function(context) {
                   let val = context.raw || 0;
                   const sign = val >= 0 ? '+' : '';
-                  return ` ${context.dataset.label}: ${sign}$${val.toFixed(2)}`;
+                  return ` ${context.dataset.label}: ${sign}$${Number(val).toFixed(2)}`;
                 }
               }
             }
@@ -4061,9 +4080,9 @@
           scales: {
             x: {
               grid: {
-                color: 'rgba(255, 255, 255, 0.04)',
-                drawBorder: false
+                color: 'rgba(255, 255, 255, 0.04)'
               },
+              border: { display: false },
               ticks: {
                 color: '#64748b',
                 font: { size: 10 }
@@ -4071,14 +4090,14 @@
             },
             y: {
               grid: {
-                color: 'rgba(255, 255, 255, 0.05)',
-                drawBorder: false
+                color: 'rgba(255, 255, 255, 0.05)'
               },
+              border: { display: false },
               ticks: {
                 color: '#64748b',
                 font: { size: 10 },
                 callback: function(val) {
-                  return '$' + val;
+                  return '$' + Number(val).toLocaleString();
                 }
               }
             }
@@ -4086,6 +4105,448 @@
         }
       });
     }
+
+    // ==================== NATIVE HTML5 CANVAS ENGINE (ZERO DEPENDENCIES) ====================
+    let nativeChartState = null;
+
+    function renderNativeCanvasChart(canvas, slicedDates, labels, startIndex, isCumulative) {
+      const parent = canvas.parentElement;
+      const rect = parent ? parent.getBoundingClientRect() : canvas.getBoundingClientRect();
+      const w = Math.max(280, Math.floor(rect.width || 340));
+      const h = Math.max(240, Math.floor(rect.height || 288));
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+
+      const ctx = canvas.getContext('2d');
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+
+      const padL = 52;
+      const padR = 20;
+      const padT = 32;
+      const padB = 28;
+      const plotW = Math.max(20, w - padL - padR);
+      const plotH = Math.max(20, h - padT - padB);
+      const N = slicedDates.length;
+
+      // Extract series data
+      const totalCum = (rawIncomeAnalytics.overall_cumulative || []).slice(startIndex);
+      const totalDaily = (rawIncomeAnalytics.overall_daily || []).slice(startIndex);
+      const stratCum = {};
+      const stratDaily = {};
+      const stratKeys = ['wheel', 'bonds', 'spreads', 'crypto', 'macro_dip'];
+      stratKeys.forEach(k => {
+        stratCum[k] = (rawIncomeAnalytics.cumulative_by_strategy[k] || []).slice(startIndex);
+        stratDaily[k] = (rawIncomeAnalytics.by_strategy[k] || []).slice(startIndex);
+      });
+
+      // Calculate dynamic value limits
+      let minVal = 0;
+      let maxVal = 100;
+
+      if (isCumulative) {
+        if (currentIncomeStrategy === 'all') {
+          let allVals = [...totalCum];
+          stratKeys.forEach(k => allVals.push(...stratCum[k]));
+          minVal = Math.min(0, ...allVals);
+          maxVal = Math.max(50, ...allVals);
+        } else {
+          const vals = stratCum[currentIncomeStrategy] || [0];
+          minVal = Math.min(0, ...vals);
+          maxVal = Math.max(50, ...vals);
+        }
+        maxVal = maxVal + (maxVal - minVal) * 0.12;
+      } else {
+        // Periodic Stacked Bars
+        let maxPos = 10;
+        let minNeg = 0;
+        for (let i = 0; i < N; i++) {
+          let colPos = 0;
+          let colNeg = 0;
+          stratKeys.forEach(k => {
+            if (currentIncomeStrategy !== 'all' && currentIncomeStrategy !== k) return;
+            const v = stratDaily[k][i] || 0;
+            if (v >= 0) colPos += v;
+            else colNeg += v;
+          });
+          if (colPos > maxPos) maxPos = colPos;
+          if (colNeg < minNeg) minNeg = colNeg;
+        }
+        maxVal = maxPos * 1.15;
+        minVal = Math.min(0, minNeg * 1.15);
+      }
+
+      if (maxVal <= minVal) maxVal = minVal + 100;
+
+      const valToY = (v) => padT + plotH - ((v - minVal) / (maxVal - minVal)) * plotH;
+      const idxToX = (i) => N <= 1 ? (padL + plotW / 2) : (padL + (i / (N - 1)) * plotW);
+      const yZero = valToY(0);
+
+      // 1. Horizontal Gridlines & Y-Axis Labels
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace';
+      ctx.fillStyle = '#64748b';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+
+      const numTicks = 4;
+      for (let t = 0; t <= numTicks; t++) {
+        const tickVal = minVal + (t / numTicks) * (maxVal - minVal);
+        const y = valToY(tickVal);
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + plotW, y);
+        ctx.stroke();
+
+        const abs = Math.abs(tickVal);
+        const sign = tickVal < -0.01 ? '-' : (tickVal > 0.01 ? '+' : '');
+        let label = `${sign}$${Math.round(abs)}`;
+        if (abs >= 1000) label = `${sign}$${(abs / 1000).toFixed(1)}k`;
+        ctx.fillText(label, padL - 6, y);
+      }
+
+      // Stronger zero line
+      if (minVal < 0 && maxVal > 0) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+        ctx.lineWidth = 1.2;
+        ctx.moveTo(padL, yZero);
+        ctx.lineTo(padL + plotW, yZero);
+        ctx.stroke();
+      }
+
+      // 2. X-Axis Date Labels
+      ctx.fillStyle = '#64748b';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      const maxLabels = Math.min(6, N);
+      const step = Math.max(1, Math.ceil((N - 1) / (maxLabels - 1)));
+      for (let i = 0; i < N; i++) {
+        if (i === 0 || i === N - 1 || i % step === 0) {
+          const x = isCumulative ? idxToX(i) : (padL + (i + 0.5) * (plotW / N));
+          ctx.fillText(labels[i] || '', x, padT + plotH + 8);
+        }
+      }
+
+      // 3. Draw Plot Content
+      if (isCumulative) {
+        // Individual Strategy Dashed Lines (if "All Streams")
+        if (currentIncomeStrategy === 'all') {
+          const strats = [
+            { key: 'wheel', color: '#818cf8' },
+            { key: 'bonds', color: '#22d3ee' },
+            { key: 'spreads', color: '#c084fc' },
+            { key: 'crypto', color: '#34d399' },
+            { key: 'macro_dip', color: '#fbbf24' }
+          ];
+
+          strats.forEach(s => {
+            const vals = stratCum[s.key] || [];
+            ctx.beginPath();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = s.color;
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < N; i++) {
+              const x = idxToX(i);
+              const y = valToY(vals[i] || 0);
+              if (i === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          });
+          ctx.setLineDash([]);
+        }
+
+        // Main Target Curve (Total or Single Strategy)
+        const mainVals = currentIncomeStrategy === 'all' 
+          ? totalCum 
+          : (stratCum[currentIncomeStrategy] || []);
+        const mainColor = currentIncomeStrategy === 'all' 
+          ? '#10b981' 
+          : (STRATEGY_CONFIGS[currentIncomeStrategy] ? STRATEGY_CONFIGS[currentIncomeStrategy].borderColor : '#10b981');
+
+        if (mainVals.length > 0) {
+          const pts = mainVals.map((v, i) => ({ x: idxToX(i), y: valToY(v) }));
+
+          // Gradient Area Fill Under Curve
+          const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+          grad.addColorStop(0, currentIncomeStrategy === 'all' ? 'rgba(16, 185, 129, 0.35)' : 'rgba(99, 102, 241, 0.35)');
+          grad.addColorStop(0.75, 'rgba(16, 185, 129, 0.05)');
+          grad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, Math.min(padT + plotH, yZero));
+          ctx.lineTo(pts[0].x, pts[0].y);
+          for (let i = 0; i < pts.length - 1; i++) {
+            const cpX = (pts[i].x + pts[i + 1].x) / 2;
+            ctx.bezierCurveTo(cpX, pts[i].y, cpX, pts[i + 1].y, pts[i + 1].x, pts[i + 1].y);
+          }
+          ctx.lineTo(pts[pts.length - 1].x, Math.min(padT + plotH, yZero));
+          ctx.closePath();
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          // Smooth Stroke
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+          for (let i = 0; i < pts.length - 1; i++) {
+            const cpX = (pts[i].x + pts[i + 1].x) / 2;
+            ctx.bezierCurveTo(cpX, pts[i].y, cpX, pts[i + 1].y, pts[i + 1].x, pts[i + 1].y);
+          }
+          ctx.strokeStyle = mainColor;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          // Dots on points
+          if (N <= 16) {
+            pts.forEach(p => {
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+              ctx.fillStyle = mainColor;
+              ctx.fill();
+              ctx.strokeStyle = '#ffffff';
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+            });
+          }
+
+          // Endpoint Callout Pill
+          const lastPt = pts[pts.length - 1];
+          const lastVal = mainVals[mainVals.length - 1] || 0;
+          const pillText = `${lastVal >= 0 ? '+' : ''}$${lastVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+          ctx.font = 'bold 10px -apple-system, BlinkMacSystemFont, monospace';
+          const tW = ctx.measureText(pillText).width;
+          const pW = tW + 14;
+          const pH = 18;
+          const pX = Math.min(padL + plotW - pW, Math.max(padL, lastPt.x - pW / 2));
+          const pY = Math.max(padT + 2, lastPt.y - pH - 6);
+
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+          ctx.strokeStyle = mainColor;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(pX, pY, pW, pH, 5);
+          else ctx.rect(pX, pY, pW, pH);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#34d399';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(pillText, pX + pW / 2, pY + pH / 2);
+        }
+      } else {
+        // Periodic Stacked Bars
+        const barW = Math.max(5, Math.min(26, (plotW / N) * 0.65));
+        const stackOrder = ['bonds', 'spreads', 'macro_dip', 'wheel', 'crypto'];
+
+        for (let i = 0; i < N; i++) {
+          const colX = padL + (i + 0.5) * (plotW / N) - barW / 2;
+          let curYPos = yZero;
+          let curYNeg = yZero;
+
+          stackOrder.forEach(k => {
+            if (currentIncomeStrategy !== 'all' && currentIncomeStrategy !== k) return;
+            const v = stratDaily[k][i] || 0;
+            if (Math.abs(v) < 0.001) return;
+
+            const cfg = STRATEGY_CONFIGS[k] || STRATEGY_CONFIGS.total;
+            ctx.fillStyle = v >= 0 ? cfg.barColor : 'rgba(244, 63, 94, 0.85)';
+
+            const hVal = Math.abs(valToY(v) - yZero);
+            if (v >= 0) {
+              const yTop = curYPos - hVal;
+              ctx.beginPath();
+              if (ctx.roundRect) ctx.roundRect(colX, yTop, barW, hVal, 2);
+              else ctx.rect(colX, yTop, barW, hVal);
+              ctx.fill();
+              curYPos -= hVal;
+            } else {
+              ctx.beginPath();
+              if (ctx.roundRect) ctx.roundRect(colX, curYNeg, barW, hVal, 2);
+              else ctx.rect(colX, curYNeg, barW, hVal);
+              ctx.fill();
+              curYNeg += hVal;
+            }
+          });
+        }
+      }
+
+      // Save geometry for interactive touch/hover scrubbing
+      nativeChartState = {
+        canvas,
+        padL,
+        padR,
+        padT,
+        padB,
+        plotW,
+        plotH,
+        minVal,
+        maxVal,
+        valToY,
+        idxToX,
+        yZero,
+        slicedDates,
+        labels,
+        startIndex,
+        isCumulative,
+        totalCum,
+        totalDaily,
+        stratCum,
+        stratDaily,
+        N
+      };
+
+      // Draw active hover crosshair if present
+      if (nativeChartActiveIndex >= 0 && nativeChartActiveIndex < N) {
+        drawNativeCrosshair(ctx, nativeChartState, nativeChartActiveIndex);
+      }
+
+      // Attach interactions once
+      if (!nativeChartListenersAttached) {
+        attachNativeChartListeners(canvas);
+        nativeChartListenersAttached = true;
+      }
+    }
+
+    function drawNativeCrosshair(ctx, state, idx) {
+      const { padL, padT, plotW, plotH, idxToX, valToY, isCumulative, totalCum, currentStratVals, N } = state;
+      const x = isCumulative ? idxToX(idx) : (padL + (idx + 0.5) * (plotW / N));
+
+      // Vertical line
+      ctx.save();
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+
+      // Glowing point on curve
+      if (isCumulative && totalCum && totalCum[idx] !== undefined) {
+        const y = valToY(totalCum[idx]);
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#10b981';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function attachNativeChartListeners(canvas) {
+      const wrapper = document.getElementById('chart-wrapper') || canvas.parentElement;
+      const tooltip = document.getElementById('chart-tooltip');
+
+      const handlePointer = (e) => {
+        if (!nativeChartState) return;
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const offsetX = clientX - rect.left;
+        const offsetY = clientY - rect.top;
+
+        const { padL, plotW, N, slicedDates, isCumulative, totalCum, totalDaily, stratCum, stratDaily } = nativeChartState;
+        let idx = 0;
+        if (N > 1) {
+          const ratio = (offsetX - padL) / plotW;
+          idx = Math.max(0, Math.min(N - 1, Math.round(ratio * (N - 1))));
+        }
+
+        nativeChartActiveIndex = idx;
+        renderIncomeChart();
+
+        // Update Tooltip
+        if (tooltip && slicedDates[idx]) {
+          const dateStr = slicedDates[idx];
+          const totVal = isCumulative ? totalCum[idx] : totalDaily[idx];
+          const modeLabel = isCumulative ? 'Cumulative Total' : 'Daily Cash Flow';
+
+          let rows = [
+            { label: 'Option Wheel', val: isCumulative ? stratCum.wheel[idx] : stratDaily.wheel[idx], dot: '#818cf8' },
+            { label: 'Treasury Ballast', val: isCumulative ? stratCum.bonds[idx] : stratDaily.bonds[idx], dot: '#22d3ee' },
+            { label: 'Credit Spreads', val: isCumulative ? stratCum.spreads[idx] : stratDaily.spreads[idx], dot: '#c084fc' },
+            { label: 'Crypto Momentum', val: isCumulative ? stratCum.crypto[idx] : stratDaily.crypto[idx], dot: '#34d399' },
+            { label: 'Macro / Dip Buyer', val: isCumulative ? stratCum.macro_dip[idx] : stratDaily.macro_dip[idx], dot: '#fbbf24' }
+          ];
+
+          if (currentIncomeStrategy !== 'all') {
+            rows = rows.filter(r => {
+              if (currentIncomeStrategy === 'wheel') return r.label.includes('Wheel');
+              if (currentIncomeStrategy === 'bonds') return r.label.includes('Treasury');
+              if (currentIncomeStrategy === 'spreads') return r.label.includes('Credit');
+              if (currentIncomeStrategy === 'crypto') return r.label.includes('Crypto');
+              if (currentIncomeStrategy === 'macro_dip') return r.label.includes('Macro');
+              return true;
+            });
+          }
+
+          tooltip.innerHTML = `
+            <div class="flex items-center justify-between gap-3 pb-1 mb-1.5 border-b border-slate-700/80">
+              <span class="font-bold text-white">${dateStr}</span>
+              <span class="font-mono font-bold text-emerald-400">${totVal >= 0 ? '+' : ''}$${(totVal || 0).toFixed(2)}</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mb-1">${modeLabel}</div>
+            <div class="space-y-1">
+              ${rows.map(r => `
+                <div class="flex items-center justify-between gap-3 text-[11px]">
+                  <span class="flex items-center gap-1.5 text-slate-300">
+                    <span class="w-2 h-2 rounded-full" style="background-color: ${r.dot}"></span>
+                    ${r.label}
+                  </span>
+                  <span class="font-mono font-medium ${r.val >= 0 ? 'text-slate-200' : 'text-rose-400'}">
+                    ${r.val >= 0 ? '+' : ''}$${(r.val || 0).toFixed(2)}
+                  </span>
+                </div>
+              `).join('')}
+            </div>
+          `;
+
+          // Clamp tooltip position inside wrapper
+          const wRect = wrapper.getBoundingClientRect();
+          let left = offsetX + 14;
+          if (left + 175 > wRect.width) left = offsetX - 185;
+          let top = Math.max(10, Math.min(wRect.height - 130, offsetY - 40));
+
+          tooltip.style.left = `${Math.max(8, left)}px`;
+          tooltip.style.top = `${top}px`;
+          tooltip.classList.remove('hidden');
+        }
+      };
+
+      const handlePointerLeave = () => {
+        nativeChartActiveIndex = -1;
+        if (tooltip) tooltip.classList.add('hidden');
+        renderIncomeChart();
+      };
+
+      canvas.addEventListener('pointermove', handlePointer);
+      canvas.addEventListener('pointerdown', handlePointer);
+      canvas.addEventListener('pointerleave', handlePointerLeave);
+      canvas.addEventListener('touchmove', handlePointer, { passive: true });
+      canvas.addEventListener('touchend', handlePointerLeave);
+    }
+
+    // Auto-resize listener for responsive charts
+    window.addEventListener('resize', () => {
+      if (typeof renderIncomeChart === 'function') {
+        renderIncomeChart();
+      }
+    });
 
     // Live Feed Synchronization
     async function refreshData() {

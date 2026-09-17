@@ -37,3 +37,4 @@ autotrader_err.log
 bin/
 *.pid
 public_dashboard_url.txt
+scratch/
