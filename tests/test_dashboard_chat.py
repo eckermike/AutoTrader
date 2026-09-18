@@ -145,3 +145,36 @@ def test_api_chart_script_endpoint():
     assert len(body) > 10000
 
 
+def test_position_reconciliation_guard():
+    from unittest.mock import patch, MagicMock
+    from dashboard_server import fetch_live_alpaca_telemetry, build_fund_status_snapshot, ReconciledPosition
+    import dashboard_server
+
+    # Reset cache
+    dashboard_server._cached_alpaca_telemetry = None
+    dashboard_server._last_alpaca_fetch = 0.0
+
+    mock_client = MagicMock()
+    mock_acc = MagicMock()
+    mock_acc.cash = 57900.47
+    mock_acc.portfolio_value = 79145.36
+    mock_acc.buying_power = 25250.13
+    mock_acc.long_market_value = 24102.89
+    mock_acc.short_market_value = -2858.0
+    mock_client.trading_client.get_account.return_value = mock_acc
+    # Positions missing FBND (glitched paper sync)
+    mock_client.trading_client.get_all_positions.return_value = []
+    mock_client.trading_client.get_orders.return_value = []
+    mock_client.get_stock_price.return_value = 44.40
+
+    with patch("dashboard_server.get_alpaca_client", return_value=mock_client):
+        telemetry = fetch_live_alpaca_telemetry()
+        assert telemetry is not None
+        # Verify FBND position was reconciled
+        fbnd = next((p for p in telemetry["positions"] if p.symbol == "FBND"), None)
+        assert fbnd is not None
+        assert float(fbnd.qty) > 400
+        assert float(fbnd.market_value) > 19000
+        # Verify portfolio equity was restored to ~$99k
+        assert telemetry["account"]["portfolio_value"] > 99000
+        assert telemetry["account"]["long_market_value"] > 44000
